@@ -1,5 +1,5 @@
-/* eslint-disable */
 // @ts-nocheck
+/* eslint-disable */
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -686,168 +686,2083 @@ export type ViewerMutations = AuthenticatedViewerMutations | UnauthenticatedView
 
 export type ViewerQueries = AuthenticatedViewerQueries | UnauthenticatedViewer;
 
-export type AccountFieldsFragment = { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null };
+export type AccountFieldsFragment = {
+  __typename: 'Account',
+  id: string,
+  email: string,
+  stripeCustomerId?: string | null
+};
 
-export type ActivityFieldsFragment = { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } };
+export type ActivityFieldsFragment = {
+  __typename: 'Activity',
+  sourceId: string,
+  source: ActivitySource,
+  name: string,
+  description?: string | null,
+  websiteUri?: string | null,
+  doorTips?: string | null,
+  insiderTips?: string | null,
+  parkingTips?: string | null,
+  primaryTypeName?: string | null,
+  categoryGroup?: {
+    __typename: 'ActivityCategoryGroup',
+    id: string,
+    name: string,
+    activityCategories: Array<{
+      __typename: 'ActivityCategory',
+      id: string,
+      name: string,
+      isDefault: boolean
+    }>
+  } | null,
+  ticketInfo?: {
+    __typename: 'TicketInfo',
+    name?: string | null,
+    notes?: string | null,
+    costBreakdown: {
+      __typename: 'CostBreakdown',
+      baseCostCents: number,
+      feeCents: number,
+      taxCents: number,
+      totalCostCents: number
+    }
+  } | null,
+  venue: {
+    __typename: 'ActivityVenue',
+    name: string,
+    location: {
+      __typename: 'Location',
+      directionsUri?: string | null,
+      coordinates: {
+        __typename: 'GeoPoint',
+        lat: number,
+        lon: number
+      },
+      address: {
+        __typename: 'Address',
+        address1?: string | null,
+        address2?: string | null,
+        city?: string | null,
+        state?: string | null,
+        zipCode?: string | null,
+        country?: string | null,
+        formattedMultiline: string,
+        formattedSingleline: string
+      },
+      searchRegion: {
+        __typename: 'SearchRegion',
+        id: string,
+        name: string
+      }
+    }
+  },
+  photos: {
+    __typename: 'Photos',
+    coverPhoto?: {
+      __typename: 'Photo',
+      id: string,
+      src: string,
+      alt?: string | null,
+      attributions: Array<string>
+    } | null,
+    supplementalPhotos: Array<{
+      __typename: 'Photo',
+      id: string,
+      src: string,
+      alt?: string | null,
+      attributions: Array<string>
+    }>
+  }
+};
 
-export type ActivityPlanFieldsFragment = { __typename: 'ActivityPlan', startTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } };
+export type ActivityPlanFieldsFragment = {
+  __typename: 'ActivityPlan',
+  startTime: string,
+  headcount: number,
+  costBreakdown: {
+    __typename: 'CostBreakdown',
+    baseCostCents: number,
+    feeCents: number,
+    taxCents: number,
+    totalCostCents: number
+  },
+  activity: {
+    __typename: 'Activity',
+    sourceId: string,
+    source: ActivitySource,
+    name: string,
+    description?: string | null,
+    websiteUri?: string | null,
+    doorTips?: string | null,
+    insiderTips?: string | null,
+    parkingTips?: string | null,
+    primaryTypeName?: string | null,
+    categoryGroup?: {
+      __typename: 'ActivityCategoryGroup',
+      id: string,
+      name: string,
+      activityCategories: Array<{
+        __typename: 'ActivityCategory',
+        id: string,
+        name: string,
+        isDefault: boolean
+      }>
+    } | null,
+    ticketInfo?: {
+      __typename: 'TicketInfo',
+      name?: string | null,
+      notes?: string | null,
+      costBreakdown: {
+        __typename: 'CostBreakdown',
+        baseCostCents: number,
+        feeCents: number,
+        taxCents: number,
+        totalCostCents: number
+      }
+    } | null,
+    venue: {
+      __typename: 'ActivityVenue',
+      name: string,
+      location: {
+        __typename: 'Location',
+        directionsUri?: string | null,
+        coordinates: {
+          __typename: 'GeoPoint',
+          lat: number,
+          lon: number
+        },
+        address: {
+          __typename: 'Address',
+          address1?: string | null,
+          address2?: string | null,
+          city?: string | null,
+          state?: string | null,
+          zipCode?: string | null,
+          country?: string | null,
+          formattedMultiline: string,
+          formattedSingleline: string
+        },
+        searchRegion: {
+          __typename: 'SearchRegion',
+          id: string,
+          name: string
+        }
+      }
+    },
+    photos: {
+      __typename: 'Photos',
+      coverPhoto?: {
+        __typename: 'Photo',
+        id: string,
+        src: string,
+        alt?: string | null,
+        attributions: Array<string>
+      } | null,
+      supplementalPhotos: Array<{
+        __typename: 'Photo',
+        id: string,
+        src: string,
+        alt?: string | null,
+        attributions: Array<string>
+      }>
+    }
+  }
+};
 
-export type AddressFieldsFragment = { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string };
+export type AddressFieldsFragment = {
+  __typename: 'Address',
+  address1?: string | null,
+  address2?: string | null,
+  city?: string | null,
+  state?: string | null,
+  zipCode?: string | null,
+  country?: string | null,
+  formattedMultiline: string,
+  formattedSingleline: string
+};
 
-export type BookingFieldsFragment = { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null };
+export type BookingFieldsFragment = {
+  __typename: 'Booking',
+  id: string,
+  state: BookingState,
+  reserverDetails?: {
+    __typename: 'ReserverDetails',
+    id: string,
+    firstName: string,
+    lastName: string,
+    phoneNumber: string
+  } | null
+};
 
-export type BookingDetailsPeekFieldsFragment = { __typename: 'BookingDetailsPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null, state: BookingState };
+export type BookingDetailsPeekFieldsFragment = {
+  __typename: 'BookingDetailsPeek',
+  id: string,
+  activityStartTime?: string | null,
+  restaurantArrivalTime?: string | null,
+  activityName?: string | null,
+  restaurantName?: string | null,
+  photoUri?: string | null,
+  state: BookingState
+};
 
-export type ActivityCategoryFieldsFragment = { __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean };
+export type ActivityCategoryFieldsFragment = {
+  __typename: 'ActivityCategory',
+  id: string,
+  name: string,
+  isDefault: boolean
+};
 
-export type ActivityCategoryGroupFieldsFragment = { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> };
+export type ActivityCategoryGroupFieldsFragment = {
+  __typename: 'ActivityCategoryGroup',
+  id: string,
+  name: string,
+  activityCategories: Array<{
+    __typename: 'ActivityCategory',
+    id: string,
+    name: string,
+    isDefault: boolean
+  }>
+};
 
-export type RestaurantCategoryFieldsFragment = { __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean };
+export type RestaurantCategoryFieldsFragment = {
+  __typename: 'RestaurantCategory',
+  id: string,
+  name: string,
+  isDefault: boolean
+};
 
-export type CostBreakdownFieldsFragment = { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number };
+export type CostBreakdownFieldsFragment = {
+  __typename: 'CostBreakdown',
+  baseCostCents: number,
+  feeCents: number,
+  taxCents: number,
+  totalCostCents: number
+};
 
-export type CustomerSessionFieldsFragment = { __typename: 'CustomerSession', clientSecret: string };
+export type CustomerSessionFieldsFragment = {
+  __typename: 'CustomerSession',
+  clientSecret: string
+};
 
-type ItineraryFields_BookingDetails_Fragment = { __typename: 'BookingDetails', id: string, startTime: string, headcount: number, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }>, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activityPlan?: { __typename: 'ActivityPlan', startTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, reservation?: { __typename: 'Reservation', arrivalTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, restaurant: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null };
+type ItineraryFields_BookingDetails_Fragment = {
+  __typename: 'BookingDetails',
+  id: string,
+  startTime: string,
+  headcount: number,
+  survey?: {
+    __typename: 'Survey',
+    id: string,
+    budget: OutingBudget,
+    headcount: number,
+    startTime: string,
+    searchRegions: Array<{
+      __typename: 'SearchRegion',
+      id: string,
+      name: string
+    }>
+  } | null,
+  searchRegions: Array<{
+    __typename: 'SearchRegion',
+    id: string,
+    name: string
+  }>,
+  costBreakdown: {
+    __typename: 'CostBreakdown',
+    baseCostCents: number,
+    feeCents: number,
+    taxCents: number,
+    totalCostCents: number
+  },
+  activityPlan?: {
+    __typename: 'ActivityPlan',
+    startTime: string,
+    headcount: number,
+    costBreakdown: {
+      __typename: 'CostBreakdown',
+      baseCostCents: number,
+      feeCents: number,
+      taxCents: number,
+      totalCostCents: number
+    },
+    activity: {
+      __typename: 'Activity',
+      sourceId: string,
+      source: ActivitySource,
+      name: string,
+      description?: string | null,
+      websiteUri?: string | null,
+      doorTips?: string | null,
+      insiderTips?: string | null,
+      parkingTips?: string | null,
+      primaryTypeName?: string | null,
+      categoryGroup?: {
+        __typename: 'ActivityCategoryGroup',
+        id: string,
+        name: string,
+        activityCategories: Array<{
+          __typename: 'ActivityCategory',
+          id: string,
+          name: string,
+          isDefault: boolean
+        }>
+      } | null,
+      ticketInfo?: {
+        __typename: 'TicketInfo',
+        name?: string | null,
+        notes?: string | null,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        }
+      } | null,
+      venue: {
+        __typename: 'ActivityVenue',
+        name: string,
+        location: {
+          __typename: 'Location',
+          directionsUri?: string | null,
+          coordinates: {
+            __typename: 'GeoPoint',
+            lat: number,
+            lon: number
+          },
+          address: {
+            __typename: 'Address',
+            address1?: string | null,
+            address2?: string | null,
+            city?: string | null,
+            state?: string | null,
+            zipCode?: string | null,
+            country?: string | null,
+            formattedMultiline: string,
+            formattedSingleline: string
+          },
+          searchRegion: {
+            __typename: 'SearchRegion',
+            id: string,
+            name: string
+          }
+        }
+      },
+      photos: {
+        __typename: 'Photos',
+        coverPhoto?: {
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        } | null,
+        supplementalPhotos: Array<{
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        }>
+      }
+    }
+  } | null,
+  reservation?: {
+    __typename: 'Reservation',
+    arrivalTime: string,
+    headcount: number,
+    costBreakdown: {
+      __typename: 'CostBreakdown',
+      baseCostCents: number,
+      feeCents: number,
+      taxCents: number,
+      totalCostCents: number
+    },
+    restaurant: {
+      __typename: 'Restaurant',
+      sourceId: string,
+      source: RestaurantSource,
+      name: string,
+      reservable: boolean,
+      rating: number,
+      primaryTypeName: string,
+      websiteUri?: string | null,
+      description: string,
+      parkingTips?: string | null,
+      customerFavorites?: string | null,
+      location: {
+        __typename: 'Location',
+        directionsUri?: string | null,
+        coordinates: {
+          __typename: 'GeoPoint',
+          lat: number,
+          lon: number
+        },
+        address: {
+          __typename: 'Address',
+          address1?: string | null,
+          address2?: string | null,
+          city?: string | null,
+          state?: string | null,
+          zipCode?: string | null,
+          country?: string | null,
+          formattedMultiline: string,
+          formattedSingleline: string
+        },
+        searchRegion: {
+          __typename: 'SearchRegion',
+          id: string,
+          name: string
+        }
+      },
+      photos: {
+        __typename: 'Photos',
+        coverPhoto?: {
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        } | null,
+        supplementalPhotos: Array<{
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        }>
+      }
+    }
+  } | null
+};
 
-type ItineraryFields_Outing_Fragment = { __typename: 'Outing', id: string, startTime: string, headcount: number, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }>, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activityPlan?: { __typename: 'ActivityPlan', startTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, reservation?: { __typename: 'Reservation', arrivalTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, restaurant: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null };
+type ItineraryFields_Outing_Fragment = {
+  __typename: 'Outing',
+  id: string,
+  startTime: string,
+  headcount: number,
+  survey?: {
+    __typename: 'Survey',
+    id: string,
+    budget: OutingBudget,
+    headcount: number,
+    startTime: string,
+    searchRegions: Array<{
+      __typename: 'SearchRegion',
+      id: string,
+      name: string
+    }>
+  } | null,
+  searchRegions: Array<{
+    __typename: 'SearchRegion',
+    id: string,
+    name: string
+  }>,
+  costBreakdown: {
+    __typename: 'CostBreakdown',
+    baseCostCents: number,
+    feeCents: number,
+    taxCents: number,
+    totalCostCents: number
+  },
+  activityPlan?: {
+    __typename: 'ActivityPlan',
+    startTime: string,
+    headcount: number,
+    costBreakdown: {
+      __typename: 'CostBreakdown',
+      baseCostCents: number,
+      feeCents: number,
+      taxCents: number,
+      totalCostCents: number
+    },
+    activity: {
+      __typename: 'Activity',
+      sourceId: string,
+      source: ActivitySource,
+      name: string,
+      description?: string | null,
+      websiteUri?: string | null,
+      doorTips?: string | null,
+      insiderTips?: string | null,
+      parkingTips?: string | null,
+      primaryTypeName?: string | null,
+      categoryGroup?: {
+        __typename: 'ActivityCategoryGroup',
+        id: string,
+        name: string,
+        activityCategories: Array<{
+          __typename: 'ActivityCategory',
+          id: string,
+          name: string,
+          isDefault: boolean
+        }>
+      } | null,
+      ticketInfo?: {
+        __typename: 'TicketInfo',
+        name?: string | null,
+        notes?: string | null,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        }
+      } | null,
+      venue: {
+        __typename: 'ActivityVenue',
+        name: string,
+        location: {
+          __typename: 'Location',
+          directionsUri?: string | null,
+          coordinates: {
+            __typename: 'GeoPoint',
+            lat: number,
+            lon: number
+          },
+          address: {
+            __typename: 'Address',
+            address1?: string | null,
+            address2?: string | null,
+            city?: string | null,
+            state?: string | null,
+            zipCode?: string | null,
+            country?: string | null,
+            formattedMultiline: string,
+            formattedSingleline: string
+          },
+          searchRegion: {
+            __typename: 'SearchRegion',
+            id: string,
+            name: string
+          }
+        }
+      },
+      photos: {
+        __typename: 'Photos',
+        coverPhoto?: {
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        } | null,
+        supplementalPhotos: Array<{
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        }>
+      }
+    }
+  } | null,
+  reservation?: {
+    __typename: 'Reservation',
+    arrivalTime: string,
+    headcount: number,
+    costBreakdown: {
+      __typename: 'CostBreakdown',
+      baseCostCents: number,
+      feeCents: number,
+      taxCents: number,
+      totalCostCents: number
+    },
+    restaurant: {
+      __typename: 'Restaurant',
+      sourceId: string,
+      source: RestaurantSource,
+      name: string,
+      reservable: boolean,
+      rating: number,
+      primaryTypeName: string,
+      websiteUri?: string | null,
+      description: string,
+      parkingTips?: string | null,
+      customerFavorites?: string | null,
+      location: {
+        __typename: 'Location',
+        directionsUri?: string | null,
+        coordinates: {
+          __typename: 'GeoPoint',
+          lat: number,
+          lon: number
+        },
+        address: {
+          __typename: 'Address',
+          address1?: string | null,
+          address2?: string | null,
+          city?: string | null,
+          state?: string | null,
+          zipCode?: string | null,
+          country?: string | null,
+          formattedMultiline: string,
+          formattedSingleline: string
+        },
+        searchRegion: {
+          __typename: 'SearchRegion',
+          id: string,
+          name: string
+        }
+      },
+      photos: {
+        __typename: 'Photos',
+        coverPhoto?: {
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        } | null,
+        supplementalPhotos: Array<{
+          __typename: 'Photo',
+          id: string,
+          src: string,
+          alt?: string | null,
+          attributions: Array<string>
+        }>
+      }
+    }
+  } | null
+};
 
 export type ItineraryFieldsFragment = ItineraryFields_BookingDetails_Fragment | ItineraryFields_Outing_Fragment;
 
-type TravelFields_BookingDetails_Fragment = { __typename: 'BookingDetails', travel?: { __typename: 'TravelInfo', durationText: string, distanceText: string } | null };
+type TravelFields_BookingDetails_Fragment = {
+  __typename: 'BookingDetails',
+  travel?: {
+    __typename: 'TravelInfo',
+    durationText: string,
+    distanceText: string
+  } | null
+};
 
-type TravelFields_Outing_Fragment = { __typename: 'Outing', travel?: { __typename: 'TravelInfo', durationText: string, distanceText: string } | null };
+type TravelFields_Outing_Fragment = {
+  __typename: 'Outing',
+  travel?: {
+    __typename: 'TravelInfo',
+    durationText: string,
+    distanceText: string
+  } | null
+};
 
 export type TravelFieldsFragment = TravelFields_BookingDetails_Fragment | TravelFields_Outing_Fragment;
 
-export type LocationFieldsFragment = { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } };
+export type LocationFieldsFragment = {
+  __typename: 'Location',
+  directionsUri?: string | null,
+  coordinates: {
+    __typename: 'GeoPoint',
+    lat: number,
+    lon: number
+  },
+  address: {
+    __typename: 'Address',
+    address1?: string | null,
+    address2?: string | null,
+    city?: string | null,
+    state?: string | null,
+    zipCode?: string | null,
+    country?: string | null,
+    formattedMultiline: string,
+    formattedSingleline: string
+  },
+  searchRegion: {
+    __typename: 'SearchRegion',
+    id: string,
+    name: string
+  }
+};
 
-export type OutingPreferencesFieldsFragment = { __typename: 'OutingPreferences', restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null };
+export type OutingPreferencesFieldsFragment = {
+  __typename: 'OutingPreferences',
+  restaurantCategories?: Array<{
+    __typename: 'RestaurantCategory',
+    id: string,
+    name: string,
+    isDefault: boolean
+  }> | null,
+  activityCategories?: Array<{
+    __typename: 'ActivityCategory',
+    id: string,
+    name: string,
+    isDefault: boolean
+  }> | null
+};
 
-export type PaymentIntentFieldsFragment = { __typename: 'PaymentIntent', id: string, clientSecret: string };
+export type PaymentIntentFieldsFragment = {
+  __typename: 'PaymentIntent',
+  id: string,
+  clientSecret: string
+};
 
-export type PaymentMethodFieldsFragment = { __typename: 'PaymentMethod', id: string, card?: { __typename: 'PaymentCard', brand: string, last4: string, expMonth: number, expYear: number } | null };
+export type PaymentMethodFieldsFragment = {
+  __typename: 'PaymentMethod',
+  id: string,
+  card?: {
+    __typename: 'PaymentCard',
+    brand: string,
+    last4: string,
+    expMonth: number,
+    expYear: number
+  } | null
+};
 
-export type PhotosFieldsFragment = { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> };
+export type PhotosFieldsFragment = {
+  __typename: 'Photos',
+  coverPhoto?: {
+    __typename: 'Photo',
+    id: string,
+    src: string,
+    alt?: string | null,
+    attributions: Array<string>
+  } | null,
+  supplementalPhotos: Array<{
+    __typename: 'Photo',
+    id: string,
+    src: string,
+    alt?: string | null,
+    attributions: Array<string>
+  }>
+};
 
-export type PhotoFieldsFragment = { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> };
+export type PhotoFieldsFragment = {
+  __typename: 'Photo',
+  id: string,
+  src: string,
+  alt?: string | null,
+  attributions: Array<string>
+};
 
-export type ReservationFieldsFragment = { __typename: 'Reservation', arrivalTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, restaurant: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } };
+export type ReservationFieldsFragment = {
+  __typename: 'Reservation',
+  arrivalTime: string,
+  headcount: number,
+  costBreakdown: {
+    __typename: 'CostBreakdown',
+    baseCostCents: number,
+    feeCents: number,
+    taxCents: number,
+    totalCostCents: number
+  },
+  restaurant: {
+    __typename: 'Restaurant',
+    sourceId: string,
+    source: RestaurantSource,
+    name: string,
+    reservable: boolean,
+    rating: number,
+    primaryTypeName: string,
+    websiteUri?: string | null,
+    description: string,
+    parkingTips?: string | null,
+    customerFavorites?: string | null,
+    location: {
+      __typename: 'Location',
+      directionsUri?: string | null,
+      coordinates: {
+        __typename: 'GeoPoint',
+        lat: number,
+        lon: number
+      },
+      address: {
+        __typename: 'Address',
+        address1?: string | null,
+        address2?: string | null,
+        city?: string | null,
+        state?: string | null,
+        zipCode?: string | null,
+        country?: string | null,
+        formattedMultiline: string,
+        formattedSingleline: string
+      },
+      searchRegion: {
+        __typename: 'SearchRegion',
+        id: string,
+        name: string
+      }
+    },
+    photos: {
+      __typename: 'Photos',
+      coverPhoto?: {
+        __typename: 'Photo',
+        id: string,
+        src: string,
+        alt?: string | null,
+        attributions: Array<string>
+      } | null,
+      supplementalPhotos: Array<{
+        __typename: 'Photo',
+        id: string,
+        src: string,
+        alt?: string | null,
+        attributions: Array<string>
+      }>
+    }
+  }
+};
 
-export type ReserverDetailsFieldsFragment = { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string };
+export type ReserverDetailsFieldsFragment = {
+  __typename: 'ReserverDetails',
+  id: string,
+  firstName: string,
+  lastName: string,
+  phoneNumber: string
+};
 
-export type SearchRegionFieldsFragment = { __typename: 'SearchRegion', id: string, name: string };
+export type SearchRegionFieldsFragment = {
+  __typename: 'SearchRegion',
+  id: string,
+  name: string
+};
 
-export type SurveyFieldsFragment = { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> };
+export type SurveyFieldsFragment = {
+  __typename: 'Survey',
+  id: string,
+  budget: OutingBudget,
+  headcount: number,
+  startTime: string,
+  searchRegions: Array<{
+    __typename: 'SearchRegion',
+    id: string,
+    name: string
+  }>
+};
 
 export type ConfirmBookingMutationVariables = Exact<{
   input: ConfirmBookingInput;
 }>;
 
 
-export type ConfirmBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', confirmBooking: { __typename: 'ConfirmBookingFailure', failureReason: ConfirmBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'ConfirmBookingSuccess', booking: { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type ConfirmBookingMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    confirmBooking: {
+      __typename: 'ConfirmBookingFailure',
+      failureReason: ConfirmBookingFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'ConfirmBookingSuccess',
+      booking: {
+        __typename: 'Booking',
+        id: string,
+        state: BookingState,
+        reserverDetails?: {
+          __typename: 'ReserverDetails',
+          id: string,
+          firstName: string,
+          lastName: string,
+          phoneNumber: string
+        } | null
+      }
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type CreateAccountMutationVariables = Exact<{
   input: CreateAccountInput;
 }>;
 
 
-export type CreateAccountMutation = { __typename: 'Mutation', createAccount: { __typename: 'CreateAccountFailure', failureReason: CreateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateAccountSuccess', account: { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null } } };
+export type CreateAccountMutation = {
+  __typename: 'Mutation',
+  createAccount: {
+    __typename: 'CreateAccountFailure',
+    failureReason: CreateAccountFailureReason,
+    validationErrors?: Array<{
+      __typename: 'ValidationError',
+      field: string
+    }> | null
+  } | {
+    __typename: 'CreateAccountSuccess',
+    account: {
+      __typename: 'Account',
+      id: string,
+      email: string,
+      stripeCustomerId?: string | null
+    }
+  }
+};
 
 export type InitiateBookingMutationVariables = Exact<{
   input: InitiateBookingInput;
 }>;
 
 
-export type InitiateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', initiateBooking: { __typename: 'InitiateBookingFailure', failureReason: InitiateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'InitiateBookingSuccess', booking: { __typename: 'BookingDetails', id: string, startTime: string, headcount: number, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }>, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activityPlan?: { __typename: 'ActivityPlan', startTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, reservation?: { __typename: 'Reservation', arrivalTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, restaurant: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null }, paymentIntent?: { __typename: 'PaymentIntent', id: string, clientSecret: string } | null, customerSession?: { __typename: 'CustomerSession', clientSecret: string } | null } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type InitiateBookingMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    initiateBooking: {
+      __typename: 'InitiateBookingFailure',
+      failureReason: InitiateBookingFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'InitiateBookingSuccess',
+      booking: {
+        __typename: 'BookingDetails',
+        id: string,
+        startTime: string,
+        headcount: number,
+        survey?: {
+          __typename: 'Survey',
+          id: string,
+          budget: OutingBudget,
+          headcount: number,
+          startTime: string,
+          searchRegions: Array<{
+            __typename: 'SearchRegion',
+            id: string,
+            name: string
+          }>
+        } | null,
+        searchRegions: Array<{
+          __typename: 'SearchRegion',
+          id: string,
+          name: string
+        }>,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        },
+        activityPlan?: {
+          __typename: 'ActivityPlan',
+          startTime: string,
+          headcount: number,
+          costBreakdown: {
+            __typename: 'CostBreakdown',
+            baseCostCents: number,
+            feeCents: number,
+            taxCents: number,
+            totalCostCents: number
+          },
+          activity: {
+            __typename: 'Activity',
+            sourceId: string,
+            source: ActivitySource,
+            name: string,
+            description?: string | null,
+            websiteUri?: string | null,
+            doorTips?: string | null,
+            insiderTips?: string | null,
+            parkingTips?: string | null,
+            primaryTypeName?: string | null,
+            categoryGroup?: {
+              __typename: 'ActivityCategoryGroup',
+              id: string,
+              name: string,
+              activityCategories: Array<{
+                __typename: 'ActivityCategory',
+                id: string,
+                name: string,
+                isDefault: boolean
+              }>
+            } | null,
+            ticketInfo?: {
+              __typename: 'TicketInfo',
+              name?: string | null,
+              notes?: string | null,
+              costBreakdown: {
+                __typename: 'CostBreakdown',
+                baseCostCents: number,
+                feeCents: number,
+                taxCents: number,
+                totalCostCents: number
+              }
+            } | null,
+            venue: {
+              __typename: 'ActivityVenue',
+              name: string,
+              location: {
+                __typename: 'Location',
+                directionsUri?: string | null,
+                coordinates: {
+                  __typename: 'GeoPoint',
+                  lat: number,
+                  lon: number
+                },
+                address: {
+                  __typename: 'Address',
+                  address1?: string | null,
+                  address2?: string | null,
+                  city?: string | null,
+                  state?: string | null,
+                  zipCode?: string | null,
+                  country?: string | null,
+                  formattedMultiline: string,
+                  formattedSingleline: string
+                },
+                searchRegion: {
+                  __typename: 'SearchRegion',
+                  id: string,
+                  name: string
+                }
+              }
+            },
+            photos: {
+              __typename: 'Photos',
+              coverPhoto?: {
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              } | null,
+              supplementalPhotos: Array<{
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              }>
+            }
+          }
+        } | null,
+        reservation?: {
+          __typename: 'Reservation',
+          arrivalTime: string,
+          headcount: number,
+          costBreakdown: {
+            __typename: 'CostBreakdown',
+            baseCostCents: number,
+            feeCents: number,
+            taxCents: number,
+            totalCostCents: number
+          },
+          restaurant: {
+            __typename: 'Restaurant',
+            sourceId: string,
+            source: RestaurantSource,
+            name: string,
+            reservable: boolean,
+            rating: number,
+            primaryTypeName: string,
+            websiteUri?: string | null,
+            description: string,
+            parkingTips?: string | null,
+            customerFavorites?: string | null,
+            location: {
+              __typename: 'Location',
+              directionsUri?: string | null,
+              coordinates: {
+                __typename: 'GeoPoint',
+                lat: number,
+                lon: number
+              },
+              address: {
+                __typename: 'Address',
+                address1?: string | null,
+                address2?: string | null,
+                city?: string | null,
+                state?: string | null,
+                zipCode?: string | null,
+                country?: string | null,
+                formattedMultiline: string,
+                formattedSingleline: string
+              },
+              searchRegion: {
+                __typename: 'SearchRegion',
+                id: string,
+                name: string
+              }
+            },
+            photos: {
+              __typename: 'Photos',
+              coverPhoto?: {
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              } | null,
+              supplementalPhotos: Array<{
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              }>
+            }
+          }
+        } | null
+      },
+      paymentIntent?: {
+        __typename: 'PaymentIntent',
+        id: string,
+        clientSecret: string
+      } | null,
+      customerSession?: {
+        __typename: 'CustomerSession',
+        clientSecret: string
+      } | null
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
 }>;
 
 
-export type LoginMutation = { __typename: 'Mutation', login: { __typename: 'LoginFailure', failureReason: LoginFailureReason } | { __typename: 'LoginSuccess', account: { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null } } };
+export type LoginMutation = {
+  __typename: 'Mutation',
+  login: {
+    __typename: 'LoginFailure',
+    failureReason: LoginFailureReason
+  } | {
+    __typename: 'LoginSuccess',
+    account: {
+      __typename: 'Account',
+      id: string,
+      email: string,
+      stripeCustomerId?: string | null
+    }
+  }
+};
 
 export type PlanOutingMutationVariables = Exact<{
   input: PlanOutingInput;
 }>;
 
 
-export type PlanOutingMutation = { __typename: 'Mutation', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, startTime: string, headcount: number, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }>, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activityPlan?: { __typename: 'ActivityPlan', startTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, reservation?: { __typename: 'Reservation', arrivalTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, restaurant: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, travel?: { __typename: 'TravelInfo', durationText: string, distanceText: string } | null } } };
+export type PlanOutingMutation = {
+  __typename: 'Mutation',
+  planOuting: {
+    __typename: 'PlanOutingFailure',
+    failureReason: PlanOutingFailureReason
+  } | {
+    __typename: 'PlanOutingSuccess',
+    outing: {
+      __typename: 'Outing',
+      id: string,
+      startTime: string,
+      headcount: number,
+      survey?: {
+        __typename: 'Survey',
+        id: string,
+        budget: OutingBudget,
+        headcount: number,
+        startTime: string,
+        searchRegions: Array<{
+          __typename: 'SearchRegion',
+          id: string,
+          name: string
+        }>
+      } | null,
+      searchRegions: Array<{
+        __typename: 'SearchRegion',
+        id: string,
+        name: string
+      }>,
+      costBreakdown: {
+        __typename: 'CostBreakdown',
+        baseCostCents: number,
+        feeCents: number,
+        taxCents: number,
+        totalCostCents: number
+      },
+      activityPlan?: {
+        __typename: 'ActivityPlan',
+        startTime: string,
+        headcount: number,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        },
+        activity: {
+          __typename: 'Activity',
+          sourceId: string,
+          source: ActivitySource,
+          name: string,
+          description?: string | null,
+          websiteUri?: string | null,
+          doorTips?: string | null,
+          insiderTips?: string | null,
+          parkingTips?: string | null,
+          primaryTypeName?: string | null,
+          categoryGroup?: {
+            __typename: 'ActivityCategoryGroup',
+            id: string,
+            name: string,
+            activityCategories: Array<{
+              __typename: 'ActivityCategory',
+              id: string,
+              name: string,
+              isDefault: boolean
+            }>
+          } | null,
+          ticketInfo?: {
+            __typename: 'TicketInfo',
+            name?: string | null,
+            notes?: string | null,
+            costBreakdown: {
+              __typename: 'CostBreakdown',
+              baseCostCents: number,
+              feeCents: number,
+              taxCents: number,
+              totalCostCents: number
+            }
+          } | null,
+          venue: {
+            __typename: 'ActivityVenue',
+            name: string,
+            location: {
+              __typename: 'Location',
+              directionsUri?: string | null,
+              coordinates: {
+                __typename: 'GeoPoint',
+                lat: number,
+                lon: number
+              },
+              address: {
+                __typename: 'Address',
+                address1?: string | null,
+                address2?: string | null,
+                city?: string | null,
+                state?: string | null,
+                zipCode?: string | null,
+                country?: string | null,
+                formattedMultiline: string,
+                formattedSingleline: string
+              },
+              searchRegion: {
+                __typename: 'SearchRegion',
+                id: string,
+                name: string
+              }
+            }
+          },
+          photos: {
+            __typename: 'Photos',
+            coverPhoto?: {
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            } | null,
+            supplementalPhotos: Array<{
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            }>
+          }
+        }
+      } | null,
+      reservation?: {
+        __typename: 'Reservation',
+        arrivalTime: string,
+        headcount: number,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        },
+        restaurant: {
+          __typename: 'Restaurant',
+          sourceId: string,
+          source: RestaurantSource,
+          name: string,
+          reservable: boolean,
+          rating: number,
+          primaryTypeName: string,
+          websiteUri?: string | null,
+          description: string,
+          parkingTips?: string | null,
+          customerFavorites?: string | null,
+          location: {
+            __typename: 'Location',
+            directionsUri?: string | null,
+            coordinates: {
+              __typename: 'GeoPoint',
+              lat: number,
+              lon: number
+            },
+            address: {
+              __typename: 'Address',
+              address1?: string | null,
+              address2?: string | null,
+              city?: string | null,
+              state?: string | null,
+              zipCode?: string | null,
+              country?: string | null,
+              formattedMultiline: string,
+              formattedSingleline: string
+            },
+            searchRegion: {
+              __typename: 'SearchRegion',
+              id: string,
+              name: string
+            }
+          },
+          photos: {
+            __typename: 'Photos',
+            coverPhoto?: {
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            } | null,
+            supplementalPhotos: Array<{
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            }>
+          }
+        }
+      } | null,
+      travel?: {
+        __typename: 'TravelInfo',
+        durationText: string,
+        distanceText: string
+      } | null
+    }
+  }
+};
 
 export type SubmitReserverDetailsMutationVariables = Exact<{
   input: SubmitReserverDetailsInput;
 }>;
 
 
-export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type SubmitReserverDetailsMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    submitReserverDetails: {
+      __typename: 'SubmitReserverDetailsFailure',
+      failureReason: SubmitReserverDetailsFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'SubmitReserverDetailsSuccess',
+      reserverDetails: {
+        __typename: 'ReserverDetails',
+        id: string,
+        firstName: string,
+        lastName: string,
+        phoneNumber: string
+      }
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type UpdateAccountMutationVariables = Exact<{
   input: UpdateAccountInput;
 }>;
 
 
-export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type UpdateAccountMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    updateAccount: {
+      __typename: 'UpdateAccountFailure',
+      failureReason: UpdateAccountFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'UpdateAccountSuccess',
+      account: {
+        __typename: 'Account',
+        id: string,
+        email: string,
+        stripeCustomerId?: string | null
+      }
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type UpdateOutingPreferencesMutationVariables = Exact<{
   input: UpdateOutingPreferencesInput;
 }>;
 
 
-export type UpdateOutingPreferencesMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updatePreferences: { __typename: 'UpdateOutingPreferencesFailure', failureReason: UpdateOutingPreferencesFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateOutingPreferencesSuccess', outingPreferences: { __typename: 'OutingPreferences', restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type UpdateOutingPreferencesMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    updatePreferences: {
+      __typename: 'UpdateOutingPreferencesFailure',
+      failureReason: UpdateOutingPreferencesFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'UpdateOutingPreferencesSuccess',
+      outingPreferences: {
+        __typename: 'OutingPreferences',
+        restaurantCategories?: Array<{
+          __typename: 'RestaurantCategory',
+          id: string,
+          name: string,
+          isDefault: boolean
+        }> | null,
+        activityCategories?: Array<{
+          __typename: 'ActivityCategory',
+          id: string,
+          name: string,
+          isDefault: boolean
+        }> | null
+      }
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type UpdateReserverDetailsMutationVariables = Exact<{
   input: UpdateReserverDetailsInput;
 }>;
 
 
-export type UpdateReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetails: { __typename: 'UpdateReserverDetailsFailure', failureReason: UpdateReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type UpdateReserverDetailsMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    updateReserverDetails: {
+      __typename: 'UpdateReserverDetailsFailure',
+      failureReason: UpdateReserverDetailsFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'UpdateReserverDetailsSuccess',
+      reserverDetails: {
+        __typename: 'ReserverDetails',
+        id: string,
+        firstName: string,
+        lastName: string,
+        phoneNumber: string
+      }
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type UpdateReserverDetailsAccountMutationVariables = Exact<{
   input: UpdateReserverDetailsAccountInput;
 }>;
 
 
-export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type UpdateReserverDetailsAccountMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    updateReserverDetailsAccount: {
+      __typename: 'UpdateReserverDetailsAccountFailure',
+      failureReason: UpdateReserverDetailsAccountFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'UpdateReserverDetailsAccountSuccess',
+      reserverDetails: {
+        __typename: 'ReserverDetails',
+        id: string,
+        firstName: string,
+        lastName: string,
+        phoneNumber: string
+      },
+      account: {
+        __typename: 'Account',
+        id: string,
+        email: string,
+        stripeCustomerId?: string | null
+      }
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type BookedOutingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BookedOutingsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ __typename: 'BookingDetailsPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null, state: BookingState }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type BookedOutingsQuery = {
+  __typename: 'Query',
+  viewer: {
+    __typename: 'AuthenticatedViewerQueries',
+    bookedOutings: Array<{
+      __typename: 'BookingDetailsPeek',
+      id: string,
+      activityStartTime?: string | null,
+      restaurantArrivalTime?: string | null,
+      activityName?: string | null,
+      restaurantName?: string | null,
+      photoUri?: string | null,
+      state: BookingState
+    }>
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type BookingDetailsQueryVariables = Exact<{
   input: GetBookingDetailsQueryInput;
 }>;
 
 
-export type BookingDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutingDetails?: { __typename: 'BookingDetails', id: string, startTime: string, headcount: number, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }>, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activityPlan?: { __typename: 'ActivityPlan', startTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, reservation?: { __typename: 'Reservation', arrivalTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, restaurant: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, travel?: { __typename: 'TravelInfo', durationText: string, distanceText: string } | null } | null } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type BookingDetailsQuery = {
+  __typename: 'Query',
+  viewer: {
+    __typename: 'AuthenticatedViewerQueries',
+    bookedOutingDetails?: {
+      __typename: 'BookingDetails',
+      id: string,
+      startTime: string,
+      headcount: number,
+      survey?: {
+        __typename: 'Survey',
+        id: string,
+        budget: OutingBudget,
+        headcount: number,
+        startTime: string,
+        searchRegions: Array<{
+          __typename: 'SearchRegion',
+          id: string,
+          name: string
+        }>
+      } | null,
+      searchRegions: Array<{
+        __typename: 'SearchRegion',
+        id: string,
+        name: string
+      }>,
+      costBreakdown: {
+        __typename: 'CostBreakdown',
+        baseCostCents: number,
+        feeCents: number,
+        taxCents: number,
+        totalCostCents: number
+      },
+      activityPlan?: {
+        __typename: 'ActivityPlan',
+        startTime: string,
+        headcount: number,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        },
+        activity: {
+          __typename: 'Activity',
+          sourceId: string,
+          source: ActivitySource,
+          name: string,
+          description?: string | null,
+          websiteUri?: string | null,
+          doorTips?: string | null,
+          insiderTips?: string | null,
+          parkingTips?: string | null,
+          primaryTypeName?: string | null,
+          categoryGroup?: {
+            __typename: 'ActivityCategoryGroup',
+            id: string,
+            name: string,
+            activityCategories: Array<{
+              __typename: 'ActivityCategory',
+              id: string,
+              name: string,
+              isDefault: boolean
+            }>
+          } | null,
+          ticketInfo?: {
+            __typename: 'TicketInfo',
+            name?: string | null,
+            notes?: string | null,
+            costBreakdown: {
+              __typename: 'CostBreakdown',
+              baseCostCents: number,
+              feeCents: number,
+              taxCents: number,
+              totalCostCents: number
+            }
+          } | null,
+          venue: {
+            __typename: 'ActivityVenue',
+            name: string,
+            location: {
+              __typename: 'Location',
+              directionsUri?: string | null,
+              coordinates: {
+                __typename: 'GeoPoint',
+                lat: number,
+                lon: number
+              },
+              address: {
+                __typename: 'Address',
+                address1?: string | null,
+                address2?: string | null,
+                city?: string | null,
+                state?: string | null,
+                zipCode?: string | null,
+                country?: string | null,
+                formattedMultiline: string,
+                formattedSingleline: string
+              },
+              searchRegion: {
+                __typename: 'SearchRegion',
+                id: string,
+                name: string
+              }
+            }
+          },
+          photos: {
+            __typename: 'Photos',
+            coverPhoto?: {
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            } | null,
+            supplementalPhotos: Array<{
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            }>
+          }
+        }
+      } | null,
+      reservation?: {
+        __typename: 'Reservation',
+        arrivalTime: string,
+        headcount: number,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        },
+        restaurant: {
+          __typename: 'Restaurant',
+          sourceId: string,
+          source: RestaurantSource,
+          name: string,
+          reservable: boolean,
+          rating: number,
+          primaryTypeName: string,
+          websiteUri?: string | null,
+          description: string,
+          parkingTips?: string | null,
+          customerFavorites?: string | null,
+          location: {
+            __typename: 'Location',
+            directionsUri?: string | null,
+            coordinates: {
+              __typename: 'GeoPoint',
+              lat: number,
+              lon: number
+            },
+            address: {
+              __typename: 'Address',
+              address1?: string | null,
+              address2?: string | null,
+              city?: string | null,
+              state?: string | null,
+              zipCode?: string | null,
+              country?: string | null,
+              formattedMultiline: string,
+              formattedSingleline: string
+            },
+            searchRegion: {
+              __typename: 'SearchRegion',
+              id: string,
+              name: string
+            }
+          },
+          photos: {
+            __typename: 'Photos',
+            coverPhoto?: {
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            } | null,
+            supplementalPhotos: Array<{
+              __typename: 'Photo',
+              id: string,
+              src: string,
+              alt?: string | null,
+              attributions: Array<string>
+            }>
+          }
+        }
+      } | null,
+      travel?: {
+        __typename: 'TravelInfo',
+        durationText: string,
+        distanceText: string
+      } | null
+    } | null
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type OneClickBookingCriteriaQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OneClickBookingCriteriaQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }>, paymentMethods: Array<{ __typename: 'PaymentMethod', id: string, card?: { __typename: 'PaymentCard', brand: string, last4: string, expMonth: number, expYear: number } | null }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type OneClickBookingCriteriaQuery = {
+  __typename: 'Query',
+  viewer: {
+    __typename: 'AuthenticatedViewerQueries',
+    reserverDetails: Array<{
+      __typename: 'ReserverDetails',
+      id: string,
+      firstName: string,
+      lastName: string,
+      phoneNumber: string
+    }>,
+    paymentMethods: Array<{
+      __typename: 'PaymentMethod',
+      id: string,
+      card?: {
+        __typename: 'PaymentCard',
+        brand: string,
+        last4: string,
+        expMonth: number,
+        expYear: number
+      } | null
+    }>
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type OutingQueryVariables = Exact<{
   input: OutingInput;
 }>;
 
 
-export type OutingQuery = { __typename: 'Query', outing?: { __typename: 'Outing', id: string, startTime: string, headcount: number, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }>, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activityPlan?: { __typename: 'ActivityPlan', startTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, reservation?: { __typename: 'Reservation', arrivalTime: string, headcount: number, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, restaurant: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } } | null, travel?: { __typename: 'TravelInfo', durationText: string, distanceText: string } | null } | null };
+export type OutingQuery = {
+  __typename: 'Query',
+  outing?: {
+    __typename: 'Outing',
+    id: string,
+    startTime: string,
+    headcount: number,
+    survey?: {
+      __typename: 'Survey',
+      id: string,
+      budget: OutingBudget,
+      headcount: number,
+      startTime: string,
+      searchRegions: Array<{
+        __typename: 'SearchRegion',
+        id: string,
+        name: string
+      }>
+    } | null,
+    searchRegions: Array<{
+      __typename: 'SearchRegion',
+      id: string,
+      name: string
+    }>,
+    costBreakdown: {
+      __typename: 'CostBreakdown',
+      baseCostCents: number,
+      feeCents: number,
+      taxCents: number,
+      totalCostCents: number
+    },
+    activityPlan?: {
+      __typename: 'ActivityPlan',
+      startTime: string,
+      headcount: number,
+      costBreakdown: {
+        __typename: 'CostBreakdown',
+        baseCostCents: number,
+        feeCents: number,
+        taxCents: number,
+        totalCostCents: number
+      },
+      activity: {
+        __typename: 'Activity',
+        sourceId: string,
+        source: ActivitySource,
+        name: string,
+        description?: string | null,
+        websiteUri?: string | null,
+        doorTips?: string | null,
+        insiderTips?: string | null,
+        parkingTips?: string | null,
+        primaryTypeName?: string | null,
+        categoryGroup?: {
+          __typename: 'ActivityCategoryGroup',
+          id: string,
+          name: string,
+          activityCategories: Array<{
+            __typename: 'ActivityCategory',
+            id: string,
+            name: string,
+            isDefault: boolean
+          }>
+        } | null,
+        ticketInfo?: {
+          __typename: 'TicketInfo',
+          name?: string | null,
+          notes?: string | null,
+          costBreakdown: {
+            __typename: 'CostBreakdown',
+            baseCostCents: number,
+            feeCents: number,
+            taxCents: number,
+            totalCostCents: number
+          }
+        } | null,
+        venue: {
+          __typename: 'ActivityVenue',
+          name: string,
+          location: {
+            __typename: 'Location',
+            directionsUri?: string | null,
+            coordinates: {
+              __typename: 'GeoPoint',
+              lat: number,
+              lon: number
+            },
+            address: {
+              __typename: 'Address',
+              address1?: string | null,
+              address2?: string | null,
+              city?: string | null,
+              state?: string | null,
+              zipCode?: string | null,
+              country?: string | null,
+              formattedMultiline: string,
+              formattedSingleline: string
+            },
+            searchRegion: {
+              __typename: 'SearchRegion',
+              id: string,
+              name: string
+            }
+          }
+        },
+        photos: {
+          __typename: 'Photos',
+          coverPhoto?: {
+            __typename: 'Photo',
+            id: string,
+            src: string,
+            alt?: string | null,
+            attributions: Array<string>
+          } | null,
+          supplementalPhotos: Array<{
+            __typename: 'Photo',
+            id: string,
+            src: string,
+            alt?: string | null,
+            attributions: Array<string>
+          }>
+        }
+      }
+    } | null,
+    reservation?: {
+      __typename: 'Reservation',
+      arrivalTime: string,
+      headcount: number,
+      costBreakdown: {
+        __typename: 'CostBreakdown',
+        baseCostCents: number,
+        feeCents: number,
+        taxCents: number,
+        totalCostCents: number
+      },
+      restaurant: {
+        __typename: 'Restaurant',
+        sourceId: string,
+        source: RestaurantSource,
+        name: string,
+        reservable: boolean,
+        rating: number,
+        primaryTypeName: string,
+        websiteUri?: string | null,
+        description: string,
+        parkingTips?: string | null,
+        customerFavorites?: string | null,
+        location: {
+          __typename: 'Location',
+          directionsUri?: string | null,
+          coordinates: {
+            __typename: 'GeoPoint',
+            lat: number,
+            lon: number
+          },
+          address: {
+            __typename: 'Address',
+            address1?: string | null,
+            address2?: string | null,
+            city?: string | null,
+            state?: string | null,
+            zipCode?: string | null,
+            country?: string | null,
+            formattedMultiline: string,
+            formattedSingleline: string
+          },
+          searchRegion: {
+            __typename: 'SearchRegion',
+            id: string,
+            name: string
+          }
+        },
+        photos: {
+          __typename: 'Photos',
+          coverPhoto?: {
+            __typename: 'Photo',
+            id: string,
+            src: string,
+            alt?: string | null,
+            attributions: Array<string>
+          } | null,
+          supplementalPhotos: Array<{
+            __typename: 'Photo',
+            id: string,
+            src: string,
+            alt?: string | null,
+            attributions: Array<string>
+          }>
+        }
+      }
+    } | null,
+    travel?: {
+      __typename: 'TravelInfo',
+      durationText: string,
+      distanceText: string
+    } | null
+  } | null
+};
 
 export type OutingPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OutingPreferencesQuery = { __typename: 'Query', activityCategoryGroups: Array<{ __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { __typename: 'OutingPreferences', restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type OutingPreferencesQuery = {
+  __typename: 'Query',
+  activityCategoryGroups: Array<{
+    __typename: 'ActivityCategoryGroup',
+    id: string,
+    name: string,
+    activityCategories: Array<{
+      __typename: 'ActivityCategory',
+      id: string,
+      name: string,
+      isDefault: boolean
+    }>
+  }>,
+  restaurantCategories: Array<{
+    __typename: 'RestaurantCategory',
+    id: string,
+    name: string,
+    isDefault: boolean
+  }>,
+  viewer: {
+    __typename: 'AuthenticatedViewerQueries',
+    outingPreferences: {
+      __typename: 'OutingPreferences',
+      restaurantCategories?: Array<{
+        __typename: 'RestaurantCategory',
+        id: string,
+        name: string,
+        isDefault: boolean
+      }> | null,
+      activityCategories?: Array<{
+        __typename: 'ActivityCategory',
+        id: string,
+        name: string,
+        isDefault: boolean
+      }> | null
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type ReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type ReserverDetailsQuery = {
+  __typename: 'Query',
+  viewer: {
+    __typename: 'AuthenticatedViewerQueries',
+    reserverDetails: Array<{
+      __typename: 'ReserverDetails',
+      id: string,
+      firstName: string,
+      lastName: string,
+      phoneNumber: string
+    }>
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SearchRegionsQuery = { __typename: 'Query', searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> };
+export type SearchRegionsQuery = {
+  __typename: 'Query',
+  searchRegions: Array<{
+    __typename: 'SearchRegion',
+    id: string,
+    name: string
+  }>
+};
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
