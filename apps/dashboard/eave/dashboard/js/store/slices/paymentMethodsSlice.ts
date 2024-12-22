@@ -1,4 +1,4 @@
-import type { PaymentMethod, PaymentMethodFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import type { PaymentMethodFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface PaymentMethodsState {

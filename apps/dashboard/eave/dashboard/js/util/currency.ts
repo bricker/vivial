@@ -1,4 +1,4 @@
-import { type CostBreakdown, type CostBreakdownFieldsFragment } from "../graphql/generated/graphql";
+import { type CostBreakdownFieldsFragment } from "../graphql/generated/graphql";
 
 export const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",

@@ -1,7 +1,5 @@
 import {
   type ActivityCategoryFieldsFragment,
-  type OutingPreferences,
-  type OutingPreferencesFieldsFragment,
   type RestaurantCategoryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetOutingPreferencesQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
@@ -72,7 +70,7 @@ const ProgressBar = styled(LinearProgress)(({ theme }) => ({
 interface PreferencesViewProps {
   title: string;
   subtitle: string;
-  outingPreferences: OutingPreferencesFieldsFragment | null;
+  outingPreferences: OutingPreferencesSelections | null;
   onSubmit: (selections: OutingPreferencesSelections) => void;
   onClose: () => void;
 }

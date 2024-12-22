@@ -1,4 +1,9 @@
-import { ActivitySource, type Activity, type ActivityFieldsFragment, type ItineraryFieldsFragment, type Photos, type PhotosFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  ActivitySource,
+  type ActivityFieldsFragment,
+  type ItineraryFieldsFragment,
+  type PhotosFieldsFragment,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
 
 export function getTimeLabel(startTime: Date): string {

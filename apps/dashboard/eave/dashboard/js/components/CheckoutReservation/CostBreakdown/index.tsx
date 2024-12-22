@@ -1,4 +1,4 @@
-import { type Itinerary, type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React, { Fragment } from "react";
@@ -57,7 +57,7 @@ type Breakdown = { key: string; costName: string; costValue: string };
  * @param itinerary
  * @returns list of objects with named sources of a cost, and the cost as a USD currency string (or "FREE")
  */
-function buildBreakdowns(itinerary: Itinerary): Breakdown[] {
+function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
   if (itinerary.reservation) {

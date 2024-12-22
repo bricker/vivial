@@ -1,5 +1,5 @@
 import Circle from "$eave-dashboard/js/components/Shapes/Circle";
-import { type Activity, type ActivityFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type ActivityFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import React from "react";

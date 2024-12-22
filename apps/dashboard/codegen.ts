@@ -1,9 +1,9 @@
 import { type AddPluginConfig } from "@graphql-codegen/add";
 import { type CodegenConfig } from "@graphql-codegen/cli";
+import { addTypenameSelectionDocumentTransform } from "@graphql-codegen/client-preset";
+import { type TypeScriptTypedDocumentNodesConfig } from "@graphql-codegen/typed-document-node";
 import { type TypeScriptPluginConfig } from "@graphql-codegen/typescript";
 import { type TypeScriptDocumentsPluginConfig } from "@graphql-codegen/typescript-operations";
-import { type TypeScriptTypedDocumentNodesConfig } from "@graphql-codegen/typed-document-node";
-import { addTypenameSelectionDocumentTransform } from "@graphql-codegen/client-preset";
 
 const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphql";
 
@@ -34,7 +34,7 @@ const config: CodegenConfig = {
           typescript: <TypeScriptPluginConfig>{},
         },
         {
-          "typescript-operations": <TypeScriptDocumentsPluginConfig>{}
+          "typescript-operations": <TypeScriptDocumentsPluginConfig>{},
         },
         {
           "typed-document-node": <TypeScriptTypedDocumentNodesConfig>{
@@ -61,7 +61,7 @@ const config: CodegenConfig = {
           Base32: "string",
           Base64: "string",
         },
-      }
+      },
     },
   },
 };

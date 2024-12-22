@@ -1,7 +1,6 @@
 import {
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
-  type BookingDetails,
   type ItineraryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
@@ -406,7 +405,7 @@ const CheckoutForm = ({
 
   return (
     <PageContainer>
-      {showCostBreakdown && requiresPayment && <CostBreakdown outing={bookingDetails!} />}
+      {showCostBreakdown && requiresPayment && <CostBreakdown itinerary={bookingDetails!} />}
 
       <Wrapper>
         {usingAltUI && (

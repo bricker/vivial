@@ -1,3 +1,4 @@
+import type { BookingDetailsPeekFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
@@ -8,7 +9,6 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../../Buttons/PrimaryButton";
 import Paper from "../../Paper";
-import type { BookingDetailsPeekFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 
 const PageContainer = styled("div")(() => ({
   padding: 16,

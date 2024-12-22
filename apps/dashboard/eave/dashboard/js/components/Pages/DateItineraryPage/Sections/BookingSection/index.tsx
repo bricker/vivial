@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { OutingBudget, type PaymentMethod, type PaymentMethodFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import { OutingBudget, type PaymentMethodFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
