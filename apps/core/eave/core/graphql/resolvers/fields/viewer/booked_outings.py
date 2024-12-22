@@ -7,7 +7,7 @@ from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.graphql.types.restaurant import Reservation
-from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.shared.enums import BookingState
@@ -27,7 +27,7 @@ async def _get_booking_details(
     if len(booking_orm.activities) > 0:
         activity_orm = booking_orm.activities[0]
 
-        activity = await get_activity(
+        activity = await resolve_activity_details(
             source_id=activity_orm.source_id,
             source=activity_orm.source,
         )
@@ -41,7 +41,7 @@ async def _get_booking_details(
 
     if len(booking_orm.reservations) > 0:
         reservation_orm = booking_orm.reservations[0]
-        restaurant = await get_restaurant(
+        restaurant = await resolve_restaurant_details(
             source_id=reservation_orm.source_id,
             source=reservation_orm.source,
         )

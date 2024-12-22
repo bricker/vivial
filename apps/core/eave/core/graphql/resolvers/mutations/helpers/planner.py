@@ -151,6 +151,7 @@ class OutingPlanner:
     restaurant: Restaurant | None
     activity_start_time_local: datetime | None
     restaurant_arrival_time_local: datetime | None
+    restaurant_depature_time_local: datetime | None
 
     group_restaurant_category_preferences: list[RestaurantCategoryOrm]
     group_activity_category_preferences: list[ActivityCategoryOrm]
@@ -408,7 +409,6 @@ class OutingPlanner:
             reservation = Reservation(
                 restaurant=self.restaurant,
                 arrival_time=self.restaurant_arrival_time_local,
-                departure_time=self.restaurant_departure_time_local if self.activity else None,
                 headcount=self.survey.headcount,
             )
 

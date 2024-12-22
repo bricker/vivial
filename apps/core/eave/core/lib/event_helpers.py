@@ -2,12 +2,13 @@ import uuid
 
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
+from eave.core.graphql.resolvers.mutations.helpers.planner import PlannerResult
+from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityPlan, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.restaurant import Reservation, Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.eventbrite import get_eventbrite_activity
@@ -19,11 +20,11 @@ from eave.core.lib.google_places import (
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.stdlib.eventbrite.client import EventbriteClient
 
 
-async def get_internal_activity(*, event_id: str) -> Activity | None:
+async def get_internal_activity(*, event_id: str, max_budget: OutingBudget) -> Activity | None:
     async with database.async_session.begin() as db_session:
         activity_orm = await EvergreenActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
         images = activity_orm.images
@@ -68,26 +69,26 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
     )
 
 
-async def get_activity(
+async def resolve_activity_details(
     *,
     source: ActivitySource,
     source_id: str,
-    max_budget
+    max_budget: OutingBudget,
 ) -> Activity | None:
     match source:
         case ActivitySource.INTERNAL:
-            activity = await get_internal_activity(event_id=source_id)
+            activity = await get_internal_activity(event_id=source_id, max_budget=max_budget)
 
         case ActivitySource.GOOGLE_PLACES:
             activity = await get_google_places_activity(event_id=source_id)
 
         case ActivitySource.EVENTBRITE:
-            activity = await get_eventbrite_activity(event_id=source_id, max_budget=)
+            activity = await get_eventbrite_activity(event_id=source_id, max_budget=max_budget)
 
     return activity
 
 
-async def get_restaurant(
+async def resolve_restaurant_details(
     *,
     source: RestaurantSource,
     source_id: str,

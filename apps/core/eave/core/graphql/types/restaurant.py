@@ -47,7 +47,6 @@ class RestaurantCategory:
 @strawberry.type
 class Reservation:
     arrival_time: datetime
-    departure_time: datetime | None
     headcount: int
     restaurant: Restaurant
 
@@ -61,7 +60,7 @@ class Reservation:
     def build_analytics_properties(self) -> JsonObject:
         return {
             "start_time": self.arrival_time.isoformat(),
-            "depature_time": self.departure_time.isoformat() if self.departure_time else None,
+            # "depature_time": self.departure_time.isoformat() if self.departure_time else None,
             "category": self.restaurant.primary_type_name,
             "accepts_reservations": self.restaurant.reservable,
             "address": format_address(self.restaurant.location.address.to_address(), singleline=True),

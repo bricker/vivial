@@ -1,3 +1,4 @@
+from datetime import timedelta
 import enum
 from typing import Annotated
 from uuid import UUID
@@ -20,13 +21,13 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
-from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
-from eave.core.shared.enums import BookingState
+from eave.core.shared.enums import BookingState, OutingBudget
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
@@ -112,8 +113,8 @@ async def initiate_booking_mutation(
 
             if len(outing_orm.activities) > 0:
                 outing_activity_orm = outing_orm.activities[0]  # We only support one activity currently.
-                activity = await get_activity(
-                    source=outing_activity_orm.source, source_id=outing_activity_orm.source_id,
+                activity = await resolve_activity_details(
+                    source=outing_activity_orm.source, source_id=outing_activity_orm.source_id, max_budget=outing_orm.survey.budget if outing_orm.survey else OutingBudget.default(),
                 )
 
                 if activity:
@@ -144,7 +145,7 @@ async def initiate_booking_mutation(
 
             if len(outing_orm.reservations) > 0:
                 reservation_orm = outing_orm.reservations[0]  # We only support 1 reservation right now
-                restaurant = await get_restaurant(
+                restaurant = await resolve_restaurant_details(
                     source=reservation_orm.source,
                     source_id=reservation_orm.source_id,
                 )
