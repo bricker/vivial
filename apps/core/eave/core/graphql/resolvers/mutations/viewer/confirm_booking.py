@@ -7,10 +7,8 @@ from uuid import UUID
 import strawberry
 import stripe
 
-from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
 import eave.stdlib.slack
 from eave.core import database
-from eave.core.lib.api_clients import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
 from eave.core.graphql.types.booking import (
@@ -21,7 +19,9 @@ from eave.core.graphql.validators.time_bounds_validator import (
     start_time_too_far_away,
     start_time_too_soon,
 )
+from eave.core.lib.api_clients import ANALYTICS
 from eave.core.lib.google_places import get_google_place
+from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState
@@ -146,11 +146,19 @@ async def confirm_booking_mutation(
         booking=Booking.from_orm(booking_orm),
     )
 
-async def perform_post_confirm_actions(*, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, total_cost_cents: int) -> None:
+
+async def perform_post_confirm_actions(
+    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, total_cost_cents: int
+) -> None:
     # TODO: Move all of this into an offline queue
     _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm)
-    _fire_analytics_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, visitor_id=visitor_id, total_cost_cents=total_cost_cents)
-    await _notify_slack_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, total_cost_cents=total_cost_cents)
+    _fire_analytics_booking_confirmed(
+        booking_orm=booking_orm, account_orm=account_orm, visitor_id=visitor_id, total_cost_cents=total_cost_cents
+    )
+    await _notify_slack_booking_confirmed(
+        booking_orm=booking_orm, account_orm=account_orm, total_cost_cents=total_cost_cents
+    )
+
 
 def _fire_analytics_booking_confirmed(
     *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, total_cost_cents: int
@@ -267,26 +275,31 @@ async def _notify_slack_booking_confirmed(
 
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
-    send_booking_confirmation_email(to_emails=[account_orm.email], data=BookingConfirmationData(
-        booking_date=_pretty_datetime(booking_orm.start_time_local),
-        activities=[
-            EventItem(
-                name=a.name,
-                time=_pretty_time(a.start_time_local),
-            )
-            for a in booking_orm.activities
-        ],
-        restaurants=[
-            EventItem(
-                name=r.name,
-                time=_pretty_time(r.start_time_local),
-            )
-            for r in booking_orm.reservations
-        ],
-    ))
+    send_booking_confirmation_email(
+        to_emails=[account_orm.email],
+        data=BookingConfirmationData(
+            booking_date=_pretty_datetime(booking_orm.start_time_local),
+            activities=[
+                EventItem(
+                    name=a.name,
+                    time=_pretty_time(a.start_time_local),
+                )
+                for a in booking_orm.activities
+            ],
+            restaurants=[
+                EventItem(
+                    name=r.name,
+                    time=_pretty_time(r.start_time_local),
+                )
+                for r in booking_orm.reservations
+            ],
+        ),
+    )
+
 
 def _pretty_time(dt: datetime) -> str:
     return dt.strftime("%I:%M%p")
+
 
 def _pretty_datetime(dt: datetime) -> str:
     return dt.strftime("%A, %B %d at %I:%M%p %Z")

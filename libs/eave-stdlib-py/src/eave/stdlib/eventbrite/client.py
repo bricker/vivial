@@ -1,6 +1,6 @@
+import dataclasses
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass
-import dataclasses
 from enum import StrEnum
 from functools import wraps
 from http import HTTPMethod
@@ -43,6 +43,7 @@ class GetEventQuery:
 
         return params
 
+
 @dataclass(kw_only=True)
 class ShowMoreEventsForOrganizerQuery:
     page_size: int = 100
@@ -51,6 +52,7 @@ class ShowMoreEventsForOrganizerQuery:
 
     def compile(self) -> Mapping[str, Any]:
         return dataclasses.asdict(self)
+
 
 @dataclass(kw_only=True)
 class ListEventsQuery:
@@ -234,7 +236,10 @@ class EventbriteClient:
         return response
 
     async def show_more_events_for_organizer(
-        self, *, organizer_id: str, query: ShowMoreEventsForOrganizerQuery,
+        self,
+        *,
+        organizer_id: str,
+        query: ShowMoreEventsForOrganizerQuery,
     ) -> aiohttp.ClientResponse:
         """
         not documented
@@ -247,7 +252,7 @@ class EventbriteClient:
 
         response = await self.make_request(
             method=HTTPMethod.GET,
-            path=f"/org/{organizer_id}/showmore", # This endpoint does not have the /api/v3 prefix
+            path=f"/org/{organizer_id}/showmore",  # This endpoint does not have the /api/v3 prefix
             query=query.compile(),
         )
         return response
@@ -312,7 +317,9 @@ class EventbriteClient:
     async def list_subcategories(self, *, continuation: str | None = None) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/categories/list/list-of-subcategories"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path="/api/v3/subcategories", continuation=continuation)
+        response = await self.make_request(
+            method=HTTPMethod.GET, path="/api/v3/subcategories", continuation=continuation
+        )
         return response
 
     async def make_request(

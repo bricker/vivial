@@ -1,14 +1,12 @@
 import uuid
 
 from eave.core import database
-from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.resolvers.mutations.helpers.planner import PlannerResult
-from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityPlan, ActivityVenue
+from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.restaurant import Reservation, Restaurant
+from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.eventbrite import get_eventbrite_activity
@@ -17,11 +15,10 @@ from eave.core.lib.google_places import (
     get_google_places_restaurant,
     google_maps_directions_url,
 )
-from eave.core.orm.evergreen_activity import EvergreenActivityOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
-from eave.stdlib.eventbrite.client import EventbriteClient
 
 
 async def get_internal_activity(*, event_id: str, max_budget: OutingBudget) -> Activity | None:

@@ -1,4 +1,5 @@
 from functools import lru_cache
+
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
@@ -12,11 +13,12 @@ from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget
 from eave.core.shared.geo import GeoPoint
-from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
+from eave.stdlib.eventbrite.client import GetEventQuery, ListTicketClassesForSaleQuery
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
+
 
 async def get_eventbrite_activity(*, event_id: str, max_budget: OutingBudget) -> Activity | None:
     event = await _cached_get_eventbrite_event(event_id=event_id)
@@ -184,6 +186,7 @@ async def get_eventbrite_activity(*, event_id: str, max_budget: OutingBudget) ->
     )
 
     return activity
+
 
 @lru_cache(maxsize=100)
 async def _cached_get_eventbrite_event(*, event_id: str) -> Event:

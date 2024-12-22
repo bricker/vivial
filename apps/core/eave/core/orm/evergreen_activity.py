@@ -1,14 +1,18 @@
-from dataclasses import dataclass
 from datetime import date
 from typing import NamedTuple, Self
 from uuid import UUID
 
-from sqlalchemy import ARRAY, DATE, TIMESTAMP, Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Select, Table
-from sqlalchemy.dialects.postgresql import INT4MULTIRANGE, INT4RANGE, Range
+from sqlalchemy import (
+    ARRAY,
+    DATE,
+    Column,
+    ForeignKey,
+    Select,
+    Table,
+)
+from sqlalchemy.dialects.postgresql import INT4MULTIRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.operators import op
-from sqlalchemy.sql.sqltypes import DATETIME_TIMEZONE, TIME_TIMEZONE
 
 from eave.core.lib.address import Address
 from eave.core.orm.image import ImageOrm
@@ -29,6 +33,7 @@ _activity_images_join_table = Table(
 
 # yo dawg
 DailyScheduleBlocks = tuple[tuple[int, int], ...]
+
 
 class WeeklySchedule(NamedTuple):
     monday: DailyScheduleBlocks
@@ -66,8 +71,12 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     booking_url: Mapped[str | None] = mapped_column()
 
     images: Mapped[list[ImageOrm]] = relationship(secondary=_activity_images_join_table, lazy="selectin")
-    ticket_types: Mapped[list["EvergreenActivityTicketTypeOrm"]] = relationship(lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN)
-    weekly_schedules: Mapped[list["WeeklyScheduleOrm"]] = relationship(lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    ticket_types: Mapped[list["EvergreenActivityTicketTypeOrm"]] = relationship(
+        lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
+    weekly_schedules: Mapped[list["WeeklyScheduleOrm"]] = relationship(
+        lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
 
     def __init__(
         self,
@@ -105,6 +114,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
 
         return query
 
+
 class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
     __tablename__ = "evergreen_activity_ticket_types"
 
@@ -140,6 +150,7 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
         if session:
             session.add(self)
+
 
 class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     __tablename__ = "weekly_schedules"

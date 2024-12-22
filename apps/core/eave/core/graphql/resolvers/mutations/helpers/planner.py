@@ -6,7 +6,6 @@ from uuid import UUID
 from sqlalchemy import func
 
 import eave.core.database
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import OutingPreferencesInput
@@ -25,7 +24,6 @@ from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, 
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.geo import Distance, GeoArea
-from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.logging import LOGGER
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
@@ -220,7 +218,9 @@ class OutingPlanner:
 
             for event_orm in results:
                 try:
-                    if activity := await get_eventbrite_activity(event_id=event_orm.eventbrite_event_id, max_budget=self.survey.budget):
+                    if activity := await get_eventbrite_activity(
+                        event_id=event_orm.eventbrite_event_id, max_budget=self.survey.budget
+                    ):
                         self.activity = activity
                         return activity
                 except Exception as e:

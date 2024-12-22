@@ -1,10 +1,15 @@
-import random
 from datetime import datetime
 from uuid import UUID
 
-import strawberry
-from google.maps.routing import ComputeRoutesRequest, Location, RouteTravelMode, RoutesAsyncClient, RoutingPreference, Waypoint
 import google.type.latlng_pb2
+import strawberry
+from google.maps.routing import (
+    ComputeRoutesRequest,
+    Location,
+    RouteTravelMode,
+    RoutingPreference,
+    Waypoint,
+)
 
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.search_region import SearchRegion
@@ -21,10 +26,12 @@ class OutingPreferencesInput:
     restaurant_category_ids: list[UUID]
     activity_category_ids: list[UUID]
 
+
 @strawberry.type
 class TravelInfo:
     duration_text: str
     distance_text: str
+
 
 @strawberry.type
 class Outing:
@@ -73,7 +80,11 @@ class Outing:
 
     @strawberry.field
     async def travel(self) -> TravelInfo | None:
-        if not self.reservation or not self.activity_plan or self.reservation.restaurant.source != RestaurantSource.GOOGLE_PLACES:
+        if (
+            not self.reservation
+            or not self.activity_plan
+            or self.reservation.restaurant.source != RestaurantSource.GOOGLE_PLACES
+        ):
             return None
 
         routes_request = ComputeRoutesRequest(
@@ -82,7 +93,7 @@ class Outing:
             ),
             destination=Waypoint(
                 location=Location(
-                    lat_lng=google.type.latlng_pb2.LatLng( # type: ignore - protobuf types can't be found by the static analyzer
+                    lat_lng=google.type.latlng_pb2.LatLng(  # type: ignore - protobuf types can't be found by the static analyzer
                         latitude=self.activity_plan.activity.venue.location.coordinates.lat,
                         longitude=self.activity_plan.activity.venue.location.coordinates.lon,
                     ),

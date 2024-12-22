@@ -15,15 +15,16 @@ load_standard_dotenv_files()
 import asyncio
 import csv
 import os
-from pprint import pprint
 import re
+from pprint import pprint
 
-import  googlemaps.geocoding
+import googlemaps.geocoding
 
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.shared.geo import GeoPoint
 
 header = "[Title, Description, Address, Images, Category, Subcategory, Format, Availability (Days & Hours), Duration (Minutes), Ticket Type A, Ticket Type A Cost, Ticket Type B, Ticket Type B Cost, Taxes, Service Fees, Bookable, Book URL]"
+
 
 async def import_evergreen_activities() -> None:
     with open(os.path.dirname(os.path.abspath(__file__)) + "/evergreen.csv") as f:
@@ -35,7 +36,25 @@ async def import_evergreen_activities() -> None:
             if i == 1:
                 continue
 
-            title, description, address, images, category, subcategory, fmt, availability, duration, ticket_type_a, ticket_type_a_cost, ticket_type_b, ticket_type_b_cost, taxes, fees, bookable, book_url = row
+            (
+                title,
+                description,
+                address,
+                images,
+                category,
+                subcategory,
+                fmt,
+                availability,
+                duration,
+                ticket_type_a,
+                ticket_type_a_cost,
+                ticket_type_b,
+                ticket_type_b_cost,
+                taxes,
+                fees,
+                bookable,
+                book_url,
+            ) = row
 
             activity_category = next((a for a in ActivityCategoryOrm.all() if a.name == subcategory), None)
             if not activity_category:
@@ -60,10 +79,7 @@ async def import_evergreen_activities() -> None:
             # print(address)
 
             gmapsclient = googlemaps.Client(key=os.environ["GOOGLE_MAPS_API_KEY"])
-            geocode_result = googlemaps.geocoding.geocode(
-                client=gmapsclient,
-                address=address
-            )
+            geocode_result = googlemaps.geocoding.geocode(client=gmapsclient, address=address)
 
             coordinates = GeoPoint(
                 lat=geocode_result["geometry"]["location"]["lat"],
@@ -102,7 +118,7 @@ async def import_evergreen_activities() -> None:
 
                     for hour in hours:
                         if m := re.match(r"(\d+)(:\d+)?(AM|PM)$", hour):
-                            hr, mn, ap  = m.groups()
+                            hr, mn, ap = m.groups()
                             if ap == "AM":
                                 if hr == "12":
                                     hr = 0
@@ -160,6 +176,7 @@ async def import_evergreen_activities() -> None:
             #     "bookable": bookable,
             #     "booking_url": book_url,
             # })
+
 
 if __name__ == "__main__":
     asyncio.run(import_evergreen_activities())

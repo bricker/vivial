@@ -1,6 +1,6 @@
+import googlemaps
 from google.maps.places import PlacesAsyncClient
 from google.maps.routing import RoutesAsyncClient
-import googlemaps
 
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.stdlib.analytics import AnalyticsTracker

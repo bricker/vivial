@@ -1,6 +1,6 @@
 import dataclasses
 
-from eave.stdlib.mail import SENDGRID_MAILER, SendgridMailer
+from eave.stdlib.mail import SENDGRID_MAILER
 
 
 @dataclasses.dataclass(kw_only=True)

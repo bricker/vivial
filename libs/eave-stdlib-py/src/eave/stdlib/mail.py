@@ -53,4 +53,5 @@ class SendgridMailer:
         except Exception as e:
             LOGGER.exception(e)
 
+
 SENDGRID_MAILER = SendgridMailer()

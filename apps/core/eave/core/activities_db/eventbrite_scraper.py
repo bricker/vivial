@@ -14,21 +14,20 @@ load_standard_dotenv_files()
 
 # ruff: noqa: E402
 
-from typing import Any
 import asyncio
 import random
 from datetime import UTC, datetime, timedelta
 from pprint import pprint
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from aiohttp import ClientResponseError
 
 import eave.core.database
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy
+from eave.stdlib.eventbrite.client import ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
@@ -238,6 +237,7 @@ run_stats: dict[str, Any] = {
     "runtime_minutes": 0,
 }
 
+
 async def get_eventbrite_events() -> None:
     client = EVENTBRITE_API_CLIENT
 
@@ -278,7 +278,10 @@ async def get_eventbrite_events() -> None:
             async for batch in paginator:
                 pagenum += 1
 
-                LOGGER.info(f"[org={organizer_id} ({org_num}/{len(organizer_ids_copy)}); page={pagenum}]", { "eventbrite_organizer_id": organizer_id })
+                LOGGER.info(
+                    f"[org={organizer_id} ({org_num}/{len(organizer_ids_copy)}); page={pagenum}]",
+                    {"eventbrite_organizer_id": organizer_id},
+                )
 
                 stop_paginating = False
 
@@ -289,7 +292,6 @@ async def get_eventbrite_events() -> None:
                     run_stats["events_processed"] += 1
                     org_stats["events_processed"] += 1
                     evnum += 1
-
 
                     if (eventbrite_event_id := event.get("id")) is None:
                         org_stats.setdefault("no_id", 0)
@@ -313,10 +315,12 @@ async def get_eventbrite_events() -> None:
                             # We only need to import the next 45 days of events.
                             # Many organizers have event series lasting for many years, and this endpoint returns all of them.
                             # Without this limitation, this script currently imports something like 30,000 events, most of them a long time away.
-                            LOGGER.warning(f"Organizer {organizer_id} hit date cap at {start_time_utc.isoformat()} after {org_stats["events_processed"]} events")
+                            LOGGER.warning(
+                                f"Organizer {organizer_id} hit date cap at {start_time_utc.isoformat()} after {org_stats["events_processed"]} events"
+                            )
                             org_stats["hit_date_ceiling"] = True
                             stop_paginating = True
-                            break # Out of the batch
+                            break  # Out of the batch
                     else:
                         LOGGER.debug(f"{pfx} No start time; skipping", logmeta)
                         continue
@@ -496,6 +500,7 @@ async def get_eventbrite_events() -> None:
         finally:
             org_stats["runtime_minutes"] = (datetime.now() - org_runtime_start).total_seconds() / 60
             org_stats["latest_event_date"] = latest_event_date_for_organizer.isoformat()
+
 
 if __name__ == "__main__":
     start_time = datetime.now()

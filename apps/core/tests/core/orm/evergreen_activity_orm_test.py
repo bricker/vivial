@@ -1,6 +1,7 @@
 from sqlalchemy.dialects.postgresql import Range
+
 from eave.core.lib.address import Address
-from eave.core.orm.evergreen_activity import EvergreenActivityOrm, WeeklySchedule
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm
 from eave.core.orm.image import ImageOrm
 from eave.core.shared.geo import GeoPoint
 
@@ -19,7 +20,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             activity_category_id=self.anyuuid("category_id"),
             duration_minutes=self.anyint("duration_minutes"),
             availability=[],
-            address=self.anyaddress()
+            address=self.anyaddress(),
         )
         return activity
 
@@ -83,13 +84,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
     async def test_activity_search_by_availability_with_monday_availability(self) -> None:
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
-            activity.availability = [Range(10*60, 17*60)]
+            activity.availability = [Range(10 * 60, 17 * 60)]
 
         async with self.db_session.begin() as session:
-            results = (await session.scalars(EvergreenActivityOrm.select(business_hours_contains=12*60))).all()
+            results = (await session.scalars(EvergreenActivityOrm.select(business_hours_contains=12 * 60))).all()
 
         assert len(results) == 1
-
 
     async def test_activity_images(self) -> None:
         async with self.db_session.begin() as session:

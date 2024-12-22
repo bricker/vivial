@@ -1,12 +1,12 @@
 import enum
-from functools import lru_cache
-import os
 import urllib.parse
 from collections.abc import Sequence
 from datetime import datetime, timedelta
+from functools import lru_cache
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+import googlemaps.geocoding
 from google.maps.places import (
     GetPhotoMediaRequest,
     GetPlaceRequest,
@@ -16,7 +16,6 @@ from google.maps.places import (
 from google.maps.places import (
     Photo as PlacePhoto,
 )
-import googlemaps.geocoding
 
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
@@ -211,6 +210,7 @@ def location_from_google_place(place: Place) -> Location:
         address=address,
     )
 
+
 # Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
 async def photo_from_google_place_photo(
     *,
@@ -232,11 +232,13 @@ async def photo_from_google_place_photo(
         else [],
     )
 
+
 async def get_google_place(
     *,
     place_id: str,
 ) -> Place:
     return await _cached_get_google_place(place_id=place_id)
+
 
 @lru_cache(maxsize=100)
 async def _cached_get_google_place(*, place_id: str) -> Place:
@@ -263,6 +265,7 @@ async def get_google_places_restaurant(*, restaurant_id: str) -> Restaurant:
     restaurant = await restaurant_from_google_place(place=place)
     return restaurant
 
+
 async def get_places_nearby(
     *,
     area: GeoArea,
@@ -275,7 +278,13 @@ async def get_places_nearby(
     https://developers.google.com/maps/documentation/places/web-service/nearby-search
     """
 
-    return await _cached_get_places_nearby(center_lat=area.center.lat, center_lon=area.center.lon, rad_meters=area.rad.meters, included_primary_types=included_primary_types)
+    return await _cached_get_places_nearby(
+        center_lat=area.center.lat,
+        center_lon=area.center.lon,
+        rad_meters=area.rad.meters,
+        included_primary_types=included_primary_types,
+    )
+
 
 @lru_cache(maxsize=100)
 async def _cached_get_places_nearby(
@@ -347,15 +356,14 @@ def place_is_accessible(place: Place) -> bool:
 
     return can_enter and can_park and can_pee and can_sit
 
+
 async def google_maps_directions_url(address: str) -> str:
     return await _cached_google_maps_directions_url(address)
 
+
 @lru_cache(maxsize=500)
 async def _cached_google_maps_directions_url(address: str) -> str:
-    geocode_result = googlemaps.geocoding.geocode(
-        client=GOOGLE_MAPS_API_CLIENT,
-        address=address
-    )
+    geocode_result = googlemaps.geocoding.geocode(client=GOOGLE_MAPS_API_CLIENT, address=address)
 
     if place_id := geocode_result.get("place_id"):
         place = await get_google_place(place_id=place_id)
