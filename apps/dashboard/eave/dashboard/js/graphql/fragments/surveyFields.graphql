@@ -1,0 +1,9 @@
+fragment SurveyFields on Survey {
+  id
+  budget
+  headcount
+  searchRegions {
+    ...SearchRegionFields
+  }
+  startTime
+}

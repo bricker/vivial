@@ -1,16 +1,10 @@
-query ListBookedOutings {
+query BookedOutings {
   viewer {
     __typename
     ... on AuthenticatedViewerQueries {
       __typename
       bookedOutings {
-        id
-        activityStartTime
-        restaurantArrivalTime
-        activityName
-        restaurantName
-        photoUri
-        state
+        ...BookingDetailsPeekFields
       }
     }
     ... on UnauthenticatedViewer {

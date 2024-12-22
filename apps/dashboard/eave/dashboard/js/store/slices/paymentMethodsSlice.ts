@@ -1,8 +1,8 @@
-import type { PaymentMethod } from "$eave-dashboard/js/graphql/generated/graphql";
+import type { PaymentMethod, PaymentMethodFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface PaymentMethodsState {
-  paymentMethods: PaymentMethod[] | null;
+  paymentMethods: PaymentMethodFieldsFragment[] | null;
 }
 
 const initialState: PaymentMethodsState = {
@@ -13,7 +13,7 @@ export const paymentMethodsSlice = createSlice({
   name: "paymentMethods",
   initialState,
   reducers: {
-    storePaymentMethods: (state, action: { payload: { paymentMethods: PaymentMethod[] } }) => {
+    storePaymentMethods: (state, action: { payload: { paymentMethods: PaymentMethodFieldsFragment[] } }) => {
       state.paymentMethods = action.payload.paymentMethods;
     },
   },

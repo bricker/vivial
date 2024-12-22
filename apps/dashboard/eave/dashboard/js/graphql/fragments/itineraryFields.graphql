@@ -1,21 +1,32 @@
-fragment BookingDetailsFields on BookingDetails {
+fragment ItineraryFields on Itinerary {
   id
   startTime
   headcount
-  state
+
+  survey {
+    ...SurveyFields
+  }
+
   searchRegions {
     ...SearchRegionFields
   }
 
-  drivingTimeMinutes
   costBreakdown {
     ...CostBreakdownFields
   }
+
   activityPlan {
     ...ActivityPlanFields
   }
 
   reservation {
     ...ReservationFields
+  }
+}
+
+fragment TravelFields on Itinerary {
+  travel {
+    durationText
+    distanceText
   }
 }

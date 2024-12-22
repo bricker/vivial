@@ -5,7 +5,7 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import ActivityPlan
-from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
+from eave.core.graphql.types.booking import BookingDetailsPeek, BookingDetails
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
@@ -64,7 +64,7 @@ async def _get_booking_details(
 async def list_bookings_query(
     *,
     info: strawberry.Info[GraphQLContext],
-) -> list[BookingDetailPeek]:
+) -> list[BookingDetailsPeek]:
     account_id = unwrap(info.context.get("authenticated_account_id"))
 
     async with database.async_session.begin() as db_session:
@@ -96,7 +96,7 @@ async def list_bookings_query(
             photo_uri = None
 
         booking_peeks.append(
-            BookingDetailPeek(
+            BookingDetailsPeek(
                 id=booking.id,
                 activity_start_time=activity_orm.start_time_local if activity_orm else None,
                 activity_name=activity_orm.name if activity_orm else None,

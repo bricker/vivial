@@ -1,4 +1,4 @@
-import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type OutingPreferences, type OutingPreferencesFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { type Category } from "$eave-dashboard/js/types/category";
 import { styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
@@ -34,7 +34,7 @@ const Subtitle = styled(Typography)(({ theme }) => ({
 const AccountPreferencesPage = () => {
   const { data, isLoading } = useGetOutingPreferencesQuery({});
   const [updatePreferences] = useUpdateOutingPreferencesMutation();
-  const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
+  const [outingPreferences, setOutingPreferences] = useState<OutingPreferencesFieldsFragment | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Map<string, boolean>>(new Map());
   const restaurantCategories = data?.restaurantCategories || [];
   const activityCategoryGroups = data?.activityCategoryGroups || [];

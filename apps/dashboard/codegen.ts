@@ -1,5 +1,7 @@
 import { type AddPluginConfig } from "@graphql-codegen/add";
-import type { CodegenConfig } from "@graphql-codegen/cli";
+import { type CodegenConfig } from "@graphql-codegen/cli";
+import { type TypeScriptPluginConfig } from "@graphql-codegen/typescript";
+import { type TypeScriptDocumentsPluginConfig } from "@graphql-codegen/typescript-operations";
 import { addTypenameSelectionDocumentTransform, type ClientPresetConfig } from "@graphql-codegen/client-preset";
 const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphql";
 
@@ -9,10 +11,29 @@ const config: CodegenConfig = {
   ignoreNoDocuments: true,
   generates: {
     "./eave/dashboard/js/graphql/generated/": {
-      preset: "client",
-      presetConfig: <ClientPresetConfig>{
-        fragmentMasking: false,
-      },
+      plugins: [
+        {
+          add: <AddPluginConfig>{
+            placement: "prepend",
+            content: "// @ts-nocheck",
+          },
+        },
+        {
+          add: <AddPluginConfig>{
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        {
+          typescript: <TypeScriptPluginConfig>{
+
+          },
+        },
+        {
+          "typescript-operations": <TypeScriptDocumentsPluginConfig>{}
+        }
+      ],
+
       documentTransforms: [addTypenameSelectionDocumentTransform],
       config: {
         // See here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#config-api
@@ -68,14 +89,6 @@ const config: CodegenConfig = {
           },
         },
       },
-      plugins: [
-        {
-          add: <AddPluginConfig>{
-            placement: "prepend",
-            content: "// @ts-nocheck",
-          },
-        },
-      ],
     },
   },
 };

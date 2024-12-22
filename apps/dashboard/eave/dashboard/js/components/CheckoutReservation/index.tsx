@@ -2,6 +2,7 @@ import {
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
   type BookingDetails,
+  type ItineraryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -98,7 +99,7 @@ const ErrorText = styled(Typography)(({ theme }) => ({
   textAlign: "center",
 }));
 
-function isPaidOuting(bookingDetails?: BookingDetails): boolean {
+function isPaidOuting(bookingDetails?: ItineraryFieldsFragment): boolean {
   if (!bookingDetails) {
     return false;
   }

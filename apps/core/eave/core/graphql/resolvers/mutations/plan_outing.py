@@ -8,6 +8,7 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
+from eave.core.graphql.types.itinerary import Itinerary
 from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,

@@ -1,7 +1,8 @@
 import {
-  type ActivityCategory,
+  type ActivityCategoryFieldsFragment,
   type OutingPreferences,
-  type RestaurantCategory,
+  type OutingPreferencesFieldsFragment,
+  type RestaurantCategoryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetOutingPreferencesQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
@@ -13,6 +14,7 @@ import React, { useState } from "react";
 
 import Paper from "$eave-dashboard/js/components/Paper";
 import PreferenceSelections from "$eave-dashboard/js/components/Selections/PreferenceSelections";
+import type { OutingPreferencesSelections } from "$eave-dashboard/js/store/slices/outingSlice";
 import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
@@ -70,16 +72,18 @@ const ProgressBar = styled(LinearProgress)(({ theme }) => ({
 interface PreferencesViewProps {
   title: string;
   subtitle: string;
-  outingPreferences: OutingPreferences | null;
-  onSubmit: (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => void;
+  outingPreferences: OutingPreferencesFieldsFragment | null;
+  onSubmit: (selections: OutingPreferencesSelections) => void;
   onClose: () => void;
 }
 
 const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose }: PreferencesViewProps) => {
   const { data, isLoading } = useGetOutingPreferencesQuery({});
   const [stepsCompleted, setStepsCompleted] = useState(0);
-  const [selectedResaturantCategories, setSelectedResaturantCategories] = useState<RestaurantCategory[]>([]);
-  const [selectedActivityCategories, setSelectedActivityCategories] = useState<ActivityCategory[]>([]);
+  const [selectedResaturantCategories, setSelectedResaturantCategories] = useState<RestaurantCategoryFieldsFragment[]>(
+    [],
+  );
+  const [selectedActivityCategories, setSelectedActivityCategories] = useState<ActivityCategoryFieldsFragment[]>([]);
   const restaurantCategories = data?.restaurantCategories || [];
   const activityCategoryGroups = data?.activityCategoryGroups || [];
   const preferredRestaurants = outingPreferences?.restaurantCategories || [];
@@ -102,14 +106,10 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
     }
   };
 
-  const handleStep = (
-    stepNumber: number,
-    restaurantSelections: RestaurantCategory[],
-    activitySelections: ActivityCategory[],
-  ) => {
+  const handleStep = (stepNumber: number, selections: OutingPreferencesSelections) => {
     setStepsCompleted(stepNumber);
     if (stepNumber === totalSteps) {
-      onSubmit(restaurantSelections, activitySelections);
+      onSubmit(selections);
       onClose();
     } else {
       animateSelectionsContainer();
@@ -117,15 +117,21 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
   };
 
   const handleSubmitRestaurants = (categories: Category[]) => {
-    const restaurantSelections = selectedResaturantCategories.concat(categories as RestaurantCategory[]);
+    const restaurantSelections = selectedResaturantCategories.concat(categories as RestaurantCategoryFieldsFragment[]);
     setSelectedResaturantCategories(restaurantSelections);
-    handleStep(stepsCompleted + 1, restaurantSelections, selectedActivityCategories);
+    handleStep(stepsCompleted + 1, {
+      restaurantCategories: restaurantSelections,
+      activityCategories: selectedActivityCategories,
+    });
   };
 
   const handleSubmitActivities = (categories: Category[]) => {
-    const activitySelections = selectedActivityCategories.concat(categories as ActivityCategory[]);
+    const activitySelections = selectedActivityCategories.concat(categories as ActivityCategoryFieldsFragment[]);
     setSelectedActivityCategories(activitySelections);
-    handleStep(stepsCompleted + 1, selectedResaturantCategories, activitySelections);
+    handleStep(stepsCompleted + 1, {
+      restaurantCategories: selectedResaturantCategories,
+      activityCategories: activitySelections,
+    });
   };
 
   if (isLoading) {

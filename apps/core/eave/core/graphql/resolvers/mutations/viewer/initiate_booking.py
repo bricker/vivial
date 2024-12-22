@@ -1,3 +1,4 @@
+from datetime import timedelta
 import enum
 from typing import Annotated
 from uuid import UUID
@@ -6,6 +7,8 @@ import strawberry
 import stripe
 
 from eave.core import database
+from eave.core.graphql.types.itinerary import Itinerary
+from eave.core.lib.api_clients import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
     perform_post_confirm_actions,
@@ -19,7 +22,6 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
-from eave.core.lib.api_clients import ANALYTICS
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError

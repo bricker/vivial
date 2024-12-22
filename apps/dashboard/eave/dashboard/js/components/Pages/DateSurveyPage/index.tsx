@@ -1,8 +1,7 @@
 import {
   OutingBudget,
-  type ActivityCategory,
-  type OutingPreferences,
-  type RestaurantCategory,
+  type ActivityCategoryFieldsFragment,
+  type RestaurantCategoryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, DateSurveyPageVariant, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -14,7 +13,11 @@ import {
   useUpdateOutingPreferencesMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
-import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
+import {
+  chosePreferences,
+  plannedOuting,
+  type OutingPreferencesSelections,
+} from "$eave-dashboard/js/store/slices/outingSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -121,8 +124,8 @@ const DateSurveyPage = () => {
   const [startTime, setStartTime] = useState(getInitialStartTime());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
-  const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
-  const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferences | null>(null);
+  const [outingPreferences, setOutingPreferences] = useState<OutingPreferencesSelections | null>(null);
+  const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferencesSelections | null>(null);
   const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(
     searchParams.get(SearchParam.variant) === DateSurveyPageVariant.PreferencesOpen,
   );
@@ -145,25 +148,19 @@ const DateSurveyPage = () => {
     });
   }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
-  const handleSubmitPreferences = useCallback(
-    async (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
-      setOutingPreferences({ restaurantCategories, activityCategories });
-      await updatePreferences({
-        input: {
-          restaurantCategoryIds: restaurantCategories.map((c) => c.id),
-          activityCategoryIds: activityCategories.map((c) => c.id),
-        },
-      });
-    },
-    [],
-  );
+  const handleSubmitPreferences = useCallback(async (selections: OutingPreferencesSelections) => {
+    setOutingPreferences(selections);
+    await updatePreferences({
+      input: {
+        restaurantCategoryIds: selections.restaurantCategories?.map((c) => c.id),
+        activityCategoryIds: selections.activityCategories?.map((c) => c.id),
+      },
+    });
+  }, []);
 
-  const handlePartnerPreferences = useCallback(
-    (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
-      setPartnerPreferences({ restaurantCategories, activityCategories });
-    },
-    [],
-  );
+  const handlePartnerPreferences = useCallback((selections: OutingPreferencesSelections) => {
+    setPartnerPreferences(selections);
+  }, []);
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
@@ -220,7 +217,10 @@ const DateSurveyPage = () => {
     if (viewer?.__typename === "AuthenticatedViewerQueries") {
       const preferences = viewer.outingPreferences;
       if (preferences.activityCategories || preferences.restaurantCategories) {
-        setOutingPreferences(preferences);
+        setOutingPreferences({
+          restaurantCategories: preferences.restaurantCategories as RestaurantCategoryFieldsFragment[],
+          activityCategories: preferences.activityCategories as ActivityCategoryFieldsFragment[],
+        });
       }
     }
   }, [outingPreferencesData]);
