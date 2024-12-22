@@ -2,7 +2,6 @@
 
 import sys
 
-
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -19,9 +18,13 @@ import os
 from pprint import pprint
 import re
 
+import  googlemaps.geocoding
+
 from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.shared.geo import GeoPoint
 
 header = "[Title, Description, Address, Images, Category, Subcategory, Format, Availability (Days & Hours), Duration (Minutes), Ticket Type A, Ticket Type A Cost, Ticket Type B, Ticket Type B Cost, Taxes, Service Fees, Bookable, Book URL]"
+
 async def import_evergreen_activities() -> None:
     with open(os.path.dirname(os.path.abspath(__file__)) + "/evergreen.csv") as f:
         rdr = csv.reader(f)
@@ -46,15 +49,28 @@ async def import_evergreen_activities() -> None:
             taxes = None if taxes == "N/A" else int(taxes)
             fees = None if fees == "N/A" else int(fees)
 
-            address = address.split(", ")
-            address = [a.strip() for a in address]
+            # address = address.split(", ")
+            # address = [a.strip() for a in address]
 
-            if m := re.match(r"(CA)\s(\d{5})", address[-1]):
-                state, zipcode = m.groups()
-                address[-1] = state
-                address.append(zipcode)
+            # if m := re.match(r"(CA)\s(\d{5})", address[-1]):
+            #     state, zipcode = m.groups()
+            #     address[-1] = state
+            #     address.append(zipcode)
 
-            print(address)
+            # print(address)
+
+            gmapsclient = googlemaps.Client(key=os.environ["GOOGLE_MAPS_API_KEY"])
+            geocode_result = googlemaps.geocoding.geocode(
+                client=gmapsclient,
+                address=address
+            )
+
+            coordinates = GeoPoint(
+                lat=geocode_result["geometry"]["location"]["lat"],
+                lon=geocode_result["geometry"]["location"]["lng"],
+            )
+            place_id = geocode_result["place_id"]
+            pprint(geocode_result)
 
             ticket_type_a = None if ticket_type_a == "N/A" else ticket_type_a
             ticket_type_b = None if ticket_type_b == "N/A" else ticket_type_b

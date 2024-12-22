@@ -5,7 +5,7 @@ from typing import Annotated
 import strawberry
 
 import eave.core.database
-from eave.core.analytics import ANALYTICS
+from eave.core.lib.api_clients import ANALYTICS
 from eave.core.auth_cookies import set_new_auth_cookies
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account

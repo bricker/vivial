@@ -1,13 +1,14 @@
 from dataclasses import dataclass
+from datetime import date
 from typing import NamedTuple, Self
 from uuid import UUID
 
-from sqlalchemy import ARRAY, Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Select, Table
+from sqlalchemy import ARRAY, DATE, TIMESTAMP, Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Select, Table
 from sqlalchemy.dialects.postgresql import INT4MULTIRANGE, INT4RANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.operators import op
-from sqlalchemy.sql.sqltypes import TIME_TIMEZONE
+from sqlalchemy.sql.sqltypes import DATETIME_TIMEZONE, TIME_TIMEZONE
 
 from eave.core.lib.address import Address
 from eave.core.orm.image import ImageOrm
@@ -66,6 +67,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
 
     images: Mapped[list[ImageOrm]] = relationship(secondary=_activity_images_join_table, lazy="selectin")
     ticket_types: Mapped[list["EvergreenActivityTicketTypeOrm"]] = relationship(lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    weekly_schedules: Mapped[list["WeeklyScheduleOrm"]] = relationship(lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
     def __init__(
         self,
@@ -143,6 +145,15 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     __tablename__ = "weekly_schedules"
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
+
+    week_of: Mapped[date | None] = mapped_column(type_=DATE)
+    """
+    Use "week_of" to specify a single week to which this schedule applies.
+    If this field is null, then this schedule is considered the default.
+    "week_of" can be used to override the default schedule for a single week, eg for holidays.
+    The date in this field should be the Monday of that week (i.e., the start of the week).
+    """
+
     monday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
     tuesday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
     wednesday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
@@ -154,7 +165,7 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     evergreen_activity_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{EvergreenActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
-    evergreen_activity: Mapped[EvergreenActivityOrm] = relationship(lazy="selectin", back_populates="ticket_types")
+    evergreen_activity: Mapped[EvergreenActivityOrm] = relationship(lazy="selectin", back_populates="weekly_schedules")
 
     def __init__(
         self,

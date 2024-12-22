@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEventMixin
+from eave.core.shared.enums import OutingBudget
 from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.stdlib.time import datetime_window
 from eave.stdlib.typing import NOT_SET
@@ -105,7 +106,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
         cls,
         *,
         eventbrite_event_id: str = NOT_SET,
-        up_to_cost_cents: int | None = NOT_SET,
+        max_budget: OutingBudget = NOT_SET,
         start_time: datetime = NOT_SET,
         within_areas: list[GeoArea] = NOT_SET,
         vivial_activity_category_ids: list[UUID] = NOT_SET,
@@ -125,8 +126,8 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
                 )
             )
 
-        if up_to_cost_cents is not NOT_SET and up_to_cost_cents is not None:
-            lookup = lookup.where(cls.max_cost_cents <= up_to_cost_cents)
+        if max_budget is not NOT_SET:
+            lookup = lookup.where(cls.min_cost_cents <= max_budget.upper_limit_cents)
 
         if start_time is not NOT_SET:
             start_time = start_time.astimezone(UTC)

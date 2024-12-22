@@ -30,3 +30,8 @@ variable "STRIPE_SECRET_KEY" {
   type      = string
   sensitive = true
 }
+
+variable "GOOGLE_MAPS_API_KEY" {
+  type      = string
+  sensitive = true
+}

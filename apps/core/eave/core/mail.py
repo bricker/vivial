@@ -1,6 +1,6 @@
 import dataclasses
 
-from eave.stdlib.mail import SendgridMailer
+from eave.stdlib.mail import SENDGRID_MAILER, SendgridMailer
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -19,17 +19,15 @@ class BookingConfirmationData:
 
 
 def send_welcome_email(to_emails: list[str]) -> None:
-    mailer = SendgridMailer()
-    mailer.send_templated_email(
+    SENDGRID_MAILER.send_templated_email(
         to_emails=to_emails,
         template_id="d-638ba190b929408aa71a92771a85d817",
         dynamic_data={},
     )
 
 
-def send_booking_confirmation_email(to_emails: list[str], data: BookingConfirmationData) -> None:
-    mailer = SendgridMailer()
-    mailer.send_templated_email(
+def send_booking_confirmation_email(*, to_emails: list[str], data: BookingConfirmationData) -> None:
+    SENDGRID_MAILER.send_templated_email(
         to_emails=to_emails,
         template_id="d-28726a7952a641408bd7946e2795e54f",
         dynamic_data=dataclasses.asdict(data),

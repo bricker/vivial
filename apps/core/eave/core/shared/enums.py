@@ -1,4 +1,5 @@
 import enum
+import math
 
 import strawberry
 from google.maps.places_v1 import PriceLevel
@@ -27,7 +28,7 @@ class OutingBudget(enum.IntEnum):
     VERY_EXPENSIVE = 5
 
     @property
-    def upper_limit_cents(self) -> int | None:
+    def upper_limit_cents(self) -> float:
         match self:
             case OutingBudget.FREE:
                 return 0
@@ -38,7 +39,7 @@ class OutingBudget(enum.IntEnum):
             case OutingBudget.EXPENSIVE:
                 return 150 * 100
             case OutingBudget.VERY_EXPENSIVE:
-                return None
+                return math.inf
 
     @property
     def google_places_price_level(self) -> PriceLevel:

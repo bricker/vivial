@@ -6,11 +6,11 @@ from uuid import UUID
 
 import strawberry
 import stripe
-from google.maps.places import PlacesAsyncClient
 
+from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
 import eave.stdlib.slack
 from eave.core import database
-from eave.core.analytics import ANALYTICS
+from eave.core.lib.api_clients import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
 from eave.core.graphql.types.booking import (
@@ -135,14 +135,10 @@ async def confirm_booking_mutation(
 
         booking_orm.state = BookingState.CONFIRMED
 
-    fire_analytics_booking_confirmed(
-        booking=booking_orm, account_id=account_orm.id, visitor_id=visitor_id, total_cost_cents=booking_total_cost_cents
-    )
-
-    # TODO: Move this into an offline queue
-    await notify_slack_booking_confirmed(
-        booking=booking_orm,
-        account=account_orm,
+    await perform_post_confirm_actions(
+        booking_orm=booking_orm,
+        account_orm=account_orm,
+        visitor_id=visitor_id,
         total_cost_cents=booking_total_cost_cents,
     )
 
@@ -150,48 +146,53 @@ async def confirm_booking_mutation(
         booking=Booking.from_orm(booking_orm),
     )
 
+async def perform_post_confirm_actions(*, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, total_cost_cents: int) -> None:
+    # TODO: Move all of this into an offline queue
+    _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm)
+    _fire_analytics_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, visitor_id=visitor_id, total_cost_cents=total_cost_cents)
+    await _notify_slack_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, total_cost_cents=total_cost_cents)
 
-def fire_analytics_booking_confirmed(
-    *, booking: BookingOrm, account_id: UUID, visitor_id: str | None, total_cost_cents: int
+def _fire_analytics_booking_confirmed(
+    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, total_cost_cents: int
 ) -> None:
     ANALYTICS.track(
         event_name="booking_complete",
-        account_id=account_id,
+        account_id=account_orm.id,
         visitor_id=visitor_id,
         extra_properties={
-            "booking_id": str(booking.id),
-            "outing_id": str(booking.outing.id) if booking.outing else None,
+            "booking_id": str(booking_orm.id),
+            "outing_id": str(booking_orm.outing.id) if booking_orm.outing else None,
             "activity_info": {
                 "costs": {
                     "total_cents": total_cost_cents,
                 },
             },
-            "survey_info": Survey.from_orm(booking.outing.survey).build_analytics_properties()
-            if booking.outing and booking.outing.survey
+            "survey_info": Survey.from_orm(booking_orm.outing.survey).build_analytics_properties()
+            if booking_orm.outing and booking_orm.outing.survey
             else None,
         },
     )
 
 
-async def notify_slack_booking_confirmed(
+async def _notify_slack_booking_confirmed(
     *,
-    booking: BookingOrm,
-    account: AccountOrm,
+    booking_orm: BookingOrm,
+    account_orm: AccountOrm,
     total_cost_cents: int,
 ) -> None:
     total_cost_formatted = f"${"{:.2f}".format(total_cost_cents / 100)}"
-    reserver_details = booking.reserver_details
+    reserver_details = booking_orm.reserver_details
 
     msg = f"Outing Booked for {total_cost_formatted} - "
     elements: list[str] = []
 
-    if len(booking.reservations) > 0:
-        rez = await get_google_place(PlacesAsyncClient(), place_id=booking.reservations[0].source_id)
+    if len(booking_orm.reservations) > 0:
+        rez = await get_google_place(place_id=booking_orm.reservations[0].source_id)
         if rez.reservable:
             elements.append("Restaurant Reservation Required")
 
-    if len(booking.activities) > 0:
-        if booking.activities[0].source == ActivitySource.EVENTBRITE:
+    if len(booking_orm.activities) > 0:
+        if booking_orm.activities[0].source == ActivitySource.EVENTBRITE:
             elements.append("Activity Tickets Required")
 
     if len(elements) > 0:
@@ -220,13 +221,13 @@ async def notify_slack_booking_confirmed(
                 text=dedent(f"""
                     *Account Info*
 
-                    - *Account ID*: `{account.id}`
-                    - *Account Email*: `{account.email}`
+                    - *Account ID*: `{account_orm.id}`
+                    - *Account Email*: `{account_orm.email}`
 
                     *Payment*
 
                     - *Total Cost*: {total_cost_formatted}
-                    - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking.stripe_payment_intent_reference else None}
+                    - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking_orm.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking_orm.stripe_payment_intent_reference else None}
 
                     *Reserver Details*
 
@@ -239,11 +240,11 @@ async def notify_slack_booking_confirmed(
 
                     - *Source*: {reservation.source}
                     - *Name*: {reservation.name}
-                    - *Start Time*: {_pretty_time(reservation.start_time_local)}
+                    - *Start Time*: {_pretty_datetime(reservation.start_time_local)}
                     - *Attendees*: {reservation.headcount}
                     - *Booking URL*: {reservation.external_booking_link}
                     """
-                        for reservation in booking.reservations
+                        for reservation in booking_orm.reservations
                     ])}
 
                     {"\n".join([
@@ -251,19 +252,41 @@ async def notify_slack_booking_confirmed(
 
                     - *Source*: {activity.source}
                     - *Name*: {activity.name}
-                    - *Start Time*: {_pretty_time(activity.start_time_local)}
+                    - *Start Time*: {_pretty_datetime(activity.start_time_local)}
                     - *Attendees*: {activity.headcount}
                     - *Booking URL*: {activity.external_booking_link}
                     """
-                        for activity in booking.activities
+                        for activity in booking_orm.activities
                     ])}
 
-                    *Internal Booking ID*: {booking.id}
+                    *Internal Booking ID*: {booking_orm.id}
                     """),
             )
     except Exception as e:
         LOGGER.exception(e)
 
 
+def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
+    send_booking_confirmation_email(to_emails=[account_orm.email], data=BookingConfirmationData(
+        booking_date=_pretty_datetime(booking_orm.start_time_local),
+        activities=[
+            EventItem(
+                name=a.name,
+                time=_pretty_time(a.start_time_local),
+            )
+            for a in booking_orm.activities
+        ],
+        restaurants=[
+            EventItem(
+                name=r.name,
+                time=_pretty_time(r.start_time_local),
+            )
+            for r in booking_orm.reservations
+        ],
+    ))
+
 def _pretty_time(dt: datetime) -> str:
+    return dt.strftime("%I:%M%p")
+
+def _pretty_datetime(dt: datetime) -> str:
     return dt.strftime("%A, %B %d at %I:%M%p %Z")

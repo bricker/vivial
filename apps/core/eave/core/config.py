@@ -57,5 +57,9 @@ class _AppConfig(ConfigBase):
     def stripe_secret_key(self) -> str:
         return get_secret("STRIPE_SECRET_KEY")
 
+    @cached_property
+    def google_maps_api_key(self) -> str:
+        return get_secret("GOOGLE_MAPS_API_KEY")
+
 
 CORE_API_APP_CONFIG = _AppConfig()

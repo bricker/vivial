@@ -1,7 +1,5 @@
 import uuid
 
-from google.maps.places import PlacesAsyncClient
-
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
@@ -37,6 +35,8 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             activity_category_group_id=category.activity_category_group_id
         )
 
+    directions_uri = await google_maps_directions_url(format_address(activity_orm.address, singleline=True))
+
     return Activity(
         source_id=event_id,
         source=ActivitySource.INTERNAL,
@@ -47,7 +47,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             location=Location(
                 coordinates=activity_orm.coordinates_to_geopoint(),
                 address=GraphQLAddress.from_address(activity_orm.address),
-                directions_uri=google_maps_directions_url(format_address(activity_orm.address, singleline=True)),
+                directions_uri=directions_uri,
             ),
         ),
         photos=Photos(
@@ -72,19 +72,17 @@ async def get_activity(
     *,
     source: ActivitySource,
     source_id: str,
+    max_budget
 ) -> Activity | None:
-    places_client = PlacesAsyncClient()
-    eventbrite_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
-
     match source:
         case ActivitySource.INTERNAL:
             activity = await get_internal_activity(event_id=source_id)
 
         case ActivitySource.GOOGLE_PLACES:
-            activity = await get_google_places_activity(places_client=places_client, event_id=source_id)
+            activity = await get_google_places_activity(event_id=source_id)
 
         case ActivitySource.EVENTBRITE:
-            activity = await get_eventbrite_activity(eventbrite_client=eventbrite_client, event_id=source_id)
+            activity = await get_eventbrite_activity(event_id=source_id, max_budget=)
 
     return activity
 
@@ -94,9 +92,7 @@ async def get_restaurant(
     source: RestaurantSource,
     source_id: str,
 ) -> Restaurant:
-    places_client = PlacesAsyncClient()
-
     match source:
         case RestaurantSource.GOOGLE_PLACES:
-            restaurant = await get_google_places_restaurant(places_client=places_client, restaurant_id=source_id)
+            restaurant = await get_google_places_restaurant(restaurant_id=source_id)
             return restaurant

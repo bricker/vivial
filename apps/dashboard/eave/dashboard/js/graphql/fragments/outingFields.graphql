@@ -14,7 +14,10 @@ fragment OutingFields on Outing {
     }
     startTime
   }
-  drivingTimeMinutes
+  travel {
+    durationText
+    distanceText
+  }
   costBreakdown {
     ...CostBreakdownFields
   }

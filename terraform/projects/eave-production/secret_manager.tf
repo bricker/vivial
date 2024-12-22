@@ -28,6 +28,12 @@ module "app_secrets" {
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
       ],
     },
+    GOOGLE_MAPS_API_KEY = {
+      data = var.GOOGLE_MAPS_API_KEY
+      accessors = [
+        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+      ],
+    },
   }
 
   secret_accessor_role_name = module.project_base.secret_accessor_role_name

@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from google.maps.places_v1 import PlacesAsyncClient
 from sqlalchemy import func
 
 import eave.core.database
@@ -147,8 +146,6 @@ class OutingPlanner:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places_client: PlacesAsyncClient
-    eventbrite_client: EventbriteClient
     survey: SurveyOrm
     activity: Activity | None
     restaurant: Restaurant | None
@@ -168,8 +165,6 @@ class OutingPlanner:
         activity_start_time: datetime | None = None,
         restaurant_arrival_time: datetime | None = None,
     ) -> None:
-        self.places_client = PlacesAsyncClient()
-        self.eventbrite_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self.survey = survey
         self.activity = activity
         self.restaurant = restaurant
@@ -214,7 +209,7 @@ class OutingPlanner:
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
             start_time=start_time_local,
-            up_to_cost_cents=self.survey.budget.upper_limit_cents,
+            max_budget=self.survey.budget,
             within_areas=within_areas,
             vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
         ).order_by(func.random())
@@ -224,9 +219,7 @@ class OutingPlanner:
 
             for event_orm in results:
                 try:
-                    if activity := await get_eventbrite_activity(
-                        self.eventbrite_client, event_id=event_orm.eventbrite_event_id
-                    ):
+                    if activity := await get_eventbrite_activity(event_id=event_orm.eventbrite_event_id, max_budget=self.survey.budget):
                         self.activity = activity
                         return activity
                 except Exception as e:
@@ -265,7 +258,6 @@ class OutingPlanner:
 
         for search_area in within_areas:
             places_nearby = await get_places_nearby(
-                places_client=self.places_client,
                 area=search_area,
                 included_primary_types=[place_type],
             )
@@ -282,7 +274,7 @@ class OutingPlanner:
 
                 # Select activities that are within (<=) their requested budget.
                 if will_be_open and place.price_level <= self.survey.budget.google_places_price_level:
-                    self.activity = await activity_from_google_place(self.places_client, place=place)
+                    self.activity = await activity_from_google_place(place=place)
                     return self.activity
 
         # CASE 4: No suitable activity was found :(
@@ -299,6 +291,7 @@ class OutingPlanner:
         arrival_time_local = self.survey.start_time_local
         self.restaurant_arrival_time_local = arrival_time_local
         departure_time_local = arrival_time_local + timedelta(minutes=90)
+        self.restaurant_departure_time_local = departure_time_local
 
         google_category_ids: list[str] = []
         within_areas: list[GeoArea] = []
@@ -349,7 +342,6 @@ class OutingPlanner:
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:
             restaurants_nearby = await get_places_nearby(
-                places_client=self.places_client,
                 area=area,
                 included_primary_types=google_category_ids,
             )
@@ -384,7 +376,7 @@ class OutingPlanner:
                 # Select restaurants that _match_ their requested budget.
                 # So if they request an expensive date, we don't recommend McDonald's.
                 if will_be_open and price_level_matches:
-                    self.restaurant = await restaurant_from_google_place(self.places_client, place=restaurant)
+                    self.restaurant = await restaurant_from_google_place(place=restaurant)
                     return self.restaurant
 
         # No restaurant was found :(
@@ -416,6 +408,7 @@ class OutingPlanner:
             reservation = Reservation(
                 restaurant=self.restaurant,
                 arrival_time=self.restaurant_arrival_time_local,
+                departure_time=self.restaurant_departure_time_local if self.activity else None,
                 headcount=self.survey.headcount,
             )
 

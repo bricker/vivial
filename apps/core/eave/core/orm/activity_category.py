@@ -670,6 +670,22 @@ _ACTIVITY_CATEGORIES_TABLE = (
         activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=[],
     ),
+    ActivityCategoryOrm(
+        id=UUID("390831bc03f4433abe6700969bd2bbcc"),
+        name="Water & Boating",
+        is_default=True,
+        is_manually_curated=True,
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        eventbrite_subcategory_ids=[],
+    ),
+    ActivityCategoryOrm(
+        id=UUID("fd5ab13e2f6c4c45b9e0c4931a9b261a"),
+        name="Horseback Riding",
+        is_default=True,
+        is_manually_curated=True,
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        eventbrite_subcategory_ids=[],
+    ),
 )
 
 _ACTIVITY_CATEGORIES_PK = MappingProxyType({cat.id: cat for cat in _ACTIVITY_CATEGORIES_TABLE})

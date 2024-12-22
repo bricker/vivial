@@ -6,11 +6,10 @@ import strawberry
 import stripe
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
+from eave.core.lib.api_clients import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
-    fire_analytics_booking_confirmed,
-    notify_slack_booking_confirmed,
+    perform_post_confirm_actions,
 )
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
@@ -114,7 +113,7 @@ async def initiate_booking_mutation(
             if len(outing_orm.activities) > 0:
                 outing_activity_orm = outing_orm.activities[0]  # We only support one activity currently.
                 activity = await get_activity(
-                    source=outing_activity_orm.source, source_id=outing_activity_orm.source_id
+                    source=outing_activity_orm.source, source_id=outing_activity_orm.source_id,
                 )
 
                 if activity:
@@ -282,17 +281,15 @@ async def initiate_booking_mutation(
         )
 
     if input.auto_confirm:
-        fire_analytics_booking_confirmed(
-            booking=booking_orm,
-            account_id=account_orm.id,
+        await perform_post_confirm_actions(
+            booking_orm=booking_orm,
+            account_orm=account_orm,
             visitor_id=visitor_id,
             total_cost_cents=booking_total_cost_cents,
         )
-        await notify_slack_booking_confirmed(
-            account=account_orm, booking=booking_orm, total_cost_cents=booking_total_cost_cents
-        )
+
     else:
-        fire_analytics_booking_initiated(
+        _fire_analytics_booking_initiated(
             booking=booking_orm,
             reservation=reservation,
             activity_plan=activity_plan,
@@ -313,7 +310,7 @@ async def initiate_booking_mutation(
     )
 
 
-def fire_analytics_booking_initiated(
+def _fire_analytics_booking_initiated(
     *,
     booking: BookingOrm,
     reservation: Reservation | None,

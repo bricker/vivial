@@ -5,6 +5,7 @@ import sys
 
 sys.path.append(".")
 
+from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -238,7 +239,7 @@ run_stats: dict[str, Any] = {
 }
 
 async def get_eventbrite_events() -> None:
-    client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+    client = EVENTBRITE_API_CLIENT
 
     organizer_ids_copy = list(_EVENTBRITE_ORGANIZER_IDS)
     random.shuffle(organizer_ids_copy)

@@ -1,5 +1,5 @@
 from eave.core import database
-from eave.core.analytics import ANALYTICS
+from eave.core.lib.api_clients import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.survey import Survey
