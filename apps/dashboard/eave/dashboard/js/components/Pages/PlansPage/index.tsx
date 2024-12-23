@@ -95,7 +95,7 @@ const NewDateCta = () => {
   return (
     <CtaContainer>
       <CenteredText variant="subtitle2">😢 No upcoming plans. Let's fix that</CenteredText>
-      <PrimaryButton onClick={() => navigate("/")} fullWidth>
+      <PrimaryButton onClick={() => navigate(AppRoute.root)} fullWidth>
         🎲 New date
       </PrimaryButton>
     </CtaContainer>
