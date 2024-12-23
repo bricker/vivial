@@ -18,10 +18,11 @@ from eave.core.lib.google_places import (
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm
-from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import ActivitySource, RestaurantSource
 
 
-async def get_internal_activity(*, event_id: str, max_budget: OutingBudget) -> Activity | None:
+async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> Activity | None:
     async with database.async_session.begin() as db_session:
         activity_orm = await EvergreenActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
         images = activity_orm.images
@@ -70,17 +71,17 @@ async def resolve_activity_details(
     *,
     source: ActivitySource,
     source_id: str,
-    max_budget: OutingBudget,
+    survey: SurveyOrm | None,
 ) -> Activity | None:
     match source:
         case ActivitySource.INTERNAL:
-            activity = await get_internal_activity(event_id=source_id, max_budget=max_budget)
+            activity = await get_internal_activity(event_id=source_id, survey=survey)
 
         case ActivitySource.GOOGLE_PLACES:
             activity = await get_google_places_activity(event_id=source_id)
 
         case ActivitySource.EVENTBRITE:
-            activity = await get_eventbrite_activity(event_id=source_id, max_budget=max_budget)
+            activity = await get_eventbrite_activity(event_id=source_id, survey=survey)
 
     return activity
 

@@ -11,6 +11,7 @@ from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import GetEventQuery, ListTicketClassesForSaleQuery
@@ -20,7 +21,7 @@ from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
 
 
-async def get_eventbrite_activity(*, event_id: str, max_budget: OutingBudget) -> Activity | None:
+async def get_eventbrite_activity(*, event_id: str, survey: SurveyOrm | None) -> Activity | None:
     event = await _cached_get_eventbrite_event(event_id=event_id)
 
     if not (ticket_availability := event.get("ticket_availability")):
@@ -99,6 +100,7 @@ async def get_eventbrite_activity(*, event_id: str, max_budget: OutingBudget) ->
                 cost_breakdown.tax_cents = tax["value"]
 
             total_cost_cents = cost_breakdown.calculate_total_cost_cents()
+            max_budget = survey.budget if survey else OutingBudget.default()
 
             # If The total cost is <= the upper bound of the user's selected budget, then it is eligible.
             cost_is_lte_max_budget = total_cost_cents <= max_budget.upper_limit_cents

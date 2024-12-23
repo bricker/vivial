@@ -40,6 +40,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         activity = await resolve_activity_details(
             source=outing_activity_orm.source,
             source_id=outing_activity_orm.source_id,
+            survey=outing_orm.survey,
         )
 
         if activity:

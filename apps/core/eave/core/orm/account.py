@@ -3,7 +3,7 @@ import hmac
 import os
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self, override
 from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
@@ -98,6 +98,7 @@ class AccountOrm(Base, GetOneByIdMixin):
         if session:
             session.add(self)
 
+    @override
     @classmethod
     def select(cls, *, email: str = NOT_SET) -> Select[tuple[Self]]:
         query = select(cls)
@@ -111,6 +112,7 @@ class AccountOrm(Base, GetOneByIdMixin):
         # This is more efficient than querying the database directly, because we're already eager-loading account.bookings
         return next((b for b in self.bookings if b.id == booking_id), None)
 
+    @override
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 

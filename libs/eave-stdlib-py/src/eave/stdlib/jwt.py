@@ -3,7 +3,7 @@ import json
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Literal, Self
+from typing import Literal, Self, override
 
 from eave.stdlib.config import SHARED_CONFIG
 
@@ -89,6 +89,7 @@ class JWS:
     def to_str(self) -> str:
         return str(self)
 
+    @override
     def __str__(self) -> str:
         return f"{self.message}.{self.signature}"
 

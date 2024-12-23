@@ -4,7 +4,6 @@ from uuid import UUID
 import strawberry
 
 from eave.core.graphql.types.itinerary import Itinerary
-from eave.core.graphql.types.outing import Outing
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import BookingState

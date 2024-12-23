@@ -9,7 +9,7 @@ from eave.core.graphql.resolvers.fields.viewer.outing_preferences import (
 from eave.core.graphql.resolvers.fields.viewer.payment_methods import list_viewer_payment_methods_query
 from eave.core.graphql.resolvers.fields.viewer.reserver_details import list_reserver_details_query
 from eave.core.graphql.types.account import Account
-from eave.core.graphql.types.booking import BookingDetailsPeek, BookingDetails
+from eave.core.graphql.types.booking import BookingDetails, BookingDetailsPeek
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.graphql.types.stripe import PaymentMethod
 

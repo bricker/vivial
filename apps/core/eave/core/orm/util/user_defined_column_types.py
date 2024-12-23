@@ -2,11 +2,11 @@ import dataclasses
 import json
 from abc import ABC, abstractmethod
 from enum import IntEnum, StrEnum
-from typing import Any, Literal
+from typing import Any, Literal, override
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import Dialect
-from sqlalchemy.sql.type_api import _BindProcessorType, _ResultProcessorType
+from sqlalchemy.sql.type_api import _BindProcessorType, _ResultProcessorType  # pyright: ignore [reportPrivateUsage]
 from sqlalchemy.types import UserDefinedType
 
 from eave.core.lib.address import Address
@@ -14,12 +14,13 @@ from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSourc
 from eave.stdlib.logging import LOGGER
 
 
-class AddressColumnType(UserDefinedType):
+class AddressColumnType(UserDefinedType[Address]):
     cache_ok = True
 
     def get_col_spec(self) -> Literal["JSON"]:
         return "JSON"
 
+    @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[Address] | None:
         def process(value: Address | None) -> str | None:
             try:
@@ -33,6 +34,7 @@ class AddressColumnType(UserDefinedType):
 
         return process
 
+    @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[Address] | None:
         def process(value: dict[str, Any]) -> Address | None:
             try:
@@ -49,12 +51,13 @@ class AddressColumnType(UserDefinedType):
         return process
 
 
-class ZoneInfoColumnType(UserDefinedType):
+class ZoneInfoColumnType(UserDefinedType[ZoneInfo]):
     cache_ok = True
 
     def get_col_spec(self) -> Literal["varchar"]:
         return "varchar"
 
+    @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[ZoneInfo] | None:
         def process(value: ZoneInfo | None) -> str | None:
             try:
@@ -68,6 +71,7 @@ class ZoneInfoColumnType(UserDefinedType):
 
         return process
 
+    @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[ZoneInfo] | None:
         def process(value: str) -> ZoneInfo | None:
             try:
@@ -82,7 +86,7 @@ class ZoneInfoColumnType(UserDefinedType):
         return process
 
 
-class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
+class StrEnumColumnType[T: StrEnum](UserDefinedType[T], ABC):
     cache_ok = True
 
     @abstractmethod
@@ -91,6 +95,7 @@ class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
     def get_col_spec(self) -> Literal["varchar"]:
         return "varchar"
 
+    @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[T] | None:
         def process(value: T | None) -> str | None:
             try:
@@ -104,6 +109,7 @@ class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
 
         return process
 
+    @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[T] | None:
         def process(value: str) -> T | None:
             try:
@@ -120,7 +126,7 @@ class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
         return process
 
 
-class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
+class IntEnumColumnType[T: IntEnum](UserDefinedType[T], ABC):
     cache_ok = True
 
     @abstractmethod
@@ -129,6 +135,7 @@ class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
     def get_col_spec(self) -> Literal["smallint"]:
         return "smallint"
 
+    @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[T] | None:
         def process(value: T | None) -> int | None:
             try:
@@ -142,6 +149,7 @@ class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
 
         return process
 
+    @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[T] | None:
         def process(value: int) -> T | None:
             try:
@@ -161,6 +169,7 @@ class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
 class ActivitySourceColumnType(StrEnumColumnType[ActivitySource]):
     cache_ok = True
 
+    @override
     def enum_member(self, value: str) -> ActivitySource:
         return ActivitySource(value)
 
@@ -168,6 +177,7 @@ class ActivitySourceColumnType(StrEnumColumnType[ActivitySource]):
 class RestaurantSourceColumnType(StrEnumColumnType[RestaurantSource]):
     cache_ok = True
 
+    @override
     def enum_member(self, value: str) -> RestaurantSource:
         return RestaurantSource(value)
 
@@ -175,5 +185,6 @@ class RestaurantSourceColumnType(StrEnumColumnType[RestaurantSource]):
 class OutingBudgetColumnType(IntEnumColumnType[OutingBudget]):
     cache_ok = True
 
+    @override
     def enum_member(self, value: int) -> OutingBudget:
         return OutingBudget(value)

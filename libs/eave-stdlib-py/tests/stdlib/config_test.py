@@ -7,9 +7,6 @@ from .base import StdlibBaseTestCase
 
 
 class ConfigTest(StdlibBaseTestCase):
-    async def asyncSetUp(self) -> None:
-        await super().asyncSetUp()
-
     async def test_eave_base_url_public_with_env(self):
         self.patch_env({"EAVE_BASE_URL_PUBLIC": "https://finny.com:9090"})
         assert SHARED_CONFIG.eave_base_url_public == "https://finny.com:9090"

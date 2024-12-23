@@ -1,9 +1,8 @@
-from datetime import date
-from typing import NamedTuple, Self
+from datetime import date, datetime
+from typing import NamedTuple, Self, override
 from uuid import UUID
 
 from sqlalchemy import (
-    ARRAY,
     DATE,
     Column,
     ForeignKey,
@@ -53,19 +52,6 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     description: Mapped[str] = mapped_column()
     activity_category_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
-    availability: Mapped[list[list[Range[int]]]] = mapped_column(
-        type_=ARRAY(
-            item_type=INT4MULTIRANGE,
-            dimensions=1,
-            zero_indexes=True,
-        ),
-    )
-    """
-    List of multiranges, where each list element is a day of the week, and each range in the multirange is a range of hours.
-    In most cases, there will only be one range per multirange.
-    There may be more for places that close temporarily during the day.
-    """
-
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
     is_bookable: Mapped[bool] = mapped_column()
     booking_url: Mapped[str | None] = mapped_column()
@@ -74,9 +60,9 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     ticket_types: Mapped[list["EvergreenActivityTicketTypeOrm"]] = relationship(
         lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
-    weekly_schedules: Mapped[list["WeeklyScheduleOrm"]] = relationship(
-        lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN
-    )
+    # weekly_schedules: Mapped[list["WeeklyScheduleOrm"]] = relationship(
+    #     lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN
+    # )
 
     def __init__(
         self,
@@ -87,7 +73,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         coordinates: GeoPoint,
         activity_category_id: UUID,
         duration_minutes: int,
-        availability: list[list[Range[int]]],
+        weekly_schedules: list["WeeklyScheduleOrm"],
         address: Address,
         is_bookable: bool,
         booking_url: str | None,
@@ -97,7 +83,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         self.coordinates = coordinates.geoalchemy_shape()
         self.activity_category_id = activity_category_id
         self.duration_minutes = duration_minutes
-        self.availability = availability
+        self.weekly_schedules = weekly_schedules
         self.address = address
         self.is_bookable = is_bookable
         self.booking_url = booking_url
@@ -105,14 +91,14 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         if session:
             session.add(self)
 
-    @classmethod
-    def select(cls, *, business_hours_contains: int = NOT_SET) -> Select[tuple[Self]]:
-        query = super().select()
-
-        if business_hours_contains is not NOT_SET:
-            query = query.where(cls.availability.op("@>")(business_hours_contains))
-
-        return query
+    def schedule_for_week(self, *, start_of_week: datetime) -> "WeeklyScheduleOrm | None":
+        """
+        Find a schedule that starts on the given date.
+        If none exists, then find a schedule without a date (default schedule).
+        """
+        return next((s for s in self.weekly_schedules if s.week_of == start_of_week), None) or next(
+            (s for s in self.weekly_schedules if s.week_of is None), None
+        )
 
 
 class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
@@ -165,13 +151,13 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     The date in this field should be the Monday of that week (i.e., the start of the week).
     """
 
-    monday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
-    tuesday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
-    wednesday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
-    thursday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
-    friday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
-    saturday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
-    sunday: Mapped[list[Range]] = mapped_column(type_=INT4MULTIRANGE)
+    monday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
+    tuesday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
+    wednesday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
+    thursday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
+    friday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
+    saturday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
+    sunday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
 
     evergreen_activity_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{EvergreenActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
@@ -183,15 +169,17 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
         session: AsyncSession | None,
         *,
         evergreen_activity: EvergreenActivityOrm,
-        monday: list[Range],
-        tuesday: list[Range],
-        wednesday: list[Range],
-        thursday: list[Range],
-        friday: list[Range],
-        saturday: list[Range],
-        sunday: list[Range],
+        week_of: datetime | None,
+        monday: list[Range[int]],
+        tuesday: list[Range[int]],
+        wednesday: list[Range[int]],
+        thursday: list[Range[int]],
+        friday: list[Range[int]],
+        saturday: list[Range[int]],
+        sunday: list[Range[int]],
     ) -> None:
         self.evergreen_activity = evergreen_activity
+        self.week_of = week_of
         self.monday = monday
         self.tuesday = tuesday
         self.wednesday = wednesday
@@ -202,3 +190,29 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
 
         if session:
             session.add(self)
+
+    @override
+    @classmethod
+    def select(cls, *, open_at: datetime = NOT_SET) -> Select[tuple[Self]]:
+        query = super().select()
+
+        if open_at is not NOT_SET:
+            match open_at.weekday():
+                case 0:  # Monday
+                    query = query.where(cls.monday.op("<@")(open_at.hour))
+                case 1:  # Tuesday
+                    query = query.where(cls.tuesday.op("<@")(open_at.hour))
+                case 2:  # Wednesday
+                    query = query.where(cls.wednesday.op("<@")(open_at.hour))
+                case 3:  # Thursday
+                    query = query.where(cls.thursday.op("<@")(open_at.hour))
+                case 4:  # Friday
+                    query = query.where(cls.friday.op("<@")(open_at.hour))
+                case 5:  # Saturday
+                    query = query.where(cls.saturday.op("<@")(open_at.hour))
+                case 6:  # Sunday
+                    query = query.where(cls.sunday.op("<@")(open_at.hour))
+                case _:
+                    raise ValueError("invalid case")
+
+        return query

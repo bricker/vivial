@@ -53,7 +53,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local ruffconfig="${EAVE_HOME}/develop/python/configs/ruff.toml"
 		python -m ruff check $verboseflag --config="$ruffconfig" .
 		python -m ruff format --check $verboseflag --config="$ruffconfig" .
-		python -m pyright --project "$EAVE_HOME" .
+		python -m pyright --project "$EAVE_HOME" --warnings .
 
 		statusmsg -s "Linting $logtarget passed"
 		echo

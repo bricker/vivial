@@ -83,7 +83,7 @@ def b64decode(data: str | bytes, *, urlsafe: bool = False) -> str:
         return base64.b64decode(b, validate=True).decode()
 
 
-def ensure_bytes(data: str | bytes | dict) -> bytes:
+def ensure_bytes(data: str | bytes | dict[str, Any]) -> bytes:
     """
     Use to reconcile some data into bytes.
     """
@@ -124,7 +124,7 @@ def ensure_str_or_none(data: str | bytes | int | uuid.UUID | None) -> str | None
         return str(data)
 
 
-def ensure_str(data: str | bytes | int | uuid.UUID | dict) -> str:
+def ensure_str(data: str | bytes | int | uuid.UUID | dict[str, Any]) -> str:
     if isinstance(data, str):
         return data
     elif isinstance(data, dict):

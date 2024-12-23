@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Self
+from typing import Self, override
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -13,6 +13,7 @@ from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABL
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import (
     ActivitySourceColumnType,
@@ -31,6 +32,7 @@ from .util.constants import CASCADE_ALL_DELETE_ORPHAN, PG_UUID_EXPR, OnDeleteOpt
 class BookingStateColumnType(StrEnumColumnType[BookingState]):
     cache_ok = True
 
+    @override
     def enum_member(self, value: str) -> BookingState:
         return BookingState[value]
 
@@ -91,6 +93,7 @@ class BookingOrm(Base, GetOneByIdMixin):
         if session:
             session.add(self)
 
+    @override
     @classmethod
     def select(cls, *, account_id: UUID = NOT_SET, uid: UUID = NOT_SET) -> Select[tuple[Self]]:
         query = super().select()
@@ -144,6 +147,10 @@ class BookingOrm(Base, GetOneByIdMixin):
             raise ValueError("Invalid Booking: no activities or reservations")
 
         return max(candidates)
+
+    @property
+    def survey(self) -> SurveyOrm | None:
+        return self.outing.survey if self.outing else None
 
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):

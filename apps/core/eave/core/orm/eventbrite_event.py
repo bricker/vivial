@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Self
+from typing import Self, override
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -101,12 +101,13 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
         self.vivial_activity_format_id = vivial_activity_format_id
         return self
 
+    @override
     @classmethod
     def select(
         cls,
         *,
         eventbrite_event_id: str = NOT_SET,
-        max_budget: OutingBudget = NOT_SET,
+        budget: OutingBudget = NOT_SET,
         start_time: datetime = NOT_SET,
         within_areas: list[GeoArea] = NOT_SET,
         vivial_activity_category_ids: list[UUID] = NOT_SET,
@@ -126,8 +127,8 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
                 )
             )
 
-        if max_budget is not NOT_SET:
-            lookup = lookup.where(cls.min_cost_cents <= max_budget.upper_limit_cents)
+        if budget is not NOT_SET:
+            lookup = lookup.where(cls.min_cost_cents <= budget.upper_limit_cents)
 
         if start_time is not NOT_SET:
             start_time = start_time.astimezone(UTC)

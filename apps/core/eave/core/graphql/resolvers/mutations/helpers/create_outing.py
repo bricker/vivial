@@ -86,7 +86,9 @@ async def get_total_cost_cents(orm: OutingOrm | BookingOrm) -> int:
     total_cost_cents = 0
 
     for activity_orm in orm.activities:
-        activity = await resolve_activity_details(source=activity_orm.source, source_id=activity_orm.source_id)
+        activity = await resolve_activity_details(
+            source=activity_orm.source, source_id=activity_orm.source_id, survey=orm.survey
+        )
         if activity and activity.ticket_info:
             total_cost_cents += (
                 activity.ticket_info.cost_breakdown.calculate_total_cost_cents() * activity_orm.headcount

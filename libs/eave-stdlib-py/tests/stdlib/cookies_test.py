@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, override
 
 import aiohttp
 from starlette.requests import Request
@@ -13,19 +13,20 @@ from .base import StdlibBaseTestCase
 
 
 class CookiesTestBase(StdlibBaseTestCase):
+    @override
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
         # https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
-        self.mock_scope: dict[str, Any] = {
+        self.mock_scope: dict[str, Any] = {  # pyright: ignore [reportUninitializedInstanceVariable]
             "type": "http",
             "headers": [],
             "path": "",
             "method": "GET",
             "http_version": "1.1",
         }
-        self.mock_request = Request(scope=self.mock_scope)
-        self.mock_response = Response()
+        self.mock_request = Request(scope=self.mock_scope)  # pyright: ignore [reportUninitializedInstanceVariable]
+        self.mock_response = Response()  # pyright: ignore [reportUninitializedInstanceVariable]
 
 
 class CookiesTest(CookiesTestBase):

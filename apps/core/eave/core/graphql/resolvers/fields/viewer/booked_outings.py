@@ -5,7 +5,7 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import ActivityPlan
-from eave.core.graphql.types.booking import BookingDetailsPeek, BookingDetails
+from eave.core.graphql.types.booking import BookingDetails, BookingDetailsPeek
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
@@ -30,6 +30,7 @@ async def _get_booking_details(
         activity = await resolve_activity_details(
             source_id=activity_orm.source_id,
             source=activity_orm.source,
+            survey=booking_orm.outing.survey if booking_orm.outing else None,
         )
 
         if activity:

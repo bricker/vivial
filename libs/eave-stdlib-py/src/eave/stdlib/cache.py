@@ -1,6 +1,6 @@
 import abc
 import time
-from typing import Protocol
+from typing import Protocol, override
 
 import redis.asyncio as redis
 from redis.asyncio.retry import Retry
@@ -48,6 +48,7 @@ class EphemeralCache(CacheInterface):
     def __init__(self) -> None:
         self._store = {}
 
+    @override
     async def get(self, name: str) -> str | None:
         e = self._store.get(name)
         if e is None:
@@ -58,6 +59,7 @@ class EphemeralCache(CacheInterface):
         else:
             return e.value
 
+    @override
     async def set(self, name: str, value: str, ex: int | None = None) -> bool | None:
         # quick way to put a hard limit on the size of this cache.
         # This class is only for development so there's no need for anything more complex than this.
@@ -67,6 +69,7 @@ class EphemeralCache(CacheInterface):
         self._store[name] = _CacheEntry(value=value, ex=ex)
         return True
 
+    @override
     async def delete(self, *names: str) -> int:
         num = 0
         for k in names:
@@ -78,20 +81,22 @@ class EphemeralCache(CacheInterface):
 
         return num
 
+    @override
     async def close(self, close_connection_pool: bool | None = None) -> None:
         return None
 
+    @override
     async def ping(self) -> bool:
         return True
 
 
-_PROCESS_CACHE_CLIENT: CacheInterface | None = None
+_process_cache_client: CacheInterface | None = None
 
 
 def client() -> CacheInterface | None:
-    global _PROCESS_CACHE_CLIENT
+    global _process_cache_client
 
-    if not _PROCESS_CACHE_CLIENT:
+    if not _process_cache_client:
         if redis_cfg := SHARED_CONFIG.redis_connection:
             host, port, db = redis_cfg
             auth = SHARED_CONFIG.redis_auth
@@ -101,7 +106,7 @@ def client() -> CacheInterface | None:
             eaveLogger.debug(f"Redis connection: host={host}, port={port}, db={db}, auth={logauth}...")
 
             try:
-                _PROCESS_CACHE_CLIENT = redis.Redis(
+                _process_cache_client = redis.Redis(
                     host=host,
                     port=port,
                     db=db,
@@ -117,9 +122,9 @@ def client() -> CacheInterface | None:
                 eaveLogger.exception(e)
 
         else:
-            _PROCESS_CACHE_CLIENT = EphemeralCache()
+            _process_cache_client = EphemeralCache()
 
-    return _PROCESS_CACHE_CLIENT
+    return _process_cache_client
 
 
 def client_or_exception() -> CacheInterface:
@@ -134,4 +139,4 @@ def initialized_client() -> CacheInterface | None:
     Otherwise, if a connection wasn't previously established, you'd have to create a connection just to immediately close it.
     Because the client() function lazily creates a connection.
     """
-    return _PROCESS_CACHE_CLIENT
+    return _process_cache_client

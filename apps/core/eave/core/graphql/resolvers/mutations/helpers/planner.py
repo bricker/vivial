@@ -149,7 +149,7 @@ class OutingPlanner:
     restaurant: Restaurant | None
     activity_start_time_local: datetime | None
     restaurant_arrival_time_local: datetime | None
-    restaurant_depature_time_local: datetime | None
+    restaurant_departure_time_local: datetime | None
 
     group_restaurant_category_preferences: list[RestaurantCategoryOrm]
     group_activity_category_preferences: list[ActivityCategoryOrm]
@@ -173,6 +173,7 @@ class OutingPlanner:
         self.restaurant_arrival_time_local = (
             restaurant_arrival_time.astimezone(survey.timezone) if restaurant_arrival_time else None
         )
+        self.restaurant_departure_time_local = None
 
         self.group_restaurant_category_preferences = _combine_restaurant_categories(individual_preferences)
         self.group_activity_category_preferences = _combine_activity_categories(individual_preferences)
@@ -208,7 +209,7 @@ class OutingPlanner:
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
             start_time=start_time_local,
-            max_budget=self.survey.budget,
+            budget=self.survey.budget,
             within_areas=within_areas,
             vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
         ).order_by(func.random())
@@ -219,7 +220,8 @@ class OutingPlanner:
             for event_orm in results:
                 try:
                     if activity := await get_eventbrite_activity(
-                        event_id=event_orm.eventbrite_event_id, max_budget=self.survey.budget
+                        event_id=event_orm.eventbrite_event_id,
+                        survey=self.survey,
                     ):
                         self.activity = activity
                         return activity

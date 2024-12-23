@@ -1,6 +1,6 @@
 import enum
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, override
 from uuid import UUID
 
 import strawberry
@@ -36,6 +36,7 @@ class UnauthenticatedViewer:
 
 
 class AuthenticationExtension(FieldExtension):
+    @override
     async def resolve_async(
         self, next_: Callable[..., Awaitable[Any]], source: Any, info: strawberry.Info[GraphQLContext], **kwargs
     ) -> Any:

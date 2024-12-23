@@ -1,8 +1,9 @@
 from datetime import datetime
 from uuid import UUID
-from google.maps.routing import ComputeRoutesRequest, Location, RouteTravelMode, RoutingPreference, Waypoint
-import strawberry
+
 import google.type.latlng_pb2
+import strawberry
+from google.maps.routing import ComputeRoutesRequest, Location, RouteTravelMode, RoutingPreference, Waypoint
 
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
@@ -12,10 +13,12 @@ from eave.core.graphql.types.survey import Survey
 from eave.core.lib.api_clients import GOOGLE_MAPS_ROUTING_API_CLIENT
 from eave.core.shared.enums import RestaurantSource
 
+
 @strawberry.type
 class TravelInfo:
     duration_text: str
     distance_text: str
+
 
 @strawberry.interface
 class Itinerary:

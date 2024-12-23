@@ -1,4 +1,5 @@
 import http
+from typing import override
 
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
@@ -10,6 +11,7 @@ from eave.stdlib.status import status_payload
 
 
 class StatusEndpoint(HTTPEndpoint):
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         status_code = http.HTTPStatus.OK
         content = status_payload().json()

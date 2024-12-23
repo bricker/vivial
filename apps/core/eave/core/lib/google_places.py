@@ -315,26 +315,22 @@ def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: 
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours
     """
-    if place.regular_opening_hours is None:
-        return False
-
     arrival_time_local = arrival_time.astimezone(timezone)
     departure_time_local = departure_time.astimezone(timezone)
 
     for period in place.regular_opening_hours.periods:
-        is_relevant = period.open_ and (period.open_.day == arrival_time_local.weekday())
+        is_relevant = period.open_.day == arrival_time_local.weekday()
 
-        if is_relevant and period.open_.hour is not None and period.open_.minute is not None:
+        if is_relevant:
             open_time = arrival_time_local.replace(hour=period.open_.hour, minute=period.open_.minute)
+            close_time = arrival_time_local.replace(hour=period.close.hour, minute=period.close.minute)
 
-            if period.close and period.close.hour is not None and period.close.minute is not None:
-                close_time = arrival_time_local.replace(hour=period.close.hour, minute=period.close.minute)
+            if period.close.day != arrival_time_local.weekday():
+                close_time = close_time + timedelta(days=1)  # Place closes the next day.
 
-                if period.close.day != arrival_time_local.weekday():
-                    close_time = close_time + timedelta(days=1)  # Place closes the next day.
+            if open_time <= arrival_time_local and close_time >= departure_time_local:
+                return True
 
-                if open_time <= arrival_time_local and close_time >= departure_time_local:
-                    return True
     return False
 
 
