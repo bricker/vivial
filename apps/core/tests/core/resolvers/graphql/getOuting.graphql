@@ -141,8 +141,7 @@ query Outing($input: OutingInput!) {
     }
 
     travel {
-      durationText
-      distanceText
+      durationMinutes
     }
   }
 }

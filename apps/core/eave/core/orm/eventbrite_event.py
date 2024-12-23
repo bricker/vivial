@@ -128,7 +128,9 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
             )
 
         if budget is not NOT_SET:
-            lookup = lookup.where(cls.min_cost_cents <= budget.upper_limit_cents)
+            if budget.upper_limit_cents is not None:
+                # None means no upper limit, in which case there's no need to add this condition
+                lookup = lookup.where(cls.min_cost_cents <= budget.upper_limit_cents)
 
         if start_time is not NOT_SET:
             start_time = start_time.astimezone(UTC)

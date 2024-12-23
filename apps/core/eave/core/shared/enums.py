@@ -32,7 +32,7 @@ class OutingBudget(enum.IntEnum):
         return OutingBudget.EXPENSIVE
 
     @property
-    def upper_limit_cents(self) -> int:
+    def upper_limit_cents(self) -> int | None:
         match self:
             case OutingBudget.FREE:
                 return 0
@@ -43,10 +43,7 @@ class OutingBudget(enum.IntEnum):
             case OutingBudget.EXPENSIVE:
                 return 150 * 100
             case OutingBudget.VERY_EXPENSIVE:
-                # We're doing this instead of `math.inf` because `math.inf` is a float (which can't be converted to an int)
-                # and there is no real need for us to involve floats here.
-                # So outings cap at 1 million dollars.
-                return int(math.pow(10, 6) * 100)
+                return None
 
     @property
     def google_places_price_level(self) -> PriceLevel:

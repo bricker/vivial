@@ -21,4 +21,3 @@ click
 alembic
 toml
 uvicorn[standard]
-googlemaps
