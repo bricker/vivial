@@ -42,6 +42,10 @@ const SelectButton = styled(HighlightButton)(() => ({
   },
 }));
 
+const BudgetSelectButton = styled(SelectButton)(() => ({
+  padding: "0 10px",
+}));
+
 const SubmitButton = styled(LoadingButton)(() => ({
   marginTop: 8,
 }));
@@ -145,34 +149,34 @@ const DateSelections = ({
       <Row>
         <RowTitle>Price:</RowTitle>
         <RowButtons>
-          <SelectButton
+          <BudgetSelectButton
             onClick={() => onSelectBudget(OutingBudget.Inexpensive)}
             highlighted={budget === OutingBudget.Inexpensive}
             highlightColor={colors.mediumPurpleAccent}
           >
             $
-          </SelectButton>
-          <SelectButton
+          </BudgetSelectButton>
+          <BudgetSelectButton
             onClick={() => onSelectBudget(OutingBudget.Moderate)}
             highlighted={budget === OutingBudget.Moderate}
             highlightColor={colors.mediumPurpleAccent}
           >
             $$
-          </SelectButton>
-          <SelectButton
+          </BudgetSelectButton>
+          <BudgetSelectButton
             onClick={() => onSelectBudget(OutingBudget.Expensive)}
             highlighted={budget === OutingBudget.Expensive}
             highlightColor={colors.mediumPurpleAccent}
           >
             $$$
-          </SelectButton>
-          <SelectButton
+          </BudgetSelectButton>
+          <BudgetSelectButton
             onClick={() => onSelectBudget(OutingBudget.VeryExpensive)}
             highlighted={budget === OutingBudget.VeryExpensive}
             highlightColor={colors.mediumPurpleAccent}
           >
             $$$$
-          </SelectButton>
+          </BudgetSelectButton>
         </RowButtons>
       </Row>
       <SubmitButton onClick={handleSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
