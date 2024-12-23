@@ -16,7 +16,7 @@ export function useReroll(): [number, () => void] {
 
   const rerolled = () => {
     if (rerollCookie) {
-    updateCookie(rerollCookie.rerolls + 1, new Date(rerollCookie.expires));
+      updateCookie(rerollCookie.rerolls + 1, new Date(rerollCookie.expires));
     } else {
       updateCookie(1, in24Hours());
     }

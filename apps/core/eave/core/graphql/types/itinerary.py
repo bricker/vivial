@@ -92,8 +92,8 @@ class Itinerary:
         )
 
         response = await GOOGLE_MAPS_ROUTING_API_CLIENT.compute_routes(
-            request=routes_request,
-            metadata=[("x-goog-fieldmask", "routes.duration")])
+            request=routes_request, metadata=[("x-goog-fieldmask", "routes.duration")]
+        )
 
         if len(response.routes) == 0:
             return None

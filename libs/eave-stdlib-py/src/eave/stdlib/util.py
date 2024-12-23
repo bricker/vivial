@@ -272,6 +272,7 @@ def istr_eq(a: str, b: str) -> bool:
     """
     return a.lower() == b.lower()
 
+
 def num_with_english_suffix(num: int) -> str:
     strnum = str(int)
     if strnum.endswith("11"):

@@ -6,9 +6,9 @@ Create Date: 2024-12-23 17:22:56.438740
 
 """
 
-from alembic import op
 import geoalchemy2
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 from eave.core.orm.util.user_defined_column_types import AddressColumnType

@@ -1,8 +1,8 @@
 import enum
-from typing import TypedDict
 import urllib.parse
 from collections.abc import Sequence
 from datetime import datetime, timedelta
+from typing import TypedDict
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -241,6 +241,7 @@ async def get_google_place(
         request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
     )
 
+
 async def get_google_places_activity(*, event_id: str) -> Activity | None:
     place = await get_google_place(
         place_id=event_id,
@@ -283,7 +284,6 @@ async def get_places_nearby(
         request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
     )
     return list(response.places)
-
 
 
 def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo) -> bool:
@@ -330,8 +330,10 @@ def place_is_accessible(place: Place) -> bool:
 
     return can_enter and can_park and can_pee and can_sit
 
+
 class GeocodeResult(TypedDict, total=False):
     place_id: str | None
+
 
 async def google_maps_directions_url(address: str) -> str:
     geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=GOOGLE_MAPS_API_CLIENT, address=address)

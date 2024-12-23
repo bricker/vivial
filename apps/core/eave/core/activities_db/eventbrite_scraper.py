@@ -23,6 +23,7 @@ from zoneinfo import ZoneInfo
 from aiohttp import ClientResponseError
 
 import eave.core.database
+from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
@@ -32,7 +33,6 @@ from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 from eave.stdlib.typing import JsonObject
-from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
 
 # These are hand-picked by Vivial staff
 _EVENTBRITE_ORGANIZER_IDS = {

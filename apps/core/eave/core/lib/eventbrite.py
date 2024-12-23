@@ -1,4 +1,3 @@
-from functools import lru_cache
 
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
@@ -15,7 +14,7 @@ from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import GetEventQuery, ListTicketClassesForSaleQuery
-from eave.stdlib.eventbrite.models.event import Event, EventStatus
+from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
