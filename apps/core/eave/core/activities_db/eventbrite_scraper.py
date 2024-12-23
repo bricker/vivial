@@ -1,6 +1,7 @@
 # isort: off
 
 import sys
+import time
 
 
 sys.path.append(".")
@@ -234,7 +235,7 @@ organizer_stats: dict[str, dict[str, float]] = {}
 run_stats: dict[str, Any] = {
     "events_processed": 0,
     "events_imported": 0,
-    "runtime_minutes": 0,
+    "runtime_seconds": 0,
 }
 
 
@@ -251,12 +252,12 @@ async def get_eventbrite_events() -> None:
 
         await asyncio.sleep(2)
 
-        org_runtime_start = datetime.now()
+        org_perf_start = time.perf_counter()
 
         org_stats: dict[str, Any] = {
             "events_processed": 0,
             "events_imported": 0,
-            "runtime_minutes": 0,
+            "runtime_seconds": 0,
         }
 
         organizer_stats[organizer_id] = org_stats
@@ -498,13 +499,13 @@ async def get_eventbrite_events() -> None:
             LOGGER.exception(e)
 
         finally:
-            org_stats["runtime_minutes"] = (datetime.now() - org_runtime_start).total_seconds() / 60
+            org_stats["runtime_seconds"] = int(time.perf_counter() - org_perf_start)
             org_stats["latest_event_date"] = latest_event_date_for_organizer.isoformat()
 
 
 if __name__ == "__main__":
-    start_time = datetime.now()
-    run_stats["start_time"] = start_time.isoformat()
+    perf_start = time.perf_counter()
+    run_stats["start_time"] = datetime.now().isoformat()
 
     try:
         asyncio.run(get_eventbrite_events())
@@ -513,8 +514,7 @@ if __name__ == "__main__":
     except Exception as e:
         LOGGER.error(e)
     finally:
-        end_time = datetime.now()
-        run_stats["end_time"] = end_time.isoformat()
-        run_stats["runtime_minutes"] = (end_time - start_time).total_seconds() / 60
+        run_stats["end_time"] = datetime.now().isoformat()
+        run_stats["runtime_minutes"] = int((time.perf_counter() - perf_start) / 60)
         pprint(organizer_stats)
         pprint(run_stats)
