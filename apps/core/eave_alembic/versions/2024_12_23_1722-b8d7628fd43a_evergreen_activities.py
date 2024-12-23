@@ -25,8 +25,8 @@ def upgrade() -> None:
     op.drop_index("idx_activities_coordinates", table_name="activities", postgresql_using="gist")
     op.drop_constraint("activity_images_activity_id_fkey", "activity_images", type_="foreignkey")
     op.drop_column("activity_images", "activity_id")
-    op.drop_table("activities")
     op.drop_table("ticket_types")
+    op.drop_table("activities")
 
     op.create_table(
         "evergreen_activities",
@@ -51,13 +51,13 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        "idx_evergreen_activities_coordinates",
-        "evergreen_activities",
-        ["coordinates"],
-        unique=False,
-        postgresql_using="gist",
-    )
+    # op.create_index(
+    #     "idx_evergreen_activities_coordinates",
+    #     "evergreen_activities",
+    #     ["coordinates"],
+    #     unique=False,
+    #     postgresql_using="gist",
+    # )
     op.create_table(
         "evergreen_activity_ticket_types",
         sa.Column("id", sa.Uuid(), server_default=sa.text("(gen_random_uuid())"), nullable=False),
