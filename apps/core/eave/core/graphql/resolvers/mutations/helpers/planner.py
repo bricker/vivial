@@ -297,7 +297,6 @@ class OutingPlanner:
         self.restaurant_departure_time_local = departure_time_local
 
         google_category_ids: list[str] = []
-        within_areas: list[GeoArea] = []
 
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(arrival_time_local, self.survey.timezone):
@@ -321,26 +320,26 @@ class OutingPlanner:
             # That should never happen, but if it does, we don't want to show bad results, so this is a failsafe.
             google_category_ids = RestaurantCategoryOrm.combine_google_category_ids(RestaurantCategoryOrm.defaults())
 
-        # If an activity has been selected, use that as the search area.
+        # If an activity has been selected, try that search area first.
         if self.activity:
-            within_areas.append(
+            within_areas = [
                 GeoArea(
                     center=self.activity.venue.location.coordinates,
-                    rad=Distance(miles=5),
-                ),
-            )
-
-        # TODO: Sort areas by distance to the activity location.
-        for search_area_id in self.survey.search_area_ids:
-            within_areas.append(SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area)
+                    rad=Distance(miles=miles),
+                )
+                for miles in (5, 10, 15, 20)
+            ]
+        else:
+            within_areas = [SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area for search_area_id in self.survey.search_area_ids]
+            random.shuffle(within_areas)
 
         if len(within_areas) == 0:
             # Failsafe - This should never happen
             LOGGER.warning("No restaurant search areas categories could be resolved; falling back to defaults")
             # If there are no search areas given (which shouldn't happen but technically could), fallback to all of them.
             within_areas = [s.area for s in SearchRegionOrm.all()]
+            random.shuffle(within_areas)
 
-        random.shuffle(within_areas)
 
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:

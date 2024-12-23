@@ -3,7 +3,7 @@ import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { CircularProgress, Typography, styled } from "@mui/material";
-import React from "react";
+import React, { type KeyboardEvent } from "react";
 import { useSelector } from "react-redux";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
@@ -81,6 +81,37 @@ export interface ReserverFormFields {
   phoneNumber: string;
 }
 
+const ignorekeys = new Set([
+  "Backspace",
+  "Delete",
+  "Paste",
+  "Undo",
+  "Cut",
+  "Redo",
+  "Clear",
+  "EraseEof",
+  "Insert",
+]);
+
+const formatPhoneNumber = (e: KeyboardEvent) => {
+  if (ignorekeys.has(e.key)) {
+    return;
+  }
+
+  const el = e.target as HTMLInputElement;
+
+  let m = el.value.match(/^\(?(\d{3})\)?$/);
+  if (m) {
+    const digits = m[1];
+    el.value = `(${digits}) `;
+  }
+
+  m = el.value.match(/^\(?(\d{3})\)? (\d{3})$/);
+  if (m) {
+    el.value = `(${m[1]}) ${m[2]}-`;
+  }
+}
+
 const ReservationDetailsForm = ({
   reserverDetails,
   error,
@@ -117,19 +148,24 @@ const ReservationDetailsForm = ({
               value={reserverDetails.firstName}
               onChange={(e) => onChange("firstName", e.target.value)}
               rounded={[Corner.TOP_LEFT]}
+              required
             />
             <RoundableInput
               placeholder="Last name"
               value={reserverDetails.lastName}
               onChange={(e) => onChange("lastName", e.target.value)}
               rounded={[Corner.TOP_RIGHT]}
+              required
             />
           </NameInputContainer>
           <RoundableInput
             placeholder="Phone #"
             value={reserverDetails.phoneNumber}
             onChange={(e) => onChange("phoneNumber", e.target.value)}
+            onKeyUp={formatPhoneNumber}
             rounded={shouldShowEmail ? [] : [Corner.BOTTOM_LEFT, Corner.BOTTOM_RIGHT]}
+            required
+            type="tel"
           />
           {shouldShowEmail && (
             <RoundableInput
@@ -137,6 +173,8 @@ const ReservationDetailsForm = ({
               contentEditable={false}
               disabled={true}
               rounded={[Corner.BOTTOM_LEFT, Corner.BOTTOM_RIGHT]}
+              required
+              type="email"
             />
           )}
         </FieldsContainer>

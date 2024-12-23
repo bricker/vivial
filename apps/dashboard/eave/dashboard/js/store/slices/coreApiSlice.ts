@@ -108,6 +108,11 @@ export const coreApiSlice = createApi({
     }),
 
     getOneClickBookingCriteria: builder.query<OneClickBookingCriteriaQuery, OneClickBookingCriteriaQueryVariables>({
+      forceRefetch(_args) {
+        // This operation gets data from Stripe, and the payment methods may have changed through some other means besides this client.
+        // Therefore, we have to force-refetch to get the most up to date data.
+        return true;
+      },
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OneClickBookingCriteriaDocument, variables });
         return { data };
