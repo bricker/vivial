@@ -3,7 +3,7 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled, Typography } from "@mui/material";
 
 import IconButton from "@mui/material/IconButton";
-import React from "react";
+import React, { useEffect } from "react";
 import BackIcon from "../Icons/BackIcon";
 
 const ModalContainer = styled("div")(() => ({
@@ -22,6 +22,8 @@ const ModalContent = styled("div")(({ theme }) => ({
   borderRadius: `17.276px 17.276px 0px 0px`,
   position: "fixed",
   width: "100%",
+  maxHeight: "100vh",
+  overflow: "auto",
   bottom: 0,
   paddingBottom: "56px",
   [theme.breakpoints.up(Breakpoint.Medium)]: {
@@ -72,6 +74,17 @@ interface ModalProps {
 }
 
 const Modal = ({ title, open, onClose, children, badge, padChildren = true }: ModalProps) => {
+  useEffect(() => {
+    if (open) {
+      document.body.setAttribute("style", "overflow: hidden;");
+    } else {
+      document.body.setAttribute("style", "overflow: visible;");
+    }
+    return () => {
+      document.body.setAttribute("style", "overflow: visible;");
+    };
+  }, [open]);
+
   if (open) {
     return (
       <ModalContainer>
