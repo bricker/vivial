@@ -8,6 +8,7 @@ import SuccessIcon from "../../Icons/SuccessIcon";
 
 const ReqContainer = styled("div")(() => ({
   display: "flex",
+  alignItems: "center",
   padding: "0 4px",
 }));
 
