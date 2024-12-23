@@ -22,7 +22,8 @@ from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.lib.api_clients import GOOGLE_MAPS_API_CLIENT, GOOGLE_MAPS_PLACES_API_CLIENT
+from eave.core.lib.api_clients.google_maps_client import GOOGLE_MAPS_API_CLIENT
+from eave.core.lib.api_clients.google_places_client import GOOGLE_MAPS_PLACES_API_CLIENT
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint

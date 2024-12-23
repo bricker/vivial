@@ -1,4 +1,3 @@
-
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
@@ -6,7 +5,7 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
-from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
+from eave.core.lib.api_clients.eventbrite_client import EVENTBRITE_API_CLIENT
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
@@ -102,7 +101,9 @@ async def get_eventbrite_activity(*, event_id: str, survey: SurveyOrm | None) ->
             max_budget = survey.budget if survey else OutingBudget.default()
 
             # If The total cost is <= the upper bound of the user's selected budget, then it is eligible.
-            cost_is_lte_max_budget = max_budget.upper_limit_cents is None or total_cost_cents <= max_budget.upper_limit_cents
+            cost_is_lte_max_budget = (
+                max_budget.upper_limit_cents is None or total_cost_cents <= max_budget.upper_limit_cents
+            )
 
             if cost_is_lte_max_budget and total_cost_cents > most_expensive_eligible_price.calculate_total_cost_cents():
                 most_expensive_eligible_price = cost_breakdown

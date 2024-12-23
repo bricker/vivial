@@ -23,7 +23,7 @@ from zoneinfo import ZoneInfo
 from aiohttp import ClientResponseError
 
 import eave.core.database
-from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
+from eave.core.lib.api_clients.eventbrite_client import EVENTBRITE_API_CLIENT
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm

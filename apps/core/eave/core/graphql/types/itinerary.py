@@ -10,7 +10,7 @@ from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.api_clients import GOOGLE_MAPS_ROUTING_API_CLIENT
+from eave.core.lib.api_clients.google_routes_client import GOOGLE_MAPS_ROUTING_API_CLIENT
 from eave.core.shared.enums import RestaurantSource
 
 

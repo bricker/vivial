@@ -19,7 +19,7 @@ from eave.core.graphql.validators.time_bounds_validator import (
     start_time_too_far_away,
     start_time_too_soon,
 )
-from eave.core.lib.api_clients import ANALYTICS
+from eave.core.lib.api_clients.analytics_client import ANALYTICS
 from eave.core.lib.google_places import get_google_place
 from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
 from eave.core.orm.account import AccountOrm

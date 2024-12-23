@@ -1,5 +1,4 @@
 import enum
-import math
 
 import strawberry
 from google.maps.places_v1 import PriceLevel
