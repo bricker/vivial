@@ -22,7 +22,7 @@ from eave.stdlib.logging import LOGGER
 
 
 async def get_eventbrite_activity(*, event_id: str, survey: SurveyOrm | None) -> Activity | None:
-    event = await _cached_get_eventbrite_event(event_id=event_id)
+    event = await EVENTBRITE_API_CLIENT.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
 
     if not (ticket_availability := event.get("ticket_availability")):
         LOGGER.warning(
@@ -188,8 +188,3 @@ async def get_eventbrite_activity(*, event_id: str, survey: SurveyOrm | None) ->
     )
 
     return activity
-
-
-@lru_cache(maxsize=100)
-async def _cached_get_eventbrite_event(*, event_id: str) -> Event:
-    return await EVENTBRITE_API_CLIENT.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))

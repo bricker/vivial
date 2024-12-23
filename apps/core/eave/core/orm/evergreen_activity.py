@@ -73,7 +73,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         coordinates: GeoPoint,
         activity_category_id: UUID,
         duration_minutes: int,
-        weekly_schedules: list["WeeklyScheduleOrm"],
+        # weekly_schedules: list["WeeklyScheduleOrm"],
         address: Address,
         is_bookable: bool,
         booking_url: str | None,
@@ -83,7 +83,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         self.coordinates = coordinates.geoalchemy_shape()
         self.activity_category_id = activity_category_id
         self.duration_minutes = duration_minutes
-        self.weekly_schedules = weekly_schedules
+        # self.weekly_schedules = weekly_schedules
         self.address = address
         self.is_bookable = is_bookable
         self.booking_url = booking_url
@@ -91,14 +91,14 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         if session:
             session.add(self)
 
-    def schedule_for_week(self, *, start_of_week: datetime) -> "WeeklyScheduleOrm | None":
-        """
-        Find a schedule that starts on the given date.
-        If none exists, then find a schedule without a date (default schedule).
-        """
-        return next((s for s in self.weekly_schedules if s.week_of == start_of_week), None) or next(
-            (s for s in self.weekly_schedules if s.week_of is None), None
-        )
+    # def schedule_for_week(self, *, start_of_week: datetime) -> "WeeklyScheduleOrm | None":
+    #     """
+    #     Find a schedule that starts on the given date.
+    #     If none exists, then find a schedule without a date (default schedule).
+    #     """
+    #     return next((s for s in self.weekly_schedules if s.week_of == start_of_week), None) or next(
+    #         (s for s in self.weekly_schedules if s.week_of is None), None
+    #     )
 
 
 class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
@@ -162,7 +162,7 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     evergreen_activity_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{EvergreenActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
-    evergreen_activity: Mapped[EvergreenActivityOrm] = relationship(lazy="selectin", back_populates="weekly_schedules")
+    evergreen_activity: Mapped[EvergreenActivityOrm] = relationship(lazy="selectin")
 
     def __init__(
         self,

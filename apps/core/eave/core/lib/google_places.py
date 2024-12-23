@@ -1,8 +1,8 @@
 import enum
+from typing import TypedDict
 import urllib.parse
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from functools import lru_cache
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -237,16 +237,9 @@ async def get_google_place(
     *,
     place_id: str,
 ) -> Place:
-    return await _cached_get_google_place(place_id=place_id)
-
-
-@lru_cache(maxsize=100)
-async def _cached_get_google_place(*, place_id: str) -> Place:
-    # This is its own function because lru_cache breaks function intellisense
     return await GOOGLE_MAPS_PLACES_API_CLIENT.get_place(
         request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
     )
-
 
 async def get_google_places_activity(*, event_id: str) -> Activity | None:
     place = await get_google_place(
@@ -278,26 +271,10 @@ async def get_places_nearby(
     https://developers.google.com/maps/documentation/places/web-service/nearby-search
     """
 
-    return await _cached_get_places_nearby(
-        center_lat=area.center.lat,
-        center_lon=area.center.lon,
-        rad_meters=area.rad.meters,
-        included_primary_types=included_primary_types,
-    )
-
-
-@lru_cache(maxsize=100)
-async def _cached_get_places_nearby(
-    *,
-    center_lat: float,
-    center_lon: float,
-    rad_meters: float,
-    included_primary_types: Sequence[str],
-) -> list[Place]:
     location_restriction = SearchNearbyRequest.LocationRestriction()
-    location_restriction.circle.radius = rad_meters
-    location_restriction.circle.center.latitude = center_lat
-    location_restriction.circle.center.longitude = center_lon
+    location_restriction.circle.radius = area.rad.meters
+    location_restriction.circle.center.latitude = area.center.lat
+    location_restriction.circle.center.longitude = area.center.lon
     request = SearchNearbyRequest(
         location_restriction=location_restriction,
         included_primary_types=included_primary_types[0:50],
@@ -306,6 +283,7 @@ async def _cached_get_places_nearby(
         request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
     )
     return list(response.places)
+
 
 
 def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo) -> bool:
@@ -352,19 +330,17 @@ def place_is_accessible(place: Place) -> bool:
 
     return can_enter and can_park and can_pee and can_sit
 
+class GeocodeResult(TypedDict, total=False):
+    place_id: str | None
 
 async def google_maps_directions_url(address: str) -> str:
-    return await _cached_google_maps_directions_url(address)
+    geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=GOOGLE_MAPS_API_CLIENT, address=address)
 
-
-@lru_cache(maxsize=500)
-async def _cached_google_maps_directions_url(address: str) -> str:
-    geocode_result = googlemaps.geocoding.geocode(client=GOOGLE_MAPS_API_CLIENT, address=address)
-
-    if place_id := geocode_result.get("place_id"):
-        place = await get_google_place(place_id=place_id)
-        if place.google_maps_uri:
-            return place.google_maps_uri
+    for result in geocode_results:
+        if place_id := result.get("place_id"):
+            place = await get_google_place(place_id=place_id)
+            if place.google_maps_uri:
+                return place.google_maps_uri
 
     urlsafe_addr = urllib.parse.quote_plus(address)
     return f"https://www.google.com/maps/place/{urlsafe_addr}"

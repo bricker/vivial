@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { OutingBudget, type PaymentMethodFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import { OutingBudget, type Itinerary, type PaymentMethodFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
@@ -131,6 +131,10 @@ const Error = styled(Typography)(({ theme }) => ({
   textAlign: "left",
 }));
 
+const isPaidOuting = (itinerary: Itinerary): boolean => {
+  return itinerary.costBreakdown.totalCostCents > 0;
+}
+
 const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -163,21 +167,24 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   useEffect(() => {
     if (!oneClickBookingCriteriaData) {
-      console.warn("oneClickBookingCriteriaData missing");
       return;
     }
     switch (oneClickBookingCriteriaData.viewer.__typename) {
       case "AuthenticatedViewerQueries": {
-        const eligible =
-          oneClickBookingCriteriaData.viewer.reserverDetails.length > 0 &&
-          oneClickBookingCriteriaData.viewer.paymentMethods.length > 0;
-        setOneClickEligible(eligible);
+        let eligible = false;
+        const defaultReserverDetails = oneClickBookingCriteriaData.viewer.reserverDetails[0];
 
-        if (eligible) {
-          const defaultReserverDetails = oneClickBookingCriteriaData.viewer.reserverDetails[0]!;
+        if (defaultReserverDetails) {
+          eligible = true;
           dispatch(storeReserverDetails({ details: defaultReserverDetails }));
+        }
+
+        if (eligible && outing && isPaidOuting(outing)) {
+          eligible = eligible && oneClickBookingCriteriaData.viewer.paymentMethods.length > 0;
           dispatch(storePaymentMethods({ paymentMethods: oneClickBookingCriteriaData.viewer.paymentMethods }));
         }
+
+        setOneClickEligible(eligible);
         return;
       }
       case "UnauthenticatedViewer": {
@@ -212,69 +219,68 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [bookingOpen]);
 
   const handleBookClick = useCallback(async () => {
-    if (outing) {
-      if (isLoggedIn) {
-        if (oneClickEligible && paymentMethods && paymentMethods[0]) {
-          setBookButtonLoading(true);
-          const { data: initiateAndConfirmBookingData, error: initiateAndConfirmBookingError } =
-            await initiateAndConfirmBooking({
-              input: {
-                outingId: outing.id,
-                autoConfirm: true,
-                paymentMethodId: paymentMethods[0].id,
-              },
-            });
+    if (!outing) {
+      console.warn("No outing.");
+      return;
+    }
 
-          if (initiateAndConfirmBookingError || !initiateAndConfirmBookingData) {
-            // fallback to opening the booking modal
-            toggleBookingOpen();
-            setBookButtonLoading(false);
-          } else {
-            const viewer = initiateAndConfirmBookingData.viewer;
-            switch (viewer.__typename) {
-              case "AuthenticatedViewerMutations": {
-                const initiateBookingResult = viewer.initiateBooking;
-                switch (initiateBookingResult.__typename) {
-                  case "InitiateBookingSuccess": {
-                    const booking = initiateBookingResult.booking;
-                    dispatch(setBookingDetails({ bookingDetails: booking }));
-                    navigate(routePath(AppRoute.checkoutComplete, { bookingId: booking.id }));
-                    return;
-                  }
-                  case "InitiateBookingFailure": {
-                    console.error(`failure: ${initiateBookingResult.failureReason}`);
-                    setBookButtonLoading(false);
-                    toggleBookingOpen();
-                    return;
-                  }
-                  default: {
-                    console.error("Unexpected graphql response type");
-                    setBookButtonLoading(false);
-                    toggleBookingOpen();
-                  }
-                }
-                return;
-              }
-              case "UnauthenticatedViewer": {
-                dispatch(loggedOut());
-                window.location.assign(AppRoute.logout);
-                return;
-              }
-              default: {
-                console.error("Unexpected graphql response type");
-                setBookButtonLoading(false);
-                toggleBookingOpen();
-              }
-            }
+    if (!oneClickEligible || !isLoggedIn) {
+      // This handles the auth redirect and return path
+      navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+      return;
+    }
+
+    setBookButtonLoading(true);
+
+    const { data: initiateAndConfirmBookingData, error: initiateAndConfirmBookingError } =
+      await initiateAndConfirmBooking({
+        input: {
+          outingId: outing.id,
+          autoConfirm: true,
+          paymentMethodId: paymentMethods?.[0]?.id,
+        },
+      });
+
+    if (initiateAndConfirmBookingError || !initiateAndConfirmBookingData) {
+      setBookButtonLoading(false);
+      setErrorMessage("There was an error during booking. Please try again later.");
+      return;
+    }
+
+    const viewer = initiateAndConfirmBookingData.viewer;
+    switch (viewer.__typename) {
+      case "AuthenticatedViewerMutations": {
+        const initiateBookingResult = viewer.initiateBooking;
+        switch (initiateBookingResult.__typename) {
+          case "InitiateBookingSuccess": {
+            const booking = initiateBookingResult.booking;
+            dispatch(setBookingDetails({ bookingDetails: booking }));
+            navigate(routePath(AppRoute.checkoutComplete, { bookingId: booking.id }));
+            return;
           }
-        } else {
-          toggleBookingOpen();
+          case "InitiateBookingFailure": {
+            console.error(`failure: ${initiateBookingResult.failureReason}`);
+            setBookButtonLoading(false);
+            setErrorMessage("There was an error during booking. Please try again later.");
+            return;
+          }
+          default: {
+            console.error("Unexpected graphql response type");
+            setBookButtonLoading(false);
+            setErrorMessage("There was an error during booking. Please try again later.");
+          }
         }
-      } else {
-        if (outing) {
-          // This handles the auth redirect and return path
-          navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
-        }
+        return;
+      }
+      case "UnauthenticatedViewer": {
+        dispatch(loggedOut());
+        window.location.assign(AppRoute.logout);
+        return;
+      }
+      default: {
+        console.error("Unexpected graphql response type");
+        setBookButtonLoading(false);
+        setErrorMessage("There was an error during booking. Please try again later.");
       }
     }
   }, [isLoggedIn, outing, oneClickEligible]);
@@ -307,7 +313,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   let oneClickUI: React.JSX.Element | undefined;
 
-  if (oneClickEligible && reserverDetails && account && defaultPaymentMethod && defaultPaymentMethod.card) {
+  if (oneClickEligible && reserverDetails && account) {
     oneClickUI = (
       <OneClickBooking>
         <OneClickBadge />
@@ -323,10 +329,15 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
               <OneClickInputValue gridArea="phoneVal">{reserverDetails.phoneNumber}</OneClickInputValue>
               <OneClickInputName gridArea="email">Email</OneClickInputName>
               <OneClickInputValue gridArea="emailVal">{account.email}</OneClickInputValue>
-              <OneClickInputName gridArea="pay">Pay with</OneClickInputName>
-              <OneClickInputValue gridArea="payVal">
-                {capitalize(defaultPaymentMethod.card.brand)} *{defaultPaymentMethod.card.last4}
-              </OneClickInputValue>
+
+              {isPaidOuting(outing) && defaultPaymentMethod?.card && (
+                <>
+                  <OneClickInputName gridArea="pay">Pay with</OneClickInputName>
+                  <OneClickInputValue gridArea="payVal">
+                    {capitalize(defaultPaymentMethod.card.brand)} *{defaultPaymentMethod.card.last4}
+                  </OneClickInputValue>
+                </>
+              )}
             </OneClickInputs>
             <OneClickEditBtn onClick={toggleBookingOpen} />
           </OneClickInputsContainer>
@@ -349,7 +360,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
             <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
           </>
         )}
-        {activityPlan && activityPlan.costBreakdown.totalCostCents > 0 && (
+        {activityPlan && isPaidOuting(outing) && (
           <>
             <CostItem>{activityPlan.activity.name} Tickets ...</CostItem>
             <CostItem>{formatBaseCost(activityPlan.costBreakdown)}</CostItem>
@@ -373,7 +384,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           </ActionButtons>
         </>
       )}
-      {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+      {errorMessage && <Error>{errorMessage}</Error>}
       {bookingOpen && (
         <Modal
           title="Booking Info"

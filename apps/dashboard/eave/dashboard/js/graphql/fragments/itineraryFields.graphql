@@ -26,7 +26,6 @@ fragment ItineraryFields on Itinerary {
 
 fragment TravelFields on Itinerary {
   travel {
-    durationText
-    distanceText
+    durationMinutes
   }
 }

@@ -5,7 +5,6 @@ import sys
 
 sys.path.append(".")
 
-from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -33,6 +32,7 @@ from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 from eave.stdlib.typing import JsonObject
+from eave.core.lib.api_clients import EVENTBRITE_API_CLIENT
 
 # These are hand-picked by Vivial staff
 _EVENTBRITE_ORGANIZER_IDS = {

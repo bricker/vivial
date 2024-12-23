@@ -271,3 +271,25 @@ def istr_eq(a: str, b: str) -> bool:
     Case-insensitive comparison of two strings
     """
     return a.lower() == b.lower()
+
+def num_with_english_suffix(num: int) -> str:
+    strnum = str(int)
+    if strnum.endswith("11"):
+        return "11th"
+    if strnum.endswith("12"):
+        return "12th"
+    if strnum.endswith("13"):
+        return "13th"
+
+    lastnum = strnum[-1]
+    match lastnum:
+        case "1":
+            return f"{num}st"
+        case "2":
+            return f"{num}nd"
+        case "3":
+            return f"{num}rd"
+        case "4" | "5" | "6" | "7" | "8" | "9" | "0":
+            return f"{num}th"
+        case _:
+            return f"{num}"

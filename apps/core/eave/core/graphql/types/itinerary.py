@@ -16,8 +16,7 @@ from eave.core.shared.enums import RestaurantSource
 
 @strawberry.type
 class TravelInfo:
-    duration_text: str
-    distance_text: str
+    duration_minutes: int
 
 
 @strawberry.interface
@@ -87,19 +86,21 @@ class Itinerary:
                 ),
             ),
             travel_mode=RouteTravelMode.DRIVE,
-            routing_preferences=RoutingPreference.TRAFFIC_AWARE,
+            routing_preference=RoutingPreference.TRAFFIC_AWARE,
             arrival_time=self.activity_plan.start_time,
             # departure_time=self.reservation.departure_time,
         )
 
-        response = await GOOGLE_MAPS_ROUTING_API_CLIENT.compute_routes(routes_request)
+        response = await GOOGLE_MAPS_ROUTING_API_CLIENT.compute_routes(
+            request=routes_request,
+            metadata=[("x-goog-fieldmask", "routes.duration")])
+
         if len(response.routes) == 0:
             return None
 
         best_route = response.routes[0]
         return TravelInfo(
-            duration_text=best_route.localized_values.duration,
-            distance_text=best_route.localized_values.distance,
+            duration_minutes=int(best_route.duration.seconds / 60),
         )
 
     @strawberry.field

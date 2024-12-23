@@ -15,7 +15,6 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** Date with time (isoformat) */
   DateTime: { input: string; output: string; }
   UUID: { input: string; output: string; }
 };
@@ -565,8 +564,7 @@ export type TicketInfo = {
 
 export type TravelInfo = {
   __typename?: 'TravelInfo';
-  distanceText: Scalars['String']['output'];
-  durationText: Scalars['String']['output'];
+  durationMinutes: Scalars['Int']['output'];
 };
 
 export type UnauthenticatedViewer = {
@@ -1332,8 +1330,7 @@ type TravelFields_BookingDetails_Fragment = {
   __typename: 'BookingDetails',
   travel?: {
     __typename: 'TravelInfo',
-    durationText: string,
-    distanceText: string
+    durationMinutes: number
   } | null
 };
 
@@ -1341,8 +1338,7 @@ type TravelFields_Outing_Fragment = {
   __typename: 'Outing',
   travel?: {
     __typename: 'TravelInfo',
-    durationText: string,
-    distanceText: string
+    durationMinutes: number
   } | null
 };
 
@@ -2039,8 +2035,7 @@ export type PlanOutingMutation = {
       } | null,
       travel?: {
         __typename: 'TravelInfo',
-        durationText: string,
-        distanceText: string
+        durationMinutes: number
       } | null
     }
   }
@@ -2442,8 +2437,7 @@ export type BookingDetailsQuery = {
       } | null,
       travel?: {
         __typename: 'TravelInfo',
-        durationText: string,
-        distanceText: string
+        durationMinutes: number
       } | null
     } | null
   } | {
@@ -2681,8 +2675,7 @@ export type OutingQuery = {
     } | null,
     travel?: {
       __typename: 'TravelInfo',
-      durationText: string,
-      distanceText: string
+      durationMinutes: number
     } | null
   } | null
 };
@@ -3473,8 +3466,7 @@ export const TravelFieldsFragmentDoc = new TypedDocumentString(`
   __typename
   travel {
     __typename
-    durationText
-    distanceText
+    durationMinutes
   }
 }
     `, {"fragmentName":"TravelFields"}) as unknown as TypedDocumentString<TravelFieldsFragment, unknown>;
@@ -4000,8 +3992,7 @@ fragment TravelFields on Itinerary {
   __typename
   travel {
     __typename
-    durationText
-    distanceText
+    durationMinutes
   }
 }
 fragment LocationFields on Location {
@@ -4468,8 +4459,7 @@ fragment TravelFields on Itinerary {
   __typename
   travel {
     __typename
-    durationText
-    distanceText
+    durationMinutes
   }
 }
 fragment LocationFields on Location {
@@ -4718,8 +4708,7 @@ fragment TravelFields on Itinerary {
   __typename
   travel {
     __typename
-    durationText
-    distanceText
+    durationMinutes
   }
 }
 fragment LocationFields on Location {

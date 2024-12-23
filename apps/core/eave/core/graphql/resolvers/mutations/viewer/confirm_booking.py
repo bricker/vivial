@@ -28,7 +28,7 @@ from eave.core.shared.enums import ActivitySource, BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
-from eave.stdlib.util import unwrap
+from eave.stdlib.util import num_with_english_suffix, unwrap
 
 
 @strawberry.input
@@ -276,9 +276,10 @@ async def _notify_slack_booking_confirmed(
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
     send_booking_confirmation_email(
-        to_emails=[account_orm.email],
+        to_email=account_orm.email,
         data=BookingConfirmationData(
             booking_date=_pretty_datetime(booking_orm.start_time_local),
+            booking_details_url=f"{SHARED_CONFIG.eave_dashboard_base_url_public}/plans/{booking_orm.id}?utm_source=booking-confirmation-email",
             activities=[
                 EventItem(
                     name=a.name,
@@ -302,4 +303,10 @@ def _pretty_time(dt: datetime) -> str:
 
 
 def _pretty_datetime(dt: datetime) -> str:
-    return dt.strftime("%A, %B %d at %I:%M%p %Z")
+    suffixed_day = num_with_english_suffix(dt.day)
+
+    minutefmt = ":%M"
+    if dt.minute == 0:
+        minutefmt = ""
+
+    return dt.strftime(f"%A, %B {suffixed_day} at %-I{minutefmt}%p %Z")

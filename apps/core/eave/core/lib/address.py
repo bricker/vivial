@@ -51,7 +51,12 @@ class Address(BaseAddress):
 def format_address(address: BaseAddress, *, singleline: bool = False) -> str:
     line1 = ", ".join(s for s in [address.address1, address.address2] if s)
 
-    line2 = ", ".join(s for s in [address.city, address.state, address.zip_code] if s)
+    line2 = ", ".join(s for s in [address.city, address.state] if s)
+
+    if address.zip_code:
+        if line2:
+            line2 += " "
+        line2 += address.zip_code
 
     condensed = [s for s in [line1, line2] if s]
     if singleline:
