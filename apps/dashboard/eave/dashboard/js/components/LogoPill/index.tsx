@@ -5,11 +5,13 @@ import React from "react";
 
 const LogoImage = styled("img")(() => ({
   height: "100%",
+  maxWidth: "100%",
 }));
 
 const LogoContainer = styled("div")<{ padding: number; backgroundColor: string }>(({ padding, backgroundColor }) => ({
   borderRadius: 10,
   width: "40%",
+  minWidth: "40%",
   aspectRatio: 3.4,
   display: "flex",
   alignItems: "center",
