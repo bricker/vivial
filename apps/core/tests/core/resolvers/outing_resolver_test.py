@@ -2,6 +2,7 @@ import datetime
 from uuid import UUID
 
 from eave.core.orm.outing import OutingOrm
+from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 
@@ -13,6 +14,8 @@ class TestOutingResolver(BaseTestCase):
             survey = self.make_survey(session, account)
             survey.headcount = 2
             outing = self.make_outing(session, account, survey)
+
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=survey.budget.upper_limit_cents)
 
         response = await self.make_graphql_request(
             "getOuting",
@@ -45,6 +48,8 @@ class TestOutingResolver(BaseTestCase):
             survey = self.make_survey(session, account)
             survey.headcount = 1
             outing = self.make_outing(session, account, survey)
+
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=survey.budget.upper_limit_cents)
 
         response = await self.make_graphql_request(
             "getOuting",
@@ -100,17 +105,7 @@ class TestOutingResolver(BaseTestCase):
             survey = self.make_survey(session, account)
             outing = self.make_outing(session, account, survey)
 
-        # We need to do this for typechecking. I'd rather do this than do typeignore
-        assert "cost" in self.mock_eventbrite_ticket_class_batch[0]
-        assert self.mock_eventbrite_ticket_class_batch[0]["cost"]
-        assert "fee" in self.mock_eventbrite_ticket_class_batch[0]
-        assert self.mock_eventbrite_ticket_class_batch[0]["fee"]
-        assert "tax" in self.mock_eventbrite_ticket_class_batch[0]
-        assert self.mock_eventbrite_ticket_class_batch[0]["tax"]
-
-        self.mock_eventbrite_ticket_class_batch[0]["cost"]["value"] = 0
-        self.mock_eventbrite_ticket_class_batch[0]["fee"]["value"] = 0
-        self.mock_eventbrite_ticket_class_batch[0]["tax"]["value"] = 0
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=0)
 
         response = await self.make_graphql_request(
             "getOuting",

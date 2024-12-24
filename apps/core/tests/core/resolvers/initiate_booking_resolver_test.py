@@ -23,31 +23,10 @@ class TestInitiateBookingResolver(BaseTestCase):
             assert await self.count(session, BookingOrm) == 0
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            survey.budget = OutingBudget.EXPENSIVE
             outing = self.make_outing(session, account, survey)
 
-        self.mock_eventbrite_ticket_class_batch = [
-            TicketClass(
-                id=self.anydigits(),
-                cost=CurrencyCost(
-                    currency="usd",
-                    display=self.anystr(),
-                    major_value=self.anystr(),
-                    value=self.anyint(max=survey.budget.upper_limit_cents),
-                ),
-                fee=CurrencyCost(
-                    currency="usd",
-                    display=self.anystr(),
-                    major_value=self.anystr(),
-                    value=0,
-                ),
-                tax=CurrencyCost(
-                    currency="usd",
-                    display=self.anystr(),
-                    major_value=self.anystr(),
-                    value=0,
-                ),
-            )
-        ]
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=survey.budget.upper_limit_cents)
 
         self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
 
@@ -95,6 +74,7 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 1
         assert self.get_mock("stripe.Customer.create_async").call_count == 1
         assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
 
     async def test_create_booking_free(self) -> None:
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
@@ -135,6 +115,7 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
         assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
 
     async def test_create_booking_from_expired_outing_fails(self) -> None:
         async with self.db_session.begin() as session:
@@ -175,6 +156,8 @@ class TestInitiateBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
 
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
+
     async def test_create_booking_from_outing_too_far_future_fails(self) -> None:
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
@@ -213,6 +196,8 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
+
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
 
     async def test_successful_create_payment_intent(self) -> None:
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
@@ -307,6 +292,8 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert create_customer_session_mock.call_count == 1
         assert create_customer_session_mock.call_args_list[0].kwargs["customer"] == fetched_account.stripe_customer_id
 
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
+
     async def test_create_payment_intent_with_existing_customer_id_doesnt_create_stripe_customer_account(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)
@@ -358,6 +345,7 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert result.data["viewer"]["initiateBooking"]["__typename"] == "InitiateBookingSuccess"
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
         assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
 
         assert result.data["viewer"]["initiateBooking"]["customerSession"]["clientSecret"] is not None
         async with self.db_session.begin() as session:
@@ -420,17 +408,43 @@ class TestInitiateBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 0
 
-    async def test_initiate_booking_auto_confirm(self) -> None:
-        self.fail()
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
+
+    async def test_initiate_booking_auto_confirm_with_paid_outing(self) -> None:
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
         assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
 
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
             account = self.make_account(session)
             survey = self.make_survey(session, account)
             outing = self.make_outing(session, account, survey)
+
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(max=survey.budget.upper_limit_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
 
         self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
 
@@ -439,6 +453,7 @@ class TestInitiateBookingResolver(BaseTestCase):
             {
                 "input": {
                     "outingId": str(outing.id),
+                    "autoConfirm": True,
                 },
             },
             account_id=account.id,
@@ -455,26 +470,105 @@ class TestInitiateBookingResolver(BaseTestCase):
             assert await self.count(session, BookingOrm) == 1
             booking = await BookingOrm.get_one(session, UUID(data["booking"]["id"]))
 
-        assert len(booking.reservations) == 1
-        assert booking.reservations[0].source_id == outing.reservations[0].source_id
-
-        assert len(booking.activities) == 1
-        assert booking.activities[0].source_id == outing.activities[0].source_id
-
-        assert booking.reserver_details is None
-        assert booking.state == BookingState.INITIATED
-
-        assert booking.stripe_payment_intent_reference is not None
-
-        payment_intent = data["paymentIntent"]
-        assert payment_intent is not None
-        assert payment_intent["id"] == self.mock_stripe_payment_intent.id
-        assert payment_intent["clientSecret"] == self.mock_stripe_payment_intent.client_secret
-
-        customer_session = data["customerSession"]
-        assert customer_session is not None
-        assert customer_session["clientSecret"] == self.mock_stripe_customer_session.client_secret
+        assert booking.state == BookingState.CONFIRMED
 
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 1
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["confirm"] is True
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["automatic_payment_methods"]["enabled"] is True
+
         assert self.get_mock("stripe.Customer.create_async").call_count == 1
         assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
+        assert self.get_mock("SendGridAPIClient.send").call_count == 1
+
+    async def test_initiate_booking_auto_confirm_with_paid_outing_with_payment_method_id_given(self) -> None:
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
+        assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            survey.budget = OutingBudget.EXPENSIVE
+            outing = self.make_outing(session, account, survey)
+
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=survey.budget.upper_limit_cents)
+        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
+
+        response = await self.make_graphql_request(
+            "initiateBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "autoConfirm": True,
+                    "paymentMethodId": self.anystr("payment method id"),
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["initiateBooking"]
+        assert data["__typename"] == "InitiateBookingSuccess"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 1
+            booking = await BookingOrm.get_one(session, UUID(data["booking"]["id"]))
+
+        assert booking.state == BookingState.CONFIRMED
+
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 1
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["confirm"] is True
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["automatic_payment_methods"]["enabled"] is True
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["payment_method"] == self.getstr("payment method id")
+
+        assert self.get_mock("stripe.Customer.create_async").call_count == 1
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
+        assert self.get_mock("SendGridAPIClient.send").call_count == 1
+
+    async def test_initiate_booking_auto_confirm_with_free_outing(self) -> None:
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
+        assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
+        assert self.get_mock("SendGridAPIClient.send").call_count == 0
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=0)
+
+        response = await self.make_graphql_request(
+            "initiateBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "autoConfirm": True,
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["initiateBooking"]
+        assert data["__typename"] == "InitiateBookingSuccess"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 1
+            booking = await BookingOrm.get_one(session, UUID(data["booking"]["id"]))
+
+        assert booking.state == BookingState.CONFIRMED
+
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
+        assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
+        assert self.get_mock("SendGridAPIClient.send").call_count == 1

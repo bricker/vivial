@@ -25,6 +25,7 @@ from google.cloud.kms import (
 )
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
+from eave.core.shared.enums import OutingBudget
 import eave.stdlib.http_exceptions
 import eave.stdlib.util
 from eave.stdlib.checksum import generate_checksum
@@ -555,26 +556,57 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def _add_segment_client_mocks(self) -> None:
-        def _mocked_sendgrid_track(*args: Any, **kwargs: Any) -> Any:
+        def _mocked_segment_track(*args: Any, **kwargs: Any) -> Any:
             pass
 
         self.patch(
             name="segment.analytics.track",
             patch=unittest.mock.patch("segment.analytics.track"),
-            side_effect=_mocked_sendgrid_track,
+            side_effect=_mocked_segment_track,
         )
 
-        def _mocked_sendgrid_identify(*args: Any, **kwargs: Any) -> Any:
+        def _mocked_segment_identify(*args: Any, **kwargs: Any) -> Any:
             pass
 
         self.patch(
             name="segment.analytics.identify",
             patch=unittest.mock.patch("segment.analytics.identify"),
-            side_effect=_mocked_sendgrid_identify,
+            side_effect=_mocked_segment_identify,
         )
 
     mock_eventbrite_event: Event  # pyright: ignore [reportUninitializedInstanceVariable]
     mock_eventbrite_ticket_class_batch: list[TicketClass]  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def set_mock_eventbrite_ticket_class_batch(self, *, max_cost_cents: int | None = None, min_cost_cents: int | None = None) -> None:
+        if max_cost_cents is not None and min_cost_cents is None:
+            if max_cost_cents == 0:
+                min_cost_cents = 0
+            else:
+                min_cost_cents = 1
+
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(min=min_cost_cents, max=max_cost_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
 
     def get_mock_eventbrite_ticket_class_batch_cost(self) -> int:
         # These checks are just for the typechecker

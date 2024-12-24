@@ -419,14 +419,15 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self.mock_stripe_customer_payment_methods = [
             stripe.PaymentMethod(
                 id=self.anystr(),
-                card=stripe.Card(
-                    brand="visa",
-                    last4=self.anydigits(length=4),
-                    exp_month=self.anyint(min=1, max=12),
-                    exp_year=self.anyint(min=2020, max=2100),
-                )
             ),
         ]
+
+        setattr(self.mock_stripe_customer_payment_methods[0], "card", stripe.Card(
+            brand="visa",
+            last4=self.anydigits(length=4),
+            exp_month=self.anyint(min=1, max=12),
+            exp_year=self.anyint(min=2020, max=2100),
+        ))
 
         async def _mock_customer_list_payment_methods(*args: Any, **kwargs: Any) -> list[stripe.PaymentMethod]:
             return self.mock_stripe_customer_payment_methods

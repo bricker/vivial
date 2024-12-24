@@ -272,7 +272,10 @@ async def _notify_slack_booking_confirmed(
                     """),
             )
     except Exception as e:
-        LOGGER.exception(e)
+        if SHARED_CONFIG.is_local:
+            raise
+        else:
+            LOGGER.exception(e)
 
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
@@ -297,6 +300,7 @@ def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: Ac
             ],
         ),
     )
+
 
 
 def _pretty_time(dt: datetime) -> str:

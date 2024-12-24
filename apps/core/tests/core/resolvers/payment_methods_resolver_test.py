@@ -16,14 +16,15 @@ class TestPaymentMethodsResolvers(BaseTestCase):
         self.mock_stripe_customer_payment_methods = [
             stripe.PaymentMethod(
                 id=self.anystr("payment method id"),
-                card=stripe.Card(
-                    brand="visa",
-                    last4=self.anydigits(length=4),
-                    exp_month=self.anyint(min=1, max=12),
-                    exp_year=self.anyint(min=2020, max=2100),
-                )
             ),
         ]
+
+        setattr(self.mock_stripe_customer_payment_methods[0], "card", stripe.Card(
+            brand="visa",
+            last4=self.anydigits(length=4),
+            exp_month=self.anyint(min=1, max=12),
+            exp_year=self.anyint(min=2020, max=2100),
+        ))
 
         async with self.db_session.begin() as session:
             account = self.make_account(session)
@@ -118,4 +119,4 @@ class TestPaymentMethodsResolvers(BaseTestCase):
 
         assert self.get_mock("stripe.Customer.list_payment_methods_async").call_count == 0
         assert "paymentMethods" not in result.data["viewer"]
-        assert result.data["viewer"]["authFailureReason"] == "INVALID_ACCESS_TOKEN"
+        assert result.data["viewer"]["authFailureReason"] == "ACCESS_TOKEN_INVALID"
