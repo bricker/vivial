@@ -1,16 +1,6 @@
 import type { KeyboardEvent } from "react";
 
-const ignorekeys = new Set([
-  "Backspace",
-  "Delete",
-  "Paste",
-  "Undo",
-  "Cut",
-  "Redo",
-  "Clear",
-  "EraseEof",
-  "Insert",
-]);
+const ignorekeys = new Set(["Backspace", "Delete", "Paste", "Undo", "Cut", "Redo", "Clear", "EraseEof", "Insert"]);
 
 export const formatPhoneNumber = (e: KeyboardEvent) => {
   if (ignorekeys.has(e.key)) {
@@ -29,4 +19,4 @@ export const formatPhoneNumber = (e: KeyboardEvent) => {
   if (m) {
     el.value = `(${m[1]}) ${m[2]}-`;
   }
-}
+};

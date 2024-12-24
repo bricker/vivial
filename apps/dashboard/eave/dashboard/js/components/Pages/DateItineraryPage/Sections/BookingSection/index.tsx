@@ -12,7 +12,6 @@ import {
   OutingBudget,
   type Itinerary,
   type PaymentMethodFieldsFragment,
-  type ReserverDetailsFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -184,7 +183,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           // Take this opportunity to store the reserver details in redux store.
           // Note that we don't put the payment methods into redux store because that can change server-side
           // without the client knowing about it, and the client will have stale data.
-          dispatch(storeReserverDetails({details: firstReserverDetails}));
+          dispatch(storeReserverDetails({ details: firstReserverDetails }));
 
           if (!isPaidOuting(outing)) {
             // If we have reserver details and it's not a paid outing, then user is OCB eligible

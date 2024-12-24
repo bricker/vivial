@@ -149,7 +149,10 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
         <PreferenceSelections
           categoryGroupName="Food types"
           categories={restaurantCategories}
-          defaultCategories={getDefaults({ preferredCategories: preferredRestaurants, allCategories: restaurantCategories })}
+          defaultCategories={getDefaults({
+            preferredCategories: preferredRestaurants,
+            allCategories: restaurantCategories,
+          })}
           onSubmit={handleSubmitRestaurants}
         />
         {activityCategoryGroups?.map((group) => (
@@ -158,7 +161,10 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
             categoryGroupName={group.name}
             categoryGroupId={group.id}
             categories={group?.activityCategories || []}
-            defaultCategories={getDefaults({ preferredCategories: preferredActivities, allCategories: group?.activityCategories })}
+            defaultCategories={getDefaults({
+              preferredCategories: preferredActivities,
+              allCategories: group?.activityCategories,
+            })}
             onSubmit={handleSubmitActivities}
           />
         ))}

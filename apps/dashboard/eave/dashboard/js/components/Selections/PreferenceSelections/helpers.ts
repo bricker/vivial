@@ -21,7 +21,13 @@ export function getAccentColor(categoryId?: string): string {
   return colors.lightOrangeAccent;
 }
 
-export function getDefaults({ preferredCategories, allCategories }: { preferredCategories: Category[], allCategories: Category[] }): Category[] {
+export function getDefaults({
+  preferredCategories,
+  allCategories,
+}: {
+  preferredCategories: Category[];
+  allCategories: Category[];
+}): Category[] {
   if (preferredCategories.length) {
     return preferredCategories;
   } else {

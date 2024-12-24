@@ -330,7 +330,10 @@ class OutingPlanner:
                 for miles in (5, 10, 15, 20)
             ]
         else:
-            within_areas = [SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area for search_area_id in self.survey.search_area_ids]
+            within_areas = [
+                SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
+                for search_area_id in self.survey.search_area_ids
+            ]
             random.shuffle(within_areas)
 
         if len(within_areas) == 0:
@@ -339,7 +342,6 @@ class OutingPlanner:
             # If there are no search areas given (which shouldn't happen but technically could), fallback to all of them.
             within_areas = [s.area for s in SearchRegionOrm.all()]
             random.shuffle(within_areas)
-
 
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:

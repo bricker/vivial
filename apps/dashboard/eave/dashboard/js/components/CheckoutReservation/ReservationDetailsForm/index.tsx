@@ -2,12 +2,12 @@ import { RootState } from "$eave-dashboard/js/store";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
+import { formatPhoneNumber } from "$eave-dashboard/js/util/phoneNumber";
 import { CircularProgress, Typography, styled } from "@mui/material";
-import React, { type KeyboardEvent } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
-import { formatPhoneNumber } from "$eave-dashboard/js/util/phoneNumber";
 
 enum Corner {
   TOP_LEFT,
