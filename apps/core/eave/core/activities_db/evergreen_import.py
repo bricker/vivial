@@ -25,6 +25,7 @@ from eave.core.lib.google_places import GoogleMapsUtility, GooglePlacesUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm, EvergreenActivityTicketTypeOrm, WeeklyScheduleOrm
 from eave.stdlib.logging import LOGGER
+from eave.core.orm.image import ImageOrm
 
 header = "[Title, Description, Address, Images, Category, Subcategory, Format, Availability (Days & Hours), Duration (Minutes), Ticket Type A, Ticket Type A Cost, Ticket Type B, Ticket Type B Cost, Taxes, Service Fees, Bookable, Book URL]"
 
@@ -193,6 +194,15 @@ async def import_evergreen_activities() -> None:
                     minute_spans_local=spans,
                 )
 
+                for image in images:
+                    img = ImageOrm(
+                        session,
+                        src=image.strip(),
+                        alt=None,
+                    )
+
+                    activity.images.append(img)
+
                 if ticket_type_a is not None and ticket_type_a_cost_dollars is not None:
                     activity.ticket_types.append(
                         EvergreenActivityTicketTypeOrm(
@@ -204,6 +214,7 @@ async def import_evergreen_activities() -> None:
                             title=ticket_type_a,
                         )
                     )
+
 
 def _gethr(hrstr: str, ap: str) -> int:
     if ap == "AM":
