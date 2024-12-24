@@ -123,9 +123,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
         if vivial_activity_category_ids is not NOT_SET:
-            lookup = lookup.where(
-                cls.vivial_activity_category_id.in_(vivial_activity_category_ids)
-            )
+            lookup = lookup.where(cls.vivial_activity_category_id.in_(vivial_activity_category_ids))
 
         if budget is not NOT_SET and budget.upper_limit_cents is not None:
             # None means no upper limit, in which case there's no need to add this condition

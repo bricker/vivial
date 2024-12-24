@@ -1,16 +1,16 @@
-from datetime import datetime
 import random
+from datetime import datetime
+
 from sqlalchemy.dialects.postgresql import Range
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from eave.core import database
 from eave.core.lib.address import Address
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm, EvergreenActivityTicketTypeOrm, WeeklyScheduleOrm
 from eave.core.orm.image import ImageOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import OutingBudget
-from eave.core.shared.geo import GeoArea, GeoPoint
+from eave.core.shared.geo import GeoPoint
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 from ..base import BaseTestCase
@@ -79,14 +79,13 @@ class TestEvergreenActivityOrm(BaseTestCase):
             assert obj.address.zip_code == self.getdigits("address.zip")
             assert obj.google_place_id == self.getstr("google place id")
 
-
     async def test_evergreen_activity_select_by_budget_1(self) -> None:
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=1, max=5) * 100, # INEXPENSIVE
+                base_cost_cents=self.anyint(min=1, max=5) * 100,  # INEXPENSIVE
                 service_fee_cents=self.anyint(min=0, max=10) * 100,
                 tax_percentage=self.anyint(min=0, max=7) / 100,
                 title=self.anystr(),
@@ -103,7 +102,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=10**6) * 100, # VERY EXPENSIVE
+                base_cost_cents=self.anyint(min=10**6) * 100,  # VERY EXPENSIVE
                 service_fee_cents=self.anyint(),
                 tax_percentage=self.anyfloat(),
                 title=self.anystr(),
@@ -120,7 +119,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=11, max=100) * 100, # within MODERATE
+                base_cost_cents=self.anyint(min=11, max=100) * 100,  # within MODERATE
                 service_fee_cents=self.anyint(min=0, max=10) * 100,
                 tax_percentage=self.anyint(min=0, max=10) / 100,
                 title=self.anystr(),
@@ -156,9 +155,9 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=40 * 100, # MODERATE is 50 bucks max
+                base_cost_cents=40 * 100,  # MODERATE is 50 bucks max
                 service_fee_cents=5 * 100,
-                tax_percentage=20 / 100, # result is $54, above MODERATE limit
+                tax_percentage=20 / 100,  # result is $54, above MODERATE limit
                 title=self.anystr(),
             )
 
@@ -258,7 +257,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=150 * 100, # EXPENSIVE upper bound
+                base_cost_cents=150 * 100,  # EXPENSIVE upper bound
                 service_fee_cents=self.anyint(min=1, max=10) * 100,
                 tax_percentage=self.anyint(min=0, max=10) / 100,
                 title=self.anystr(),
@@ -275,7 +274,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=150 * 100, # EXPENSIVE upper bound
+                base_cost_cents=150 * 100,  # EXPENSIVE upper bound
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -293,7 +292,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             for cost in [
                 (150, 0, 0),
                 (150, self.anyint(min=1, max=10), self.anyint(min=0, max=10)),
-                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10))
+                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10)),
             ]:
                 EvergreenActivityTicketTypeOrm(
                     session,
@@ -316,7 +315,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             for cost in [
                 (self.anyint(min=200), 0, 0),
                 (self.anyint(min=300), self.anyint(min=1, max=10), self.anyint(min=0, max=10)),
-                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10))
+                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10)),
             ]:
                 EvergreenActivityTicketTypeOrm(
                     session,
@@ -339,7 +338,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             for cost in [
                 (self.anyint(max=100), 0, 0),
                 (150, self.anyint(min=1, max=10), self.anyint(min=0, max=10)),
-                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10))
+                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10)),
             ]:
                 EvergreenActivityTicketTypeOrm(
                     session,
@@ -362,7 +361,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             for cost in [
                 (self.anyint(max=100), 0, 0),
                 (self.anyint(max=50), self.anyint(min=1, max=10), self.anyint(min=0, max=10)),
-                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10))
+                (self.anyint(min=10**6), self.anyint(min=0, max=10), self.anyint(min=0, max=10)),
             ]:
                 EvergreenActivityTicketTypeOrm(
                     session,
@@ -382,11 +381,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
 
-            for cost in [
-                (0, 0, 0),
-                (1, 0, 0),
-                (self.anyint(max=-1), self.anyint(max=-1), self.anyint(max=-10))
-            ]:
+            for cost in [(0, 0, 0), (1, 0, 0), (self.anyint(max=-1), self.anyint(max=-1), self.anyint(max=-10))]:
                 EvergreenActivityTicketTypeOrm(
                     session,
                     evergreen_activity=activity,
@@ -408,7 +403,7 @@ class TestEvergreenActivityOrm(BaseTestCase):
             for cost in [
                 (0, 0, 0),
                 (self.anyint(max=20), self.anyint(max=10), self.anyint(max=20)),
-                (self.anyint(min=10**6), self.anyint(max=10), self.anyint(max=20))
+                (self.anyint(min=10**6), self.anyint(max=10), self.anyint(max=20)),
             ]:
                 EvergreenActivityTicketTypeOrm(
                     session,
@@ -501,8 +496,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range(17*60, 22*60) # monday 17:00-22:00
-                ]
+                    Range(17 * 60, 22 * 60)  # monday 17:00-22:00
+                ],
             )
 
         # monday 21:00
@@ -521,8 +516,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range(21*60, 22*60) # monday 21:00-22:00
-                ]
+                    Range(21 * 60, 22 * 60)  # monday 21:00-22:00
+                ],
             )
 
         # monday 21:00
@@ -541,8 +536,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range(18*60, 22*60) # monday 18:00-22:00
-                ]
+                    Range(18 * 60, 22 * 60)  # monday 18:00-22:00
+                ],
             )
 
         # monday 17:00
@@ -561,8 +556,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range((6*24+18)*60, (6*24+22)*60) # sunday 18:00-22:00
-                ]
+                    Range((6 * 24 + 18) * 60, (6 * 24 + 22) * 60)  # sunday 18:00-22:00
+                ],
             )
 
         # monday 21:00
@@ -581,8 +576,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range((2*24+18)*60, (3*24+2)*60) # wed 18:00-thu 2:00
-                ]
+                    Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
+                ],
             )
 
         # wed 21:00
@@ -601,8 +596,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range((2*24+18)*60, (3*24+2)*60) # wed 18:00-thu 2:00
-                ]
+                    Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
+                ],
             )
 
         # thu 01:00
@@ -621,8 +616,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range((2*24+18)*60, (3*24+2)*60) # wed 18:00-thu 2:00
-                ]
+                    Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
+                ],
             )
 
         # thu 02:00
@@ -641,8 +636,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range((6*24+18)*60, (7*24)*60) # sun 18:00-mon 00:00
-                ]
+                    Range((6 * 24 + 18) * 60, (7 * 24) * 60)  # sun 18:00-mon 00:00
+                ],
             )
 
         # sun 21:00
@@ -661,8 +656,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range((6*24+18)*60, (7*24)*60) # sun 18:00-mon 00:00
-                ]
+                    Range((6 * 24 + 18) * 60, (7 * 24) * 60)  # sun 18:00-mon 00:00
+                ],
             )
 
         # mon 00:00
@@ -681,9 +676,9 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range(0, 2*60), # mon 00:00-mon 02:00
-                    Range((6*24+18)*60, (7*24)*60) # sun 18:00-mon 00:00
-                ]
+                    Range(0, 2 * 60),  # mon 00:00-mon 02:00
+                    Range((6 * 24 + 18) * 60, (7 * 24) * 60),  # sun 18:00-mon 00:00
+                ],
             )
 
         # mon 01:00
@@ -702,9 +697,9 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range(0, 2*60), # mon 00:00-mon 02:00
-                    Range((6*24+18)*60, 7*24*60) # sun 18:00-mon 00:00
-                ]
+                    Range(0, 2 * 60),  # mon 00:00-mon 02:00
+                    Range((6 * 24 + 18) * 60, 7 * 24 * 60),  # sun 18:00-mon 00:00
+                ],
             )
 
         # mon 02:00
@@ -723,9 +718,9 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range(0, 2*60), # mon 00:00-mon 02:00
-                    Range((6*24+18)*60, 7*24*60) # sun 18:00-mon 00:00
-                ]
+                    Range(0, 2 * 60),  # mon 00:00-mon 02:00
+                    Range((6 * 24 + 18) * 60, 7 * 24 * 60),  # sun 18:00-mon 00:00
+                ],
             )
 
         # mon 00:00
@@ -744,8 +739,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity_1,
                 week_of=None,
                 minute_spans_local=[
-                    Range((5*24+18)*60, (6*24+2)*60) # sat 18:00-sun 02:00
-                ]
+                    Range((5 * 24 + 18) * 60, (6 * 24 + 2) * 60)  # sat 18:00-sun 02:00
+                ],
             )
 
             activity_2 = self.make_evergreen_activity(session)
@@ -754,8 +749,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity_2,
                 week_of=None,
                 minute_spans_local=[
-                    Range((5*24+12)*60, (5*24+22)*60) # sat 12:00-sat 22:00
-                ]
+                    Range((5 * 24 + 12) * 60, (5 * 24 + 22) * 60)  # sat 12:00-sat 22:00
+                ],
             )
 
             activity_3 = self.make_evergreen_activity(session)
@@ -764,8 +759,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity_3,
                 week_of=None,
                 minute_spans_local=[
-                    Range((5*24+8)*60, (5*24+14)*60) # sat 08:00-sat 14:00
-                ]
+                    Range((5 * 24 + 8) * 60, (5 * 24 + 14) * 60)  # sat 08:00-sat 14:00
+                ],
             )
 
         # sat 21:00
@@ -800,7 +795,11 @@ class TestEvergreenActivityOrm(BaseTestCase):
             activity3.activity_category_id = ActivityCategoryOrm.all()[1].id
 
         async with self.db_session.begin() as session:
-            results = (await session.scalars(EvergreenActivityOrm.select(activity_category_ids=[ActivityCategoryOrm.all()[0].id]))).all()
+            results = (
+                await session.scalars(
+                    EvergreenActivityOrm.select(activity_category_ids=[ActivityCategoryOrm.all()[0].id])
+                )
+            ).all()
 
         assert len(results) == 2
 
@@ -816,7 +815,17 @@ class TestEvergreenActivityOrm(BaseTestCase):
             activity3.activity_category_id = ActivityCategoryOrm.all()[2].id
 
         async with self.db_session.begin() as session:
-            results = (await session.scalars(EvergreenActivityOrm.select(activity_category_ids=[ActivityCategoryOrm.all()[0].id, ActivityCategoryOrm.all()[1].id, ActivityCategoryOrm.all()[2].id]))).all()
+            results = (
+                await session.scalars(
+                    EvergreenActivityOrm.select(
+                        activity_category_ids=[
+                            ActivityCategoryOrm.all()[0].id,
+                            ActivityCategoryOrm.all()[1].id,
+                            ActivityCategoryOrm.all()[2].id,
+                        ]
+                    )
+                )
+            ).all()
 
         assert len(results) == 3
 
@@ -837,7 +846,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
             activity.coordinates = GeoPoint(
-                lat=region.area.center.lat + 0.0001, # This is janky but the point is to test a venue not at the center of the area, and adding 0.0001 is unlikely to fall outside of the area.
+                lat=region.area.center.lat
+                + 0.0001,  # This is janky but the point is to test a venue not at the center of the area, and adding 0.0001 is unlikely to fall outside of the area.
                 lon=region.area.center.lon + 0.0001,
             ).geoalchemy_shape()
 
@@ -846,14 +856,13 @@ class TestEvergreenActivityOrm(BaseTestCase):
 
         assert len(results) == 1
 
-
     async def test_evergreen_activity_seach_by_areas_overlapping(self) -> None:
         # These two regions overlap. The center of the Downtown LA region is within the bounds of the Central LA region.
         central_la = SearchRegionOrm.all()[0]
         dtla = SearchRegionOrm.all()[1]
 
         # This one doesn't overlap, used as control
-        glendale = SearchRegionOrm.all()[2] # Downtown LA
+        glendale = SearchRegionOrm.all()[2]  # Downtown LA
 
         async with self.db_session.begin() as session:
             activity_1 = self.make_evergreen_activity(session)
@@ -868,15 +877,21 @@ class TestEvergreenActivityOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             results_1 = (await session.scalars(EvergreenActivityOrm.select(within_areas=[central_la.area]))).all()
             results_2 = (await session.scalars(EvergreenActivityOrm.select(within_areas=[dtla.area]))).all()
-            results_3 = (await session.scalars(EvergreenActivityOrm.select(within_areas=[central_la.area, dtla.area]))).all()
+            results_3 = (
+                await session.scalars(EvergreenActivityOrm.select(within_areas=[central_la.area, dtla.area]))
+            ).all()
             results_4 = (await session.scalars(EvergreenActivityOrm.select(within_areas=[glendale.area]))).all()
-            results_5 = (await session.scalars(EvergreenActivityOrm.select(within_areas=[central_la.area, dtla.area, glendale.area]))).all()
+            results_5 = (
+                await session.scalars(
+                    EvergreenActivityOrm.select(within_areas=[central_la.area, dtla.area, glendale.area])
+                )
+            ).all()
 
-        assert len(results_1) == 2 # because DTLA is within Central LA regions
+        assert len(results_1) == 2  # because DTLA is within Central LA regions
         assert results_1[0].id == activity_1.id
         assert results_1[1].id == activity_2.id
 
-        assert len(results_2) == 1 # Because the center of Central LA region isn't within the DTLA region
+        assert len(results_2) == 1  # Because the center of Central LA region isn't within the DTLA region
         assert results_2[0].id == activity_2.id
 
         assert len(results_3) == 2
@@ -904,8 +919,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity,
                 week_of=None,
                 minute_spans_local=[
-                    Range((2*24+18)*60, (3*24+2)*60) # wed 18:00-thu 2:00
-                ]
+                    Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
+                ],
             )
 
             EvergreenActivityTicketTypeOrm(
@@ -921,7 +936,16 @@ class TestEvergreenActivityOrm(BaseTestCase):
         testdate = datetime(2024, 12, 25, 21)
 
         async with self.db_session.begin() as session:
-            results = (await session.scalars(EvergreenActivityOrm.select(within_areas=[region.area], activity_category_ids=[category.id], budget=OutingBudget.EXPENSIVE, open_at_local=testdate))).all()
+            results = (
+                await session.scalars(
+                    EvergreenActivityOrm.select(
+                        within_areas=[region.area],
+                        activity_category_ids=[category.id],
+                        budget=OutingBudget.EXPENSIVE,
+                        open_at_local=testdate,
+                    )
+                )
+            ).all()
 
         assert len(results) == 1
 
@@ -941,8 +965,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity_1,
                 week_of=None,
                 minute_spans_local=[
-                    Range((2*24+18)*60, (3*24+2)*60) # wed 18:00-thu 2:00
-                ]
+                    Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
+                ],
             )
             EvergreenActivityTicketTypeOrm(
                 session,
@@ -961,8 +985,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 evergreen_activity=activity_2,
                 week_of=None,
                 minute_spans_local=[
-                    Range((2*24+18)*60, (3*24+2)*60) # wed 18:00-thu 2:00
-                ]
+                    Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
+                ],
             )
             EvergreenActivityTicketTypeOrm(
                 session,
@@ -977,11 +1001,28 @@ class TestEvergreenActivityOrm(BaseTestCase):
         testdate = datetime(2024, 12, 25, 21)
 
         async with self.db_session.begin() as session:
-            results_1 = (await session.scalars(EvergreenActivityOrm.select(within_areas=[region_1.area, region_2.area], activity_category_ids=[category_1.id], budget=OutingBudget.EXPENSIVE, open_at_local=testdate))).all()
-            results_2 = (await session.scalars(EvergreenActivityOrm.select(within_areas=[region_1.area, region_2.area], budget=OutingBudget.EXPENSIVE, open_at_local=testdate))).all()
+            results_1 = (
+                await session.scalars(
+                    EvergreenActivityOrm.select(
+                        within_areas=[region_1.area, region_2.area],
+                        activity_category_ids=[category_1.id],
+                        budget=OutingBudget.EXPENSIVE,
+                        open_at_local=testdate,
+                    )
+                )
+            ).all()
+            results_2 = (
+                await session.scalars(
+                    EvergreenActivityOrm.select(
+                        within_areas=[region_1.area, region_2.area],
+                        budget=OutingBudget.EXPENSIVE,
+                        open_at_local=testdate,
+                    )
+                )
+            ).all()
 
-        assert len(results_1) == 1 # Because activity category id for activity 2 not included in query
-        assert len(results_2) == 2 # Because activity category id not queried
+        assert len(results_1) == 1  # Because activity category id for activity 2 not included in query
+        assert len(results_2) == 2  # Because activity category id not queried
 
     async def test_activity_images(self) -> None:
         async with self.db_session.begin() as session:
@@ -1044,11 +1085,11 @@ class TestEvergreenActivityOrm(BaseTestCase):
             evergreen_activity=activity,
             base_cost_cents=100,
             service_fee_cents=8,
-            tax_percentage=0.07, # This creates 115.56
+            tax_percentage=0.07,  # This creates 115.56
             title=self.anystr(),
         )
 
-        assert ticket.total_cost_cents == 115 # Floor
+        assert ticket.total_cost_cents == 115  # Floor
 
     async def test_ticket_type_total_cost_cents_4(self) -> None:
         activity = self.make_evergreen_activity(None)

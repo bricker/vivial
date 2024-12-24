@@ -12,11 +12,11 @@ from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Reservation, Restaurant
 from eave.core.lib.event_helpers import get_internal_activity
 from eave.core.lib.eventbrite import EventbriteUtility
-from eave.core.lib.google_places import GoogleMapsUtility, GooglePlacesUtility
+from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.orm.evergreen_activity import EvergreenActivityOrm, WeeklyScheduleOrm
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
@@ -248,10 +248,12 @@ class OutingPlanner:
                 budget=self.survey.budget,
             ).order_by(func.random())
 
-            evergreen_activity_orms = (await db_session.scalars(evergreen_activities_query))
+            evergreen_activity_orms = await db_session.scalars(evergreen_activities_query)
 
         for evergreen_activity_orm in evergreen_activity_orms:
-            if evergreen_activity := await get_internal_activity(event_id=str(evergreen_activity_orm.id), survey=self.survey):
+            if evergreen_activity := await get_internal_activity(
+                event_id=str(evergreen_activity_orm.id), survey=self.survey
+            ):
                 self.activity = evergreen_activity
                 return self.activity
 

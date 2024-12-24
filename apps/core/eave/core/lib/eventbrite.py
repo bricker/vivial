@@ -112,7 +112,10 @@ class EventbriteUtility:
                     max_budget.upper_limit_cents is None or total_cost_cents <= max_budget.upper_limit_cents
                 )
 
-                if cost_is_lte_max_budget and total_cost_cents > most_expensive_eligible_price.calculate_total_cost_cents():
+                if (
+                    cost_is_lte_max_budget
+                    and total_cost_cents > most_expensive_eligible_price.calculate_total_cost_cents()
+                ):
                     most_expensive_eligible_price = cost_breakdown
                     most_expensive_eligible_ticket_class = ticket_class
 

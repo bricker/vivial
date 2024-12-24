@@ -1,10 +1,4 @@
-import random
-
 import stripe
-
-from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.restaurant_category import RestaurantCategoryOrm
-from eave.core.orm.search_region import SearchRegionOrm
 
 from ..base import BaseTestCase
 
@@ -19,29 +13,31 @@ class TestPaymentMethodsResolvers(BaseTestCase):
             ),
         ]
 
-        setattr(self.mock_stripe_customer_payment_methods[0], "card", stripe.Card(
-            brand="visa",
-            last4=self.anydigits(length=4),
-            exp_month=self.anyint(min=1, max=12),
-            exp_year=self.anyint(min=2020, max=2100),
-        ))
+        setattr(
+            self.mock_stripe_customer_payment_methods[0],
+            "card",
+            stripe.Card(
+                brand="visa",
+                last4=self.anydigits(length=4),
+                exp_month=self.anyint(min=1, max=12),
+                exp_year=self.anyint(min=2020, max=2100),
+            ),
+        )
 
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             account.stripe_customer_id = self.anystr("stripe customer id")
 
-        response = await self.make_graphql_request(
-            "listPaymentMethods",
-            {},
-            account_id=account.id
-        )
+        response = await self.make_graphql_request("listPaymentMethods", {}, account_id=account.id)
 
         result = self.parse_graphql_response(response)
         assert result.data
         assert not result.errors
 
         assert self.get_mock("stripe.Customer.list_payment_methods_async").call_count == 1
-        assert self.get_mock("stripe.Customer.list_payment_methods_async").call_args_list[0].kwargs["customer"] == self.getstr("stripe customer id")
+        assert self.get_mock("stripe.Customer.list_payment_methods_async").call_args_list[0].kwargs[
+            "customer"
+        ] == self.getstr("stripe customer id")
 
         data = result.data["viewer"]["paymentMethods"]
         assert len(data) == 1
@@ -54,18 +50,16 @@ class TestPaymentMethodsResolvers(BaseTestCase):
             account = self.make_account(session)
             account.stripe_customer_id = self.anystr("stripe customer id")
 
-        response = await self.make_graphql_request(
-            "listPaymentMethods",
-            {},
-            account_id=account.id
-        )
+        response = await self.make_graphql_request("listPaymentMethods", {}, account_id=account.id)
 
         result = self.parse_graphql_response(response)
         assert result.data
         assert not result.errors
 
         assert self.get_mock("stripe.Customer.list_payment_methods_async").call_count == 1
-        assert self.get_mock("stripe.Customer.list_payment_methods_async").call_args_list[0].kwargs["customer"] == self.getstr("stripe customer id")
+        assert self.get_mock("stripe.Customer.list_payment_methods_async").call_args_list[0].kwargs[
+            "customer"
+        ] == self.getstr("stripe customer id")
 
         data = result.data["viewer"]["paymentMethods"]
         assert len(data) == 0
@@ -75,11 +69,7 @@ class TestPaymentMethodsResolvers(BaseTestCase):
             account = self.make_account(session)
             account.stripe_customer_id = None
 
-        response = await self.make_graphql_request(
-            "listPaymentMethods",
-            {},
-            account_id=account.id
-        )
+        response = await self.make_graphql_request("listPaymentMethods", {}, account_id=account.id)
 
         result = self.parse_graphql_response(response)
         assert result.data
@@ -94,11 +84,7 @@ class TestPaymentMethodsResolvers(BaseTestCase):
         async with self.db_session.begin() as session:
             self.make_account(session)
 
-        response = await self.make_graphql_request(
-            "listPaymentMethods",
-            {},
-            account_id=self.anyuuid()
-        )
+        response = await self.make_graphql_request("listPaymentMethods", {}, account_id=self.anyuuid())
 
         result = self.parse_graphql_response(response)
         assert not result.data

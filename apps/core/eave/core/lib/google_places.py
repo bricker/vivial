@@ -6,7 +6,6 @@ from typing import TypedDict
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from google.maps.routing import RoutesAsyncClient
 import googlemaps.geocoding
 from google.maps.places import (
     GetPhotoMediaRequest,
@@ -18,6 +17,7 @@ from google.maps.places import (
 from google.maps.places import (
     Photo as PlacePhoto,
 )
+from google.maps.routing import RoutesAsyncClient
 
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
@@ -58,16 +58,20 @@ _PLACE_FIELDS = [
 _SEARCH_NEARBY_FIELD_MASK = ",".join([f"places.{s}" for s in _PLACE_FIELDS])
 _PLACE_FIELD_MASK = ",".join(_PLACE_FIELDS)
 
+
 class GeocodeLocation(TypedDict, total=False):
     lat: float
     lng: float
 
+
 class GeocodeGeometry(TypedDict, total=False):
     location: GeocodeLocation
+
 
 class GeocodeResult(TypedDict, total=False):
     place_id: str | None
     geometry: GeocodeGeometry
+
 
 class GooglePlaceAddressComponentType(enum.StrEnum):
     administrative_area_level_1 = "administrative_area_level_1"
@@ -79,6 +83,7 @@ class GooglePlaceAddressComponentType(enum.StrEnum):
     route = "route"
     subpremise = "subpremise"
 
+
 class GoogleMapsUtility:
     client: googlemaps.Client
 
@@ -89,11 +94,13 @@ class GoogleMapsUtility:
         results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self.client, address=address)
         return results
 
+
 class GoogleRoutesUtility:
     client: RoutesAsyncClient
 
     def __init__(self) -> None:
         self.client = RoutesAsyncClient()
+
 
 class GooglePlacesUtility:
     client: PlacesAsyncClient
@@ -121,7 +128,6 @@ class GooglePlacesUtility:
             customer_favorites=None,
         )
 
-
     async def activity_from_google_place(self, place: Place) -> Activity:
         photos = await self.photos_from_google_place(place=place)
 
@@ -147,7 +153,6 @@ class GooglePlacesUtility:
         )
 
         return activity
-
 
     async def photos_from_google_place(self, place: Place) -> Photos:
         photos = Photos(cover_photo=None, supplemental_photos=[])
@@ -259,7 +264,6 @@ class GooglePlacesUtility:
             address=address,
         )
 
-
     # Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
     async def photo_from_google_place_photo(
         self,
@@ -281,7 +285,6 @@ class GooglePlacesUtility:
             else [],
         )
 
-
     async def get_google_place(
         self,
         place_id: str,
@@ -289,7 +292,6 @@ class GooglePlacesUtility:
         return await self.client.get_place(
             request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
         )
-
 
     async def get_google_places_activity(self, *, event_id: str) -> Activity | None:
         place = await self.get_google_place(
@@ -299,7 +301,6 @@ class GooglePlacesUtility:
         activity = await self.activity_from_google_place(place)
         return activity
 
-
     async def get_google_places_restaurant(self, *, restaurant_id: str) -> Restaurant:
         place = await self.get_google_place(
             place_id=restaurant_id,
@@ -307,7 +308,6 @@ class GooglePlacesUtility:
 
         restaurant = await self.restaurant_from_google_place(place)
         return restaurant
-
 
     async def get_places_nearby(
         self,
@@ -336,8 +336,9 @@ class GooglePlacesUtility:
         )
         return list(response.places)
 
-
-    def place_will_be_open(self, *, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo) -> bool:
+    def place_will_be_open(
+        self, *, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo
+    ) -> bool:
         """
         Given a place from the Google Places API, determine whether or not that
         place will be open during the given time period.
@@ -362,7 +363,6 @@ class GooglePlacesUtility:
 
         return False
 
-
     def place_is_accessible(self, place: Place) -> bool:
         """
         Given a place from the Google Places API, determine whether or not that
@@ -383,7 +383,9 @@ class GooglePlacesUtility:
 
     async def google_maps_directions_url(self, address: str) -> str:
         try:
-            geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self._maps.client, address=address)
+            geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(
+                client=self._maps.client, address=address
+            )
 
             for result in geocode_results:
                 if place_id := result.get("place_id"):

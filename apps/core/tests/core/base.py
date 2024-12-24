@@ -6,14 +6,14 @@ from http import HTTPStatus
 from typing import Any, Protocol, TypeVar, override
 from uuid import UUID
 
-from google.maps.routing import ComputeRoutesResponse, Route
-from google.protobuf.duration_pb2 import Duration
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 import stripe
 from google.maps.places import PhotoMedia
 from google.maps.places_v1.types import Place
+from google.maps.routing import ComputeRoutesResponse, Route
+from google.protobuf.duration_pb2 import Duration
 from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +21,6 @@ from strawberry.types import ExecutionResult
 
 import eave.core.app
 import eave.core.database
-from eave.core.lib.google_places import GeocodeGeometry, GeocodeLocation, GeocodeResult
 import eave.core.orm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
@@ -29,6 +28,7 @@ from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
 from eave.core.lib.address import Address
+from eave.core.lib.google_places import GeocodeGeometry, GeocodeLocation, GeocodeResult
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
@@ -62,7 +62,9 @@ class MockPlacesResponse:
     def __init__(self, places: list[Place]) -> None:
         self.places = places
 
+
 # eave.core.database.async_engine.echo = True
+
 
 class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     _gql_cache: dict[str, str]  # pyright: ignore [reportUninitializedInstanceVariable]
@@ -375,7 +377,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     mock_stripe_payment_intent: stripe.PaymentIntent  # pyright: ignore [reportUninitializedInstanceVariable]
     mock_stripe_customer: stripe.Customer  # pyright: ignore [reportUninitializedInstanceVariable]
     mock_stripe_customer_session: stripe.CustomerSession  # pyright: ignore [reportUninitializedInstanceVariable]
-    mock_stripe_customer_payment_methods: list[stripe.PaymentMethod] # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer_payment_methods: list[stripe.PaymentMethod]  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_stripe_client_mocks(self) -> None:
         mock_stripe_payment_intent = stripe.PaymentIntent(
@@ -422,12 +424,16 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             ),
         ]
 
-        setattr(self.mock_stripe_customer_payment_methods[0], "card", stripe.Card(
-            brand="visa",
-            last4=self.anydigits(length=4),
-            exp_month=self.anyint(min=1, max=12),
-            exp_year=self.anyint(min=2020, max=2100),
-        ))
+        setattr(
+            self.mock_stripe_customer_payment_methods[0],
+            "card",
+            stripe.Card(
+                brand="visa",
+                last4=self.anydigits(length=4),
+                exp_month=self.anyint(min=1, max=12),
+                exp_year=self.anyint(min=2020, max=2100),
+            ),
+        )
 
         async def _mock_customer_list_payment_methods(*args: Any, **kwargs: Any) -> list[stripe.PaymentMethod]:
             return self.mock_stripe_customer_payment_methods
@@ -494,7 +500,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             side_effect=_mock_google_places_get_photo_media,
         )
 
-    mock_compute_routes_response: ComputeRoutesResponse # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_compute_routes_response: ComputeRoutesResponse  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_google_routes_client_mocks(self) -> None:
         self.mock_compute_routes_response = ComputeRoutesResponse(
@@ -512,13 +518,11 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         self.patch(
             name="google routes compute_routes",
-            patch=unittest.mock.patch(
-                "google.maps.routing.RoutesAsyncClient.compute_routes"
-            ),
+            patch=unittest.mock.patch("google.maps.routing.RoutesAsyncClient.compute_routes"),
             side_effect=_mock_google_routes_compute_routes,
         )
 
-    mock_maps_geocoding_response: list[GeocodeResult] # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_maps_geocoding_response: list[GeocodeResult]  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_google_maps_client_mocks(self) -> None:
         self.mock_maps_geocoding_response = [
@@ -538,9 +542,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         self.patch(
             name="google maps geocode",
-            patch=unittest.mock.patch(
-                "googlemaps.geocoding.geocode"
-            ),
+            patch=unittest.mock.patch("googlemaps.geocoding.geocode"),
             side_effect=_mock_google_maps_geocode,
         )
 

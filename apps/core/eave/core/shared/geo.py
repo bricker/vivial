@@ -1,5 +1,4 @@
 import math
-from typing import Self
 
 import geoalchemy2.shape
 import strawberry
@@ -38,6 +37,7 @@ class GeoPoint:
         # Radius of Earth in miles (mean value)
         r = 3958.75
         return c * r
+
 
 @strawberry.type
 class Distance:

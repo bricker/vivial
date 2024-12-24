@@ -2,7 +2,6 @@ import datetime
 from uuid import UUID
 
 from eave.core.orm.outing import OutingOrm
-from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 

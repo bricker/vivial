@@ -25,7 +25,6 @@ from google.cloud.kms import (
 )
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
-from eave.core.shared.enums import OutingBudget
 import eave.stdlib.http_exceptions
 import eave.stdlib.util
 from eave.stdlib.checksum import generate_checksum
@@ -329,7 +328,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             else:
                 min = max - 10**6
 
-        assert min is not None and max is not None # This is for the typechecker, it is an impossible case
+        assert min is not None and max is not None  # This is for the typechecker, it is an impossible case
 
         name = self._make_testdata_name(name)
 
@@ -577,7 +576,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     mock_eventbrite_event: Event  # pyright: ignore [reportUninitializedInstanceVariable]
     mock_eventbrite_ticket_class_batch: list[TicketClass]  # pyright: ignore [reportUninitializedInstanceVariable]
 
-    def set_mock_eventbrite_ticket_class_batch(self, *, max_cost_cents: int | None = None, min_cost_cents: int | None = None) -> None:
+    def set_mock_eventbrite_ticket_class_batch(
+        self, *, max_cost_cents: int | None = None, min_cost_cents: int | None = None
+    ) -> None:
         if max_cost_cents is not None and min_cost_cents is None:
             if max_cost_cents == 0:
                 min_cost_cents = 0

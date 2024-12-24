@@ -16,26 +16,20 @@ import asyncio
 import csv
 import os
 import re
-from google.maps.places import PlacesAsyncClient
 
-from eave.stdlib.logging import LOGGER
-
-import googlemaps.geocoding
-
-from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.shared.geo import GeoPoint
 from sqlalchemy.dialects.postgresql import Range
 
 from eave.core import database
-from eave.core.lib.address import Address
-from eave.core.lib.google_places import GeocodeResult, GoogleMapsUtility, GooglePlacesUtility
+from eave.core.lib.google_places import GoogleMapsUtility, GooglePlacesUtility
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm, EvergreenActivityTicketTypeOrm, WeeklyScheduleOrm
+from eave.stdlib.logging import LOGGER
 
 header = "[Title, Description, Address, Images, Category, Subcategory, Format, Availability (Days & Hours), Duration (Minutes), Ticket Type A, Ticket Type A Cost, Ticket Type B, Ticket Type B Cost, Taxes, Service Fees, Bookable, Book URL]"
 
 
 async def import_evergreen_activities() -> None:
-    with open(os.path.dirname(os.path.abspath(__file__)) + "/evergreen.csv") as f:
+    with open(os.path.dirname(os.path.abspath(__file__)) + "/evergreen.csv") as f:  # noqa: ASYNC230
         rdr = csv.reader(f)
         i = 0
         for row in rdr:
@@ -102,7 +96,6 @@ async def import_evergreen_activities() -> None:
             #     lon=lon,
             # )
 
-
             ticket_type_a = None if ticket_type_a == "N/A" else ticket_type_a
 
             if ticket_type_a_cost == "N/A":
@@ -135,7 +128,6 @@ async def import_evergreen_activities() -> None:
                     case _:
                         raise Exception(f"invalid day: {day[0]}")
 
-
                 hours_text = day[1].strip()
 
                 if hours_text == "CLOSED":
@@ -160,24 +152,24 @@ async def import_evergreen_activities() -> None:
                     if mnstr_close:
                         daymnint_close += int(re.sub(r"^:", "", mnstr_close))
 
-
                     if daymnint_close < daymnint_open:
-                        daymnint_close += (24 * 60)
+                        daymnint_close += 24 * 60
 
                     week_maxmins = 7 * 24 * 60
                     weekminint_open = (daynum * 24 * 60) + daymnint_open
                     weekminint_close = (daynum * 24 * 60) + daymnint_close
 
                     if weekminint_close > week_maxmins:
-                        spans.extend([
-                            Range(weekminint_open,week_maxmins, bounds="[)"),
-                            Range(0,weekminint_close % week_maxmins , bounds="[)"),
-                        ])
+                        spans.extend(
+                            [
+                                Range(weekminint_open, week_maxmins, bounds="[)"),
+                                Range(0, weekminint_close % week_maxmins, bounds="[)"),
+                            ]
+                        )
                     else:
-                        spans.append(Range(weekminint_open,weekminint_close,bounds="[)"))
+                        spans.append(Range(weekminint_open, weekminint_close, bounds="[)"))
 
             spans.sort(key=lambda span: span.lower if span.lower is not None else 0)
-
 
             async with database.async_session.begin() as session:
                 activity = EvergreenActivityOrm(
@@ -229,6 +221,7 @@ async def import_evergreen_activities() -> None:
             #     "booking_url": book_url,
             # })
 
+
 def _gethr(hrstr: str, ap: str) -> int:
     if ap == "AM":
         if hrstr == "12":
@@ -243,11 +236,13 @@ def _gethr(hrstr: str, ap: str) -> int:
     else:
         raise ValueError()
 
+
 def _parsetime(timestr: str) -> re.Match[str]:
     m = re.match(r"(\d+)(:\d+)?(AM|PM)$", timestr)
     if not m:
         raise Exception(f"doesnt match re: {timestr}")
     return m
+
 
 if __name__ == "__main__":
     asyncio.run(import_evergreen_activities())

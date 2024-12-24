@@ -43,10 +43,12 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
         cost_breakdown = CostBreakdown(
             base_cost_cents=ticket_type.base_cost_cents,
             fee_cents=ticket_type.service_fee_cents,
-            tax_cents=0, # We'll calculate this below
+            tax_cents=0,  # We'll calculate this below
         )
 
-        cost_breakdown.tax_cents = math.floor(cost_breakdown.calculate_total_cost_cents() * (1 + ticket_type.tax_percentage))
+        cost_breakdown.tax_cents = math.floor(
+            cost_breakdown.calculate_total_cost_cents() * (1 + ticket_type.tax_percentage)
+        )
 
         total_cost_cents = cost_breakdown.calculate_total_cost_cents()
         max_budget = survey.budget if survey else OutingBudget.default()
@@ -81,7 +83,9 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
             name=most_expensive_eligible_ticket_type.title,
             notes=None,
             cost_breakdown=most_expensive_eligible_price,
-        ) if most_expensive_eligible_ticket_type else None,
+        )
+        if most_expensive_eligible_ticket_type
+        else None,
         website_uri=activity_orm.booking_url,
         door_tips=None,
         insider_tips=None,

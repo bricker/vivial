@@ -1,23 +1,21 @@
-from datetime import date, datetime
 import math
-from typing import NamedTuple, Self, override
+from datetime import date, datetime
+from typing import Self, override
 from uuid import UUID
 
+from geoalchemy2.functions import ST_DWithin
 from sqlalchemy import (
     DATE,
     Column,
     ForeignKey,
     Select,
     Table,
-    and_,
     exists,
     or_,
 )
 from sqlalchemy.dialects.postgresql import INT4MULTIRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.operators import in_op
-from geoalchemy2.functions import ST_DWithin
 
 from eave.core.lib.address import Address
 from eave.core.orm.image import ImageOrm
@@ -82,10 +80,16 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         if session:
             session.add(self)
 
-
     @override
     @classmethod
-    def select(cls, *, within_areas: list[GeoArea] = NOT_SET, activity_category_ids: list[UUID] = NOT_SET, open_at_local: datetime = NOT_SET, budget: OutingBudget = NOT_SET) -> Select[tuple[Self]]:
+    def select(
+        cls,
+        *,
+        within_areas: list[GeoArea] = NOT_SET,
+        activity_category_ids: list[UUID] = NOT_SET,
+        open_at_local: datetime = NOT_SET,
+        budget: OutingBudget = NOT_SET,
+    ) -> Select[tuple[Self]]:
         query = super().select()
 
         if within_areas is not NOT_SET:
@@ -99,16 +103,14 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
             )
 
         if activity_category_ids is not NOT_SET:
-            query = query.where(
-                cls.activity_category_id.in_(activity_category_ids)
-            )
+            query = query.where(cls.activity_category_id.in_(activity_category_ids))
 
         if open_at_local is not NOT_SET:
             min_of_week = (((open_at_local.weekday() * 24) + open_at_local.hour) * 60) + open_at_local.minute
 
-            query = query.join(
-                WeeklyScheduleOrm, WeeklyScheduleOrm.evergreen_activity_id == cls.id
-            ).where(WeeklyScheduleOrm.minute_spans_local.op("@>")(min_of_week))
+            query = query.join(WeeklyScheduleOrm, WeeklyScheduleOrm.evergreen_activity_id == cls.id).where(
+                WeeklyScheduleOrm.minute_spans_local.op("@>")(min_of_week)
+            )
 
         if budget is not NOT_SET and budget.upper_limit_cents is not None:
             # None means no upper limit, in which case there's no need to add this condition
@@ -121,6 +123,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
             )
 
         return query
+
 
 class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
     __tablename__ = "evergreen_activity_ticket_types"
@@ -157,7 +160,9 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
     @override
     @classmethod
-    def select(cls, *, evergreen_activity_id: UUID = NOT_SET, total_cost_cents_lte: int = NOT_SET) -> Select[tuple[Self]]:
+    def select(
+        cls, *, evergreen_activity_id: UUID = NOT_SET, total_cost_cents_lte: int = NOT_SET
+    ) -> Select[tuple[Self]]:
         query = super().select()
 
         if evergreen_activity_id is not NOT_SET:
@@ -165,14 +170,17 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
         if total_cost_cents_lte is not NOT_SET:
             query = query.where(
-                (
-                    EvergreenActivityTicketTypeOrm.base_cost_cents + EvergreenActivityTicketTypeOrm.service_fee_cents
-                ) * (
-                    EvergreenActivityTicketTypeOrm.tax_percentage + 1
-                ) <= total_cost_cents_lte
+                (EvergreenActivityTicketTypeOrm.base_cost_cents + EvergreenActivityTicketTypeOrm.service_fee_cents)
+                * (EvergreenActivityTicketTypeOrm.tax_percentage + 1)
+                <= total_cost_cents_lte
             )
 
         return query
+
+    @property
+    def total_cost_cents(self) -> int:
+        return math.floor((self.base_cost_cents + self.service_fee_cents) * (1 + self.tax_percentage))
+
 
 class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     __tablename__ = "weekly_schedules"
@@ -191,7 +199,6 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     "week_of" can be used to override the default schedule for a single week, eg for holidays.
     The date in this field should be the Monday of that week (i.e., the start of the week).
     """
-
 
     evergreen_activity_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{EvergreenActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)

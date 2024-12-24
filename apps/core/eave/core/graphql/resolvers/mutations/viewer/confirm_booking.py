@@ -7,7 +7,6 @@ from uuid import UUID
 import strawberry
 import stripe
 
-from eave.core.lib.google_places import GooglePlacesUtility
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
@@ -21,6 +20,7 @@ from eave.core.graphql.validators.time_bounds_validator import (
     start_time_too_soon,
 )
 from eave.core.lib.analytics_client import ANALYTICS
+from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
@@ -300,7 +300,6 @@ def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: Ac
             ],
         ),
     )
-
 
 
 def _pretty_time(dt: datetime) -> str:

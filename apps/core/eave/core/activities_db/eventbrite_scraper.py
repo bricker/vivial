@@ -23,6 +23,8 @@ from zoneinfo import ZoneInfo
 from aiohttp import ClientResponseError
 
 import eave.core.database
+from eave.core.lib.eventbrite import EventbriteUtility
+from eave.core.lib.google_places import GoogleMapsUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
@@ -32,8 +34,6 @@ from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 from eave.stdlib.typing import JsonObject
-from eave.core.lib.google_places import GoogleMapsUtility
-from eave.core.lib.eventbrite import EventbriteUtility
 
 # These are hand-picked by Vivial staff
 _EVENTBRITE_ORGANIZER_IDS = {
@@ -447,7 +447,9 @@ async def get_eventbrite_events() -> None:
                     timezone = start_timezone or end_timezone or LOS_ANGELES_TIMEZONE
 
                     google_place_id = None
-                    if (address := venue.get("address")) and (localized_address := address.get("localized_address_display")):
+                    if (address := venue.get("address")) and (
+                        localized_address := address.get("localized_address_display")
+                    ):
                         geocode_results = maps.geocode(address=localized_address)
                         if len(geocode_results) > 0:
                             google_place_id = geocode_results[0].get("place_id")

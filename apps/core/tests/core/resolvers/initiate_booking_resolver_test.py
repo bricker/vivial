@@ -474,7 +474,12 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 1
         assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["confirm"] is True
-        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["automatic_payment_methods"]["enabled"] is True
+        assert (
+            self.get_mock("stripe.PaymentIntent.create_async")
+            .call_args_list[0]
+            .kwargs["automatic_payment_methods"]["enabled"]
+            is True
+        )
 
         assert self.get_mock("stripe.Customer.create_async").call_count == 1
         assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
@@ -523,8 +528,15 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 1
         assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["confirm"] is True
-        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["automatic_payment_methods"]["enabled"] is True
-        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs["payment_method"] == self.getstr("payment method id")
+        assert (
+            self.get_mock("stripe.PaymentIntent.create_async")
+            .call_args_list[0]
+            .kwargs["automatic_payment_methods"]["enabled"]
+            is True
+        )
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_args_list[0].kwargs[
+            "payment_method"
+        ] == self.getstr("payment method id")
 
         assert self.get_mock("stripe.Customer.create_async").call_count == 1
         assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
