@@ -7,7 +7,7 @@ from eave.core.orm.account import AccountOrm
 from eave.stdlib.util import unwrap
 
 
-async def list_outing_preferences_query(
+async def get_outing_preferences_query(
     *,
     info: strawberry.Info[GraphQLContext],
 ) -> OutingPreferences:

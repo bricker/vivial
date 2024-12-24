@@ -4,7 +4,8 @@ query BookingDetails($input: GetBookingDetailsQueryInput!) {
     ... on AuthenticatedViewerQueries {
       __typename
       bookedOutingDetails(input: $input) {
-        ...BookingDetailsFields
+        ...ItineraryFields
+        ...TravelFields
       }
     }
     ... on UnauthenticatedViewer {

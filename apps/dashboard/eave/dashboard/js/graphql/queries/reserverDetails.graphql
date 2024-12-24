@@ -1,4 +1,4 @@
-query ListReserverDetails {
+query ReserverDetails {
   viewer {
     __typename
     ... on AuthenticatedViewerQueries {

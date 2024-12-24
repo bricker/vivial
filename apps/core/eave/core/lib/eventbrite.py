@@ -5,31 +5,22 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
+from eave.core.lib.api_clients.eventbrite_client import EVENTBRITE_API_CLIENT
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.shared.enums import ActivitySource
+from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import ActivitySource, OutingBudget
 from eave.core.shared.geo import GeoPoint
-from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
-from eave.stdlib.eventbrite.models.event import Event, EventStatus
+from eave.stdlib.eventbrite.client import GetEventQuery, ListTicketClassesForSaleQuery
+from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
 
 
-async def get_eventbrite_activity(eventbrite_client: EventbriteClient, *, event_id: str) -> Activity | None:
-    event = await eventbrite_client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
-    activity = await activity_from_eventbrite_event(eventbrite_client=eventbrite_client, event=event)
-    return activity
-
-
-async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *, event: Event) -> Activity | None:
-    if not (event_id := event.get("id")):
-        LOGGER.warning(
-            "Missing event_id; excluding event.",
-            {"eventbrite_event_id": event_id},
-        )
-        return
+async def get_eventbrite_activity(*, event_id: str, survey: SurveyOrm | None) -> Activity | None:
+    event = await EVENTBRITE_API_CLIENT.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
 
     if not (ticket_availability := event.get("ticket_availability")):
         LOGGER.warning(
@@ -81,7 +72,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         )
         return
 
-    ticket_classes_paginator = eventbrite_client.list_ticket_classes_for_sale_for_event(
+    ticket_classes_paginator = EVENTBRITE_API_CLIENT.list_ticket_classes_for_sale_for_event(
         event_id=event_id,
         query=ListTicketClassesForSaleQuery(
             pos=PointOfSale.ONLINE,
@@ -89,8 +80,8 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
     )
 
     # Start with a price with all 0's
-    max_pricing: CostBreakdown = CostBreakdown()
-    chosen_ticket_class: TicketClass | None = None
+    most_expensive_eligible_price = CostBreakdown()
+    most_expensive_eligible_ticket_class: TicketClass | None = None
 
     async for batch in ticket_classes_paginator:
         for ticket_class in batch:
@@ -106,11 +97,17 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             if (tax := ticket_class.get("tax")) is not None:
                 cost_breakdown.tax_cents = tax["value"]
 
-            if cost_breakdown.calculate_total_cost_cents() > max_pricing.calculate_total_cost_cents():
-                max_pricing = cost_breakdown
-                chosen_ticket_class = ticket_class
+            total_cost_cents = cost_breakdown.calculate_total_cost_cents()
+            max_budget = survey.budget if survey else OutingBudget.default()
 
-    # event_description = await eventbrite_client.get_event_description(event_id=event_id)
+            # If The total cost is <= the upper bound of the user's selected budget, then it is eligible.
+            cost_is_lte_max_budget = (
+                max_budget.upper_limit_cents is None or total_cost_cents <= max_budget.upper_limit_cents
+            )
+
+            if cost_is_lte_max_budget and total_cost_cents > most_expensive_eligible_price.calculate_total_cost_cents():
+                most_expensive_eligible_price = cost_breakdown
+                most_expensive_eligible_ticket_class = ticket_class
 
     if event_description := event.get("description"):
         event_description_text = event_description["text"]
@@ -155,6 +152,8 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         lon=float(venue_lon),
     )
 
+    directions_uri = await google_maps_directions_url(format_address(address, singleline=True))
+
     activity = Activity(
         source_id=event_id,
         source=ActivitySource.EVENTBRITE,
@@ -162,18 +161,18 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         description=event_description_text,
         photos=photos,
         ticket_info=TicketInfo(
-            name=chosen_ticket_class.get("display_name"),
-            notes=chosen_ticket_class.get(
+            name=most_expensive_eligible_ticket_class.get("display_name"),
+            notes=most_expensive_eligible_ticket_class.get(
                 "description"
             ),  # FIXME: This is probably not the info we want for this field.
-            cost_breakdown=max_pricing,
+            cost_breakdown=most_expensive_eligible_price,
         )
-        if chosen_ticket_class
+        if most_expensive_eligible_ticket_class
         else None,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(
-                directions_uri=google_maps_directions_url(format_address(address, singleline=True)),
+                directions_uri=directions_uri,
                 address=address,
                 coordinates=coordinates,
             ),

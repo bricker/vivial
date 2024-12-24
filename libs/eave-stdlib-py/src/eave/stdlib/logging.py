@@ -1,7 +1,7 @@
 import logging
 import sys
 from logging import Logger, LogRecord
-from typing import Any
+from typing import Any, override
 
 import google.cloud.logging
 
@@ -60,6 +60,7 @@ class CustomFormatter(logging.Formatter):
         "threadName",
     )
 
+    @override
     def format(self, record: logging.LogRecord) -> str:
         log_fmt = self.get_formatstr(record.levelno, self.formatstr)
         formatter = logging.Formatter(log_fmt)
@@ -73,6 +74,7 @@ class CustomFormatter(logging.Formatter):
 class CustomFilter(logging.Filter):
     _whitelist_records = ("eave", "strawberry.execution")
 
+    @override
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
         if SHARED_CONFIG.log_level == logging.DEBUG:

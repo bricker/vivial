@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from typing import override
 
 from graphql import ExecutableDefinitionNode, FieldNode, NameNode, SelectionSetNode
 from strawberry.extensions import SchemaExtension
@@ -24,6 +25,7 @@ class AddTypenameExtension(SchemaExtension):
             if isinstance(selection, FieldNode) and selection.selection_set is not None:
                 self._add_typename_recursive(selection.selection_set)
 
+    @override
     def on_parse(self) -> Iterator[None]:
         yield
 

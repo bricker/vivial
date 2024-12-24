@@ -1,11 +1,22 @@
-import { type BookingDetails, type Outing, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  type ActivityCategoryFieldsFragment,
+  type ItineraryFieldsFragment,
+  type RestaurantCategoryFieldsFragment,
+  type TravelFieldsFragment,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
 
+export type OutingPreferencesSelections = {
+  // Because this is an input, using the Fragment types here isn't technically correct, but close enough.
+  restaurantCategories?: RestaurantCategoryFieldsFragment[] | null;
+  activityCategories?: ActivityCategoryFieldsFragment[] | null;
+};
+
 export interface OutingState {
-  details: Outing | null;
+  details: (ItineraryFieldsFragment & TravelFieldsFragment) | null;
   preferenes: {
-    user: OutingPreferences | null;
-    partner: OutingPreferences | null;
+    user: OutingPreferencesSelections | null;
+    partner: OutingPreferencesSelections | null;
   };
 }
 
@@ -21,18 +32,18 @@ export const outingSlice = createSlice({
   name: "outing",
   initialState,
   reducers: {
-    plannedOuting: (state, action: { payload: { outing: Outing } }) => {
+    plannedOuting: (state, action: { payload: { outing: ItineraryFieldsFragment & TravelFieldsFragment } }) => {
       state.details = action.payload.outing;
     },
-    openedBookingDetails: (state, action: { payload: { bookingDetails: BookingDetails } }) => {
-      state.details = action.payload.bookingDetails as Outing;
+    openedBookingDetails: (state, action: { payload: { bookingDetails: ItineraryFieldsFragment } }) => {
+      state.details = action.payload.bookingDetails;
     },
     chosePreferences: (
       state,
       action: {
         payload: {
-          user?: OutingPreferences | null;
-          partner?: OutingPreferences | null;
+          user?: OutingPreferencesSelections | null;
+          partner?: OutingPreferencesSelections | null;
         };
       },
     ) => {

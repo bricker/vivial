@@ -6,9 +6,6 @@ mut = eave.stdlib.util
 
 
 class StdlibUtilTest(StdlibBaseTestCase):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-
     async def test_istr_eq(self):
         assert mut.istr_eq("A", "a")
         assert mut.istr_eq("a", "a")
@@ -97,3 +94,32 @@ class StdlibUtilTest(StdlibBaseTestCase):
 
         test_string = self.anystr()
         assert mut.redact(f"1234{test_string}4321") == f"1234[redacted {len(test_string)} chars]4321"
+
+    async def test_num_suffix(self):
+        assert mut.num_with_english_suffix(0) == "0th"
+        assert mut.num_with_english_suffix(1) == "1st"
+        assert mut.num_with_english_suffix(2) == "2nd"
+        assert mut.num_with_english_suffix(3) == "3rd"
+        assert mut.num_with_english_suffix(4) == "4th"
+        assert mut.num_with_english_suffix(5) == "5th"
+        assert mut.num_with_english_suffix(6) == "6th"
+        assert mut.num_with_english_suffix(7) == "7th"
+        assert mut.num_with_english_suffix(8) == "8th"
+        assert mut.num_with_english_suffix(9) == "9th"
+        assert mut.num_with_english_suffix(10) == "10th"
+        assert mut.num_with_english_suffix(11) == "11th"
+        assert mut.num_with_english_suffix(12) == "12th"
+        assert mut.num_with_english_suffix(13) == "13th"
+        assert mut.num_with_english_suffix(14) == "14th"
+        assert mut.num_with_english_suffix(15) == "15th"
+        assert mut.num_with_english_suffix(16) == "16th"
+        assert mut.num_with_english_suffix(17) == "17th"
+        assert mut.num_with_english_suffix(18) == "18th"
+        assert mut.num_with_english_suffix(19) == "19th"
+        assert mut.num_with_english_suffix(20) == "20th"
+        assert mut.num_with_english_suffix(21) == "21st"
+        assert mut.num_with_english_suffix(22) == "22nd"
+        assert mut.num_with_english_suffix(23) == "23rd"
+        assert mut.num_with_english_suffix(100) == "100th"
+        assert mut.num_with_english_suffix(111) == "111th"
+        assert mut.num_with_english_suffix(121) == "121st"

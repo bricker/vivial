@@ -11,7 +11,7 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.outing import OutingOrm
 
 
@@ -37,9 +37,10 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         if outing_activity_orm.start_time_utc < one_day_from_now:
             return None
 
-        activity = await get_activity(
+        activity = await resolve_activity_details(
             source=outing_activity_orm.source,
             source_id=outing_activity_orm.source_id,
+            survey=outing_orm.survey,
         )
 
         if activity:
@@ -57,7 +58,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         if outing_reservation_orm.start_time_utc < one_day_from_now:
             return None
 
-        restaurant = await get_restaurant(
+        restaurant = await resolve_restaurant_details(
             source=outing_reservation_orm.source,
             source_id=outing_reservation_orm.source_id,
         )

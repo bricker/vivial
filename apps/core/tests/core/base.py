@@ -3,7 +3,7 @@ import random
 import unittest.mock
 from datetime import timedelta
 from http import HTTPStatus
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar, override
 from uuid import UUID
 
 import sqlalchemy
@@ -50,9 +50,7 @@ class AnyStandardOrm(Protocol):
 T = TypeVar("T")
 J = TypeVar("J", bound=AnyStandardOrm)
 
-# eave.core.internal.database.async_engine.echo = False  # shhh
-
-_DB_SETUP: bool = False
+_db_setup: bool = False
 
 
 class MockPlacesResponse:
@@ -63,11 +61,14 @@ class MockPlacesResponse:
 
 
 class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
+    _gql_cache: dict[str, str]  # pyright: ignore [reportUninitializedInstanceVariable]
+
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
 
+    @override
     async def asyncSetUp(self) -> None:
-        global _DB_SETUP
+        global _db_setup
 
         # Attempt to prevent running destructive database operations against non-test database
         assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
@@ -75,10 +76,10 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             eave.core.database.async_engine.url.database == "eave-test"
         ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test")'
 
-        if not _DB_SETUP:
+        if not _db_setup:
             print("Running one-time DB setup...")
             await init_database()
-            _DB_SETUP = True
+            _db_setup = True
 
         CORE_API_APP_CONFIG.reset_cached_properties()
 
@@ -87,23 +88,24 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self._add_stripe_client_mocks()
 
         engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
-        self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
-        # self.db_session = eave.core.internal.database.async_session
+        self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)  # pyright: ignore [reportUninitializedInstanceVariable]
 
         transport = ASGITransport(
-            app=eave.core.app.app,  # type:ignore
+            app=eave.core.app.app,
             raise_app_exceptions=True,
         )
-        self.httpclient = AsyncClient(
+        self.httpclient = AsyncClient(  # pyright: ignore [reportUninitializedInstanceVariable]
             base_url=SHARED_CONFIG.eave_api_base_url_public,
             transport=transport,
         )
 
         self._gql_cache = {}
 
+    @override
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
+    @override
     async def cleanup(self) -> None:
         await super().cleanup()
 
@@ -137,6 +139,38 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         if count is None:
             count = 0
         return count
+
+    def anyaddress(self, name: str | None = None) -> Address:
+        name = self._make_testdata_name(name)
+
+        data = Address(
+            address1=self.anystr(),
+            address2=self.anystr(),
+            city=self.anystr(),
+            country=self.anystr(),
+            state=self.anyusstate(),
+            zip_code=self.anydigits(length=5),
+        )
+
+        self.testdata[name] = data
+        return self.getaddress(name)
+
+    def getaddress(self, name: str) -> Address:
+        return self.testdata[name]
+
+    def anycoordinates(self, name: str | None = None) -> GeoPoint:
+        name = self._make_testdata_name(name)
+
+        data = GeoPoint(
+            lat=self.anylatitude("lat"),
+            lon=self.anylongitude("lon"),
+        )
+
+        self.testdata[name] = data
+        return self.getcoordinates(name)
+
+    def getcoordinates(self, name: str) -> GeoPoint:
+        return self.testdata[name]
 
     def parse_graphql_response(self, response: Response) -> ExecutionResult:
         j = response.json()
@@ -332,8 +366,9 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         return booking
 
-    mock_stripe_payment_intent: stripe.PaymentIntent
-    mock_stripe_customer: stripe.Customer
+    mock_stripe_payment_intent: stripe.PaymentIntent  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer: stripe.Customer  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer_session: stripe.CustomerSession  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_stripe_client_mocks(self) -> None:
         mock_stripe_payment_intent = stripe.PaymentIntent(
@@ -386,8 +421,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             side_effect=_mock_customer_session_create_async,
         )
 
-    mock_google_place: Place
-    mock_google_places_photo_media: PhotoMedia
+    mock_google_place: Place  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_google_places_photo_media: PhotoMedia  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_google_places_client_mocks(self) -> None:
         self.mock_google_place = Place(
@@ -419,7 +454,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             photo_uri=self.anyurl("PhotoMedia.photo_uri"),
         )
 
-        async def _mock_google_places_get_photo_media(*args, **kwargs) -> PhotoMedia:
+        async def _mock_google_places_get_photo_media(*args: Any, **kwargs: Any) -> PhotoMedia:
             return self.mock_google_places_photo_media
 
         self.patch(

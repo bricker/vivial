@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import override
 from uuid import UUID
 
 from asgiref.typing import HTTPScope
@@ -21,6 +22,7 @@ from eave.stdlib.jwt import InvalidTokenError, JWTPurpose, validate_jws_or_excep
 
 
 class RefreshTokensEndpoint(HTTPEndpoint):
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         encoded_access_token = request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)
         encoded_refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)

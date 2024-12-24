@@ -6,11 +6,9 @@ import strawberry
 import stripe
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
-    fire_analytics_booking_confirmed,
-    notify_slack_booking_confirmed,
+    perform_post_confirm_actions,
 )
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
@@ -21,7 +19,8 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
-from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.lib.api_clients.analytics_client import ANALYTICS
+from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
@@ -113,8 +112,10 @@ async def initiate_booking_mutation(
 
             if len(outing_orm.activities) > 0:
                 outing_activity_orm = outing_orm.activities[0]  # We only support one activity currently.
-                activity = await get_activity(
-                    source=outing_activity_orm.source, source_id=outing_activity_orm.source_id
+                activity = await resolve_activity_details(
+                    source=outing_activity_orm.source,
+                    source_id=outing_activity_orm.source_id,
+                    survey=outing_orm.survey,
                 )
 
                 if activity:
@@ -145,7 +146,7 @@ async def initiate_booking_mutation(
 
             if len(outing_orm.reservations) > 0:
                 reservation_orm = outing_orm.reservations[0]  # We only support 1 reservation right now
-                restaurant = await get_restaurant(
+                restaurant = await resolve_restaurant_details(
                     source=reservation_orm.source,
                     source_id=reservation_orm.source_id,
                 )
@@ -282,17 +283,15 @@ async def initiate_booking_mutation(
         )
 
     if input.auto_confirm:
-        fire_analytics_booking_confirmed(
-            booking=booking_orm,
-            account_id=account_orm.id,
+        await perform_post_confirm_actions(
+            booking_orm=booking_orm,
+            account_orm=account_orm,
             visitor_id=visitor_id,
             total_cost_cents=booking_total_cost_cents,
         )
-        await notify_slack_booking_confirmed(
-            account=account_orm, booking=booking_orm, total_cost_cents=booking_total_cost_cents
-        )
+
     else:
-        fire_analytics_booking_initiated(
+        _fire_analytics_booking_initiated(
             booking=booking_orm,
             reservation=reservation,
             activity_plan=activity_plan,
@@ -313,7 +312,7 @@ async def initiate_booking_mutation(
     )
 
 
-def fire_analytics_booking_initiated(
+def _fire_analytics_booking_initiated(
     *,
     booking: BookingOrm,
     reservation: Reservation | None,

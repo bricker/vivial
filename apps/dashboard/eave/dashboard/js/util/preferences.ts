@@ -1,8 +1,9 @@
-import { type OutingPreferences, type OutingPreferencesInput } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type OutingPreferencesInput } from "$eave-dashboard/js/graphql/generated/graphql";
+import type { OutingPreferencesSelections } from "../store/slices/outingSlice";
 
 export function getPreferenceInputs(
-  userPreferences: OutingPreferences | null,
-  partnerPreferenecs: OutingPreferences | null,
+  userPreferences: OutingPreferencesSelections | null,
+  partnerPreferenecs: OutingPreferencesSelections | null,
 ): OutingPreferencesInput[] {
   const userPreferencesInput: OutingPreferencesInput = {
     activityCategoryIds: userPreferences?.activityCategories?.map((c) => c.id) || [],

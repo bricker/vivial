@@ -1,73 +1,22 @@
 import { type AddPluginConfig } from "@graphql-codegen/add";
-import type { CodegenConfig } from "@graphql-codegen/cli";
-import { addTypenameSelectionDocumentTransform, type ClientPresetConfig } from "@graphql-codegen/client-preset";
+import { type CodegenConfig } from "@graphql-codegen/cli";
+import { addTypenameSelectionDocumentTransform } from "@graphql-codegen/client-preset";
+import { type TypeScriptTypedDocumentNodesConfig } from "@graphql-codegen/typed-document-node";
+import { type TypeScriptPluginConfig } from "@graphql-codegen/typescript";
+import { type TypeScriptDocumentsPluginConfig } from "@graphql-codegen/typescript-operations";
+
 const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphql";
 
 const config: CodegenConfig = {
   schema,
-  documents: ["eave/dashboard/**/*.graphql"],
   ignoreNoDocuments: true,
-  generates: {
-    "./eave/dashboard/js/graphql/generated/": {
-      preset: "client",
-      presetConfig: <ClientPresetConfig>{
-        fragmentMasking: false,
-      },
-      documentTransforms: [addTypenameSelectionDocumentTransform],
-      config: {
-        // See here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#config-api
-        // The options here are forwarded to other plugins and the exact properties aren't available in a type,
-        // so use the documentation to know which options are available.
-        documentMode: "string",
-        defaultScalarType: "string",
-        strictScalars: true,
-        useTypeImports: true,
+  noSilentErrors: true,
+  documents: ["eave/dashboard/**/*.graphql"],
 
-        scalars: {
-          // These scalars match what the server provided, including the scalars built-in to Strawberry:
-          // https://strawberry.rocks/docs/types/scalars
-          UUID: {
-            input: "string",
-            output: "string",
-          },
-          Void: {
-            input: "null",
-            output: "null",
-          },
-          DateTime: {
-            input: "string",
-            output: "string",
-          },
-          Date: {
-            input: "string",
-            output: "string",
-          },
-          Time: {
-            input: "string",
-            output: "string",
-          },
-          Decimal: {
-            input: "string",
-            output: "string",
-          },
-          JSON: {
-            input: "string",
-            output: "string",
-          },
-          Base16: {
-            input: "string",
-            output: "string",
-          },
-          Base32: {
-            input: "string",
-            output: "string",
-          },
-          Base64: {
-            input: "string",
-            output: "string",
-          },
-        },
-      },
+  generates: {
+    "./eave/dashboard/js/graphql/generated/graphql.ts": {
+      overwrite: true,
+      documentTransforms: [addTypenameSelectionDocumentTransform],
       plugins: [
         {
           add: <AddPluginConfig>{
@@ -75,7 +24,44 @@ const config: CodegenConfig = {
             content: "// @ts-nocheck",
           },
         },
+        {
+          add: <AddPluginConfig>{
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        {
+          typescript: <TypeScriptPluginConfig>{},
+        },
+        {
+          "typescript-operations": <TypeScriptDocumentsPluginConfig>{},
+        },
+        {
+          "typed-document-node": <TypeScriptTypedDocumentNodesConfig>{
+            documentMode: "string",
+          },
+        },
       ],
+      config: <TypeScriptDocumentsPluginConfig & TypeScriptTypedDocumentNodesConfig & TypeScriptPluginConfig>{
+        printFieldsOnNewLines: true,
+        useTypeImports: true,
+        strictScalars: true,
+        defaultScalarType: "string",
+        scalars: {
+          // These scalars match what the server provided, including the scalars built-in to Strawberry:
+          // https://strawberry.rocks/docs/types/scalars
+          UUID: "string",
+          Void: "null",
+          DateTime: "string",
+          Date: "string",
+          Time: "string",
+          Decimal: "string",
+          JSON: "string",
+          Base16: "string",
+          Base32: "string",
+          Base64: "string",
+        },
+      },
     },
   },
 };

@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import override
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -60,6 +61,7 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
         if session:
             session.add(self)
 
+    @override
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 

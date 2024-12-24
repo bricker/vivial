@@ -2,14 +2,15 @@ import enum
 import urllib.parse
 from collections.abc import Sequence
 from datetime import datetime, timedelta
+from typing import TypedDict
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+import googlemaps.geocoding
 from google.maps.places import (
     GetPhotoMediaRequest,
     GetPlaceRequest,
     Place,
-    PlacesAsyncClient,
     SearchNearbyRequest,
 )
 from google.maps.places import (
@@ -21,6 +22,8 @@ from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.lib.api_clients.google_maps_client import GOOGLE_MAPS_API_CLIENT
+from eave.core.lib.api_clients.google_places_client import GOOGLE_MAPS_PLACES_API_CLIENT
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
@@ -53,8 +56,8 @@ _SEARCH_NEARBY_FIELD_MASK = ",".join([f"places.{s}" for s in _PLACE_FIELDS])
 _PLACE_FIELD_MASK = ",".join(_PLACE_FIELDS)
 
 
-async def restaurant_from_google_place(places_client: PlacesAsyncClient, *, place: Place) -> Restaurant:
-    photos = await photos_from_google_place(places_client, place=place)
+async def restaurant_from_google_place(*, place: Place) -> Restaurant:
+    photos = await photos_from_google_place(place=place)
 
     return Restaurant(
         source_id=place.id,
@@ -72,8 +75,8 @@ async def restaurant_from_google_place(places_client: PlacesAsyncClient, *, plac
     )
 
 
-async def activity_from_google_place(places_client: PlacesAsyncClient, *, place: Place) -> Activity:
-    photos = await photos_from_google_place(places_client, place=place)
+async def activity_from_google_place(*, place: Place) -> Activity:
+    photos = await photos_from_google_place(place=place)
 
     activity = Activity(
         source_id=place.id,
@@ -99,18 +102,16 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
     return activity
 
 
-async def photos_from_google_place(places_client: PlacesAsyncClient, *, place: Place) -> Photos:
+async def photos_from_google_place(*, place: Place) -> Photos:
     photos = Photos(cover_photo=None, supplemental_photos=[])
 
     if len(place.photos) > 0:
         photos.cover_photo = await photo_from_google_place_photo(
-            places_client=places_client,
             photo=place.photos[0],
         )
 
     for place_photo in place.photos[1:]:
         supplemental_photo = await photo_from_google_place_photo(
-            places_client=places_client,
             photo=place_photo,
         )
         photos.supplemental_photos.append(supplemental_photo)
@@ -211,12 +212,12 @@ def location_from_google_place(place: Place) -> Location:
     )
 
 
+# Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
 async def photo_from_google_place_photo(
-    places_client: PlacesAsyncClient,
     *,
     photo: PlacePhoto,
 ) -> Photo:
-    photo_res = await places_client.get_photo_media(
+    photo_res = await GOOGLE_MAPS_PLACES_API_CLIENT.get_photo_media(
         request=GetPhotoMediaRequest(
             name=f"{photo.name}/media",
             max_width_px=1000,  # This value was chosen arbitrarily
@@ -234,37 +235,33 @@ async def photo_from_google_place_photo(
 
 
 async def get_google_place(
-    places_client: PlacesAsyncClient,
     *,
     place_id: str,
 ) -> Place:
-    return await places_client.get_place(
+    return await GOOGLE_MAPS_PLACES_API_CLIENT.get_place(
         request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
     )
 
 
-async def get_google_places_activity(places_client: PlacesAsyncClient, *, event_id: str) -> Activity | None:
+async def get_google_places_activity(*, event_id: str) -> Activity | None:
     place = await get_google_place(
-        places_client=places_client,
         place_id=event_id,
     )
 
-    activity = await activity_from_google_place(places_client, place=place)
+    activity = await activity_from_google_place(place=place)
     return activity
 
 
-async def get_google_places_restaurant(places_client: PlacesAsyncClient, *, restaurant_id: str) -> Restaurant:
+async def get_google_places_restaurant(*, restaurant_id: str) -> Restaurant:
     place = await get_google_place(
-        places_client=places_client,
         place_id=restaurant_id,
     )
 
-    restaurant = await restaurant_from_google_place(places_client=places_client, place=place)
+    restaurant = await restaurant_from_google_place(place=place)
     return restaurant
 
 
 async def get_places_nearby(
-    places_client: PlacesAsyncClient,
     *,
     area: GeoArea,
     included_primary_types: Sequence[str],
@@ -275,6 +272,7 @@ async def get_places_nearby(
 
     https://developers.google.com/maps/documentation/places/web-service/nearby-search
     """
+
     location_restriction = SearchNearbyRequest.LocationRestriction()
     location_restriction.circle.radius = area.rad.meters
     location_restriction.circle.center.latitude = area.center.lat
@@ -283,7 +281,7 @@ async def get_places_nearby(
         location_restriction=location_restriction,
         included_primary_types=included_primary_types[0:50],
     )
-    response = await places_client.search_nearby(
+    response = await GOOGLE_MAPS_PLACES_API_CLIENT.search_nearby(
         request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
     )
     return list(response.places)
@@ -296,26 +294,22 @@ def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: 
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours
     """
-    if place.regular_opening_hours is None:
-        return False
-
     arrival_time_local = arrival_time.astimezone(timezone)
     departure_time_local = departure_time.astimezone(timezone)
 
     for period in place.regular_opening_hours.periods:
-        is_relevant = period.open_ and (period.open_.day == arrival_time_local.weekday())
+        is_relevant = period.open_.day == arrival_time_local.weekday()
 
-        if is_relevant and period.open_.hour is not None and period.open_.minute is not None:
+        if is_relevant:
             open_time = arrival_time_local.replace(hour=period.open_.hour, minute=period.open_.minute)
+            close_time = arrival_time_local.replace(hour=period.close.hour, minute=period.close.minute)
 
-            if period.close and period.close.hour is not None and period.close.minute is not None:
-                close_time = arrival_time_local.replace(hour=period.close.hour, minute=period.close.minute)
+            if period.close.day != arrival_time_local.weekday():
+                close_time = close_time + timedelta(days=1)  # Place closes the next day.
 
-                if period.close.day != arrival_time_local.weekday():
-                    close_time = close_time + timedelta(days=1)  # Place closes the next day.
+            if open_time <= arrival_time_local and close_time >= departure_time_local:
+                return True
 
-                if open_time <= arrival_time_local and close_time >= departure_time_local:
-                    return True
     return False
 
 
@@ -338,6 +332,18 @@ def place_is_accessible(place: Place) -> bool:
     return can_enter and can_park and can_pee and can_sit
 
 
-def google_maps_directions_url(address: str) -> str:
+class GeocodeResult(TypedDict, total=False):
+    place_id: str | None
+
+
+async def google_maps_directions_url(address: str) -> str:
+    geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=GOOGLE_MAPS_API_CLIENT, address=address)
+
+    for result in geocode_results:
+        if place_id := result.get("place_id"):
+            place = await get_google_place(place_id=place_id)
+            if place.google_maps_uri:
+                return place.google_maps_uri
+
     urlsafe_addr = urllib.parse.quote_plus(address)
     return f"https://www.google.com/maps/place/{urlsafe_addr}"

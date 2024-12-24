@@ -1,4 +1,4 @@
-import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
+import type { BookingDetailsPeekFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
@@ -102,7 +102,7 @@ const NewDateCta = () => {
   );
 };
 
-const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
+const BookingDetails = ({ booking }: { booking: BookingDetailsPeekFieldsFragment }) => {
   const navigate = useNavigate();
   const imgUri = booking.photoUri;
   const dateDayString = booking.activityStartTime || booking.restaurantArrivalTime;
@@ -147,8 +147,8 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
 const PlansPage = () => {
   const { data, isLoading, isError } = useListBookedOutingsQuery({});
   const dispatch = useDispatch();
-  const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailPeek[]>(() => []);
-  const [pastBookings, setPastBookings] = useState<BookingDetailPeek[]>(() => []);
+  const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailsPeekFieldsFragment[]>(() => []);
+  const [pastBookings, setPastBookings] = useState<BookingDetailsPeekFieldsFragment[]>(() => []);
 
   useEffect(() => {
     switch (data?.viewer.__typename) {

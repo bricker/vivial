@@ -12,7 +12,7 @@ import zoneinfo
 from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, tzinfo
 from math import floor
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, TypeVar, override
 from zoneinfo import ZoneInfo
 
 from google.cloud.kms import (
@@ -36,7 +36,7 @@ from eave.stdlib.eventbrite.models.ticket_availability import TicketAvailability
 from eave.stdlib.eventbrite.models.ticket_class import TicketClass
 from eave.stdlib.eventbrite.models.venue import Venue
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import NOT_SET, JsonObject
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -50,8 +50,8 @@ _ALPHAS = "abcdefghijklmnopqrstuvwxyz" * 100
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]
     active_mocks: dict[str, unittest.mock.Mock]
-    _active_patches: dict[str, unittest.mock._patch]
-    _active_patched_dicts: dict[str, unittest.mock._patch_dict]
+    _active_patches: dict[str, unittest.mock._patch]  # pyright: ignore [reportPrivateUsage, reportMissingTypeArgument]
+    _active_patched_dicts: dict[str, unittest.mock._patch_dict]  # pyright: ignore [reportPrivateUsage]
 
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
@@ -63,6 +63,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         self.addAsyncCleanup(self.cleanup)
 
+    @override
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -74,6 +75,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self._add_sendgrid_client_mocks()
         self._add_segment_client_mocks()
 
+    @override
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
@@ -116,7 +118,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         offset: int | None = None,
         future: Literal[True] | None = None,
         past: Literal[True] | None = None,
-        tz: tzinfo | None = ZoneInfo("UTC"),
+        tz: tzinfo | None = NOT_SET,
         resolution: Literal["seconds", "microseconds"] = "microseconds",
     ) -> datetime:
         """
@@ -125,6 +127,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         - if future or past are given, the datetime will be a random number of seconds in that direction, within a year of the current date.
         - if no arguments are given, the datetime will be a random number of seconds in a random direction, within a year of the current date.
         """
+        if tz is NOT_SET:
+            tz = ZoneInfo("UTC")
+
         name = self._make_testdata_name(name)
 
         if not offset:
@@ -377,7 +382,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         data = f"{name}+{uuid.uuid4().hex}@gmail.com"
         self.testdata[name] = data
-        return data
+        return self.getemail(name)
 
     def getemail(self, name: str) -> str:
         return self.getstr(name)
@@ -387,7 +392,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         data = f"({self.anydigits(length=3)})-{self.anydigits(length=3)}-{self.anydigits(length=4)}"
         self.testdata[name] = data
-        return data
+        return self.getphonenumber(name)
 
     def getphonenumber(self, name: str) -> str:
         return self.getstr(name)
@@ -449,7 +454,10 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def _add_google_secret_manager_mocks(self) -> None:
         def _access_secret_version(
-            request: AccessSecretVersionRequest | dict | None = None, *, name: str | None = None, **kwargs: Any
+            request: AccessSecretVersionRequest | dict[str, str] | None = None,
+            *,
+            name: str | None = None,
+            **kwargs: Any,
         ) -> AccessSecretVersionResponse:
             if isinstance(request, AccessSecretVersionRequest):
                 resolved_name = request.name
@@ -550,8 +558,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             side_effect=_mocked_sendgrid_identify,
         )
 
-    mock_eventbrite_event: Event
-    mock_eventbrite_ticket_class_batch: list[TicketClass]
+    mock_eventbrite_event: Event  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_eventbrite_ticket_class_batch: list[TicketClass]  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def get_mock_eventbrite_ticket_class_batch_cost(self) -> int:
         # These checks are just for the typechecker
@@ -679,7 +687,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def patch(
         self,
-        patch: unittest.mock._patch,
+        patch: unittest.mock._patch,  # pyright: ignore [reportPrivateUsage, reportMissingTypeArgument]
         name: str | None = None,
         return_value: Any | None = None,
         side_effect: Any | None = None,
@@ -721,7 +729,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", newenv, clear=True))
         return m
 
-    def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:
+    def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:  # pyright: ignore [reportPrivateUsage]
         name = name or str(patch.in_dict)
         mock = patch.start()
         self._active_patched_dicts[name] = patch
@@ -732,11 +740,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.active_mocks, f"{name} is not patched!"
         return self.active_mocks[name]
 
-    def get_patch(self, name: str) -> unittest.mock._patch:
+    def get_patch(self, name: str) -> unittest.mock._patch:  # pyright: ignore [reportPrivateUsage, reportMissingTypeArgument]
         assert name in self._active_patches, f"{name} is not patched!"
         return self._active_patches[name]
 
-    def get_patched_dict(self, name: str) -> unittest.mock._patch_dict:
+    def get_patched_dict(self, name: str) -> unittest.mock._patch_dict:  # pyright: ignore [reportPrivateUsage]
         assert name in self._active_patched_dicts, f"{name} is not patched!"
         return self._active_patched_dicts[name]
 

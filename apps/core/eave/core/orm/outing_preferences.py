@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, override
 from uuid import UUID
 
 import sqlalchemy.dialects.postgresql
@@ -56,6 +56,7 @@ class OutingPreferencesOrm(Base):
     async def get_one(cls, session: AsyncSession, *, account_id: UUID, uid: UUID) -> Self:
         return await session.get_one(cls, (account_id, uid))
 
+    @override
     @classmethod
     def select(cls, *, account_id: UUID = NOT_SET) -> Select[tuple[Self]]:
         query = super().select()

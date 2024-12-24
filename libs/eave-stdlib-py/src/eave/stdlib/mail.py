@@ -52,3 +52,6 @@ class SendgridMailer:
                 LOGGER.warning("Mailer disabled - not sending any emails")
         except Exception as e:
             LOGGER.exception(e)
+
+
+SENDGRID_MAILER = SendgridMailer()

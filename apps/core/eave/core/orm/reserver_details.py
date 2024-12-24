@@ -1,5 +1,5 @@
 import re
-from typing import Self
+from typing import Self, override
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, PrimaryKeyConstraint
@@ -44,6 +44,7 @@ class ReserverDetailsOrm(Base):
         if session:
             session.add(self)
 
+    @override
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 

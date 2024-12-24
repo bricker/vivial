@@ -26,6 +26,12 @@ module "app_secrets" {
         "group:developers@eave.fyi",
       ],
     },
+    GOOGLE_MAPS_API_KEY = {
+      data = var.GOOGLE_MAPS_API_KEY
+      accessors = [
+        "group:developers@eave.fyi",
+      ],
+    },
   }
 
   secret_accessor_role_name = module.project_base.secret_accessor_role_name

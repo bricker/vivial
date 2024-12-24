@@ -84,12 +84,10 @@ class TestAddressDataclass(BaseTestCase):
         assert (
             format_address(address, singleline=False)
             == f"{self.getalpha("address1")}\n{self.getalpha("city")}, {self.getusstate("state")}, {self.getdigits("zip")}"
-            ""
         )
         assert (
             format_address(address, singleline=True)
             == f"{self.getalpha("address1")}, {self.getalpha("city")}, {self.getusstate("state")}, {self.getdigits("zip")}"
-            ""
         )
 
     async def test_address_formatted_some_fields_1(self) -> None:

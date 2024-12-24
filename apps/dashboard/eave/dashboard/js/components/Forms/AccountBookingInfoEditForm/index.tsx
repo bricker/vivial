@@ -1,5 +1,6 @@
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { formatPhoneNumber } from "$eave-dashboard/js/util/phoneNumber";
 import { styled } from "@mui/material";
 import * as EmailValidator from "email-validator";
 import React, { useCallback, useState } from "react";
@@ -163,7 +164,12 @@ const AccountBookingInfoEditForm = ({
           <BoldInput placeholder="Last name" value={lastName} onChange={handleLastNameChange} />
         </NameInputContainer>
         <BoldInput placeholder="Email" value={email} onChange={handleEmailChange} />
-        <BoldInput placeholder="Phone #" value={phoneNumber} onChange={handlePhoneNumberChange} />
+        <BoldInput
+          placeholder="Phone #"
+          value={phoneNumber}
+          onKeyUp={formatPhoneNumber}
+          onChange={handlePhoneNumberChange}
+        />
       </FieldsContainer>
 
       {error && (

@@ -1,5 +1,14 @@
 mutation PlanOuting($input: PlanOutingInput!) {
   planOuting(input: $input) {
-    ...PlanOutingFields
+    ... on PlanOutingSuccess {
+      outing {
+        ...ItineraryFields
+        ...TravelFields
+      }
+    }
+
+    ... on PlanOutingFailure {
+      failureReason
+    }
   }
 }
