@@ -3,6 +3,8 @@
 import sys
 import time
 
+from eave.stdlib.config import SHARED_CONFIG
+
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -240,6 +242,8 @@ run_stats: dict[str, Any] = {
 
 
 async def get_eventbrite_events() -> None:
+    LOGGER.info(f"GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
+
     eventbrite = EventbriteUtility()
     maps = GoogleMapsUtility()
 
