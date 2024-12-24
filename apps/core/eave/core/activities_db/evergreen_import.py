@@ -1,5 +1,6 @@
 # isort: off
 
+import math
 import sys
 
 sys.path.append(".")
@@ -49,11 +50,11 @@ async def import_evergreen_activities() -> None:
                 availability,
                 duration,
                 ticket_type_a,
-                ticket_type_a_cost,
+                ticket_type_a_cost_dollars,
                 ticket_type_b,
                 ticket_type_b_cost,
                 tax_percentage,
-                fees,
+                fees_dollars,
                 bookable,
                 book_url,
             ) = row
@@ -70,7 +71,7 @@ async def import_evergreen_activities() -> None:
             fmt = None if not fmt else fmt
             book_url = None if book_url == "N/A" else book_url
             tax_percentage = 0 if tax_percentage == "N/A" else int(tax_percentage)
-            fees = 0 if fees == "N/A" else int(fees)
+            fees_dollars = 0 if fees_dollars == "N/A" else float(fees_dollars)
 
             maps = GoogleMapsUtility()
             geocode_results = maps.geocode(address=address)
@@ -98,11 +99,11 @@ async def import_evergreen_activities() -> None:
 
             ticket_type_a = None if ticket_type_a == "N/A" else ticket_type_a
 
-            if ticket_type_a_cost == "N/A":
-                ticket_type_a_cost = None
+            if ticket_type_a_cost_dollars == "N/A":
+                ticket_type_a_cost_dollars = None
             else:
-                ticket_type_a_cost = re.sub("^\\$", "", ticket_type_a_cost)
-                ticket_type_a_cost = int(ticket_type_a_cost)
+                ticket_type_a_cost_dollars = re.sub("^\\$", "", ticket_type_a_cost_dollars)
+                ticket_type_a_cost_dollars = float(ticket_type_a_cost_dollars)
 
             availability = availability.split("\n")
             availability = [d.split(": ") for d in availability]
@@ -192,35 +193,17 @@ async def import_evergreen_activities() -> None:
                     minute_spans_local=spans,
                 )
 
-                if ticket_type_a is not None and ticket_type_a_cost is not None:
+                if ticket_type_a is not None and ticket_type_a_cost_dollars is not None:
                     activity.ticket_types.append(
                         EvergreenActivityTicketTypeOrm(
                             session,
                             evergreen_activity=activity,
-                            base_cost_cents=ticket_type_a_cost,
-                            service_fee_cents=fees,
+                            base_cost_cents=math.floor(ticket_type_a_cost_dollars * 100),
+                            service_fee_cents=math.floor(fees_dollars * 100),
                             tax_percentage=tax_percentage,
                             title=ticket_type_a,
                         )
                     )
-
-            #     "title": title,
-            #     "description": description,
-            #     "address": address,
-            #     "images": images,
-            #     "activity_category": activity_category,
-            #     "availability": availability_schedule,
-            #     "duration": duration,
-            #     "ticket_type_a": ticket_type_a,
-            #     "ticket_type_a_cost": ticket_type_a_cost,
-            #     "ticket_type_b": ticket_type_b,
-            #     "ticket_type_b_cost": ticket_type_b_cost,
-            #     "taxes": taxes,
-            #     "fees": fees,
-            #     "bookable": bookable,
-            #     "booking_url": book_url,
-            # })
-
 
 def _gethr(hrstr: str, ap: str) -> int:
     if ap == "AM":
