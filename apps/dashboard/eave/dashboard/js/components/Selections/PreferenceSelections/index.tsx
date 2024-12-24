@@ -119,6 +119,11 @@ const PreferenceSelections = ({
   }, [categories, selectedCategories]);
 
   useEffect(() => {
+    setSelectedCategories(defaultCategories);
+    setSelectedCategoryMap(getCategoryMap(defaultCategories));
+  }, [defaultCategories]);
+
+  useEffect(() => {
     setIsCollapsed(collapsed);
   }, [collapsed]);
 
