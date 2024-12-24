@@ -5,6 +5,7 @@ import sys
 
 sys.path.append(".")
 
+from eave.core.orm.image import ImageOrm
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -193,6 +194,15 @@ async def import_evergreen_activities() -> None:
                     minute_spans_local=spans,
                 )
 
+                for image in images:
+                    img = ImageOrm(
+                        session,
+                        src=image.strip(),
+                        alt=None,
+                    )
+
+                    activity.images.append(img)
+
                 if ticket_type_a is not None and ticket_type_a_cost_dollars is not None:
                     activity.ticket_types.append(
                         EvergreenActivityTicketTypeOrm(
@@ -204,6 +214,7 @@ async def import_evergreen_activities() -> None:
                             title=ticket_type_a,
                         )
                     )
+
 
 def _gethr(hrstr: str, ap: str) -> int:
     if ap == "AM":
