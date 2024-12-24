@@ -174,11 +174,6 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
         return query
 
-
-    @property
-    def total_cost_cents(self) -> int:
-        return math.floor((self.base_cost_cents + self.service_fee_cents) * (1+self.tax_percentage))
-
 class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     __tablename__ = "weekly_schedules"
 
