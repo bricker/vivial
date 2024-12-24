@@ -1,7 +1,7 @@
 import { type OutingPreferencesFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { type Category } from "$eave-dashboard/js/types/category";
 import { styled } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   useGetOutingPreferencesQuery,
@@ -57,7 +57,7 @@ const AccountPreferencesPage = () => {
     setCollapsedGroups(newCollapsedGroups);
   };
 
-  const handleSubmitRestaurants = async (selectedCategories: Category[]) => {
+  const handleSubmitRestaurants = useCallback(async (selectedCategories: Category[]) => {
     const restaurantCategoryIds = selectedCategories.map((c) => c.id);
     const resp = await updatePreferences({ input: { restaurantCategoryIds } });
     const viewer = resp.data?.viewer;
@@ -67,9 +67,9 @@ const AccountPreferencesPage = () => {
     ) {
       setOutingPreferences(viewer.updatePreferences.outingPreferences);
     }
-  };
+  }, []);
 
-  const handleSubmitActivities = async (selectedCategories: Category[], removedCategories?: Category[]) => {
+  const handleSubmitActivities = useCallback(async (selectedCategories: Category[], removedCategories?: Category[]) => {
     let activityCategoryIds = outingPreferences?.activityCategories?.map((c) => c.id) || [];
     if (removedCategories) {
       const removedCategoryIds = removedCategories.map((c) => c.id);
@@ -88,7 +88,7 @@ const AccountPreferencesPage = () => {
     ) {
       setOutingPreferences(viewer.updatePreferences.outingPreferences);
     }
-  };
+  }, [outingPreferences]);
 
   useEffect(() => {
     const viewer = data?.viewer;
@@ -116,7 +116,7 @@ const AccountPreferencesPage = () => {
       <PreferenceSelections
         categoryGroupName="Food types"
         categories={restaurantCategories}
-        defaultCategories={getDefaults(outingPreferences?.restaurantCategories || [], restaurantCategories)}
+        defaultCategories={getDefaults({ preferredCategories: outingPreferences?.restaurantCategories || [], allCategories: restaurantCategories })}
         onSubmit={handleSubmitRestaurants}
         onCollapse={handleCollapse}
         collapsed={collapsedGroups.get("default")}
@@ -127,8 +127,8 @@ const AccountPreferencesPage = () => {
           key={group.id}
           categoryGroupName={group.name}
           categoryGroupId={group.id}
-          categories={group?.activityCategories || []}
-          defaultCategories={getDefaults(outingPreferences?.activityCategories || [], group?.activityCategories)}
+          categories={group.activityCategories || []}
+          defaultCategories={getDefaults({ preferredCategories: outingPreferences?.activityCategories || [], allCategories: group.activityCategories })}
           onSubmit={handleSubmitActivities}
           onCollapse={handleCollapse}
           collapsed={collapsedGroups.get(group.id)}

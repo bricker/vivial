@@ -7,6 +7,7 @@ import React, { type KeyboardEvent } from "react";
 import { useSelector } from "react-redux";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
+import { formatPhoneNumber } from "$eave-dashboard/js/util/phoneNumber";
 
 enum Corner {
   TOP_LEFT,
@@ -79,37 +80,6 @@ export interface ReserverFormFields {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-}
-
-const ignorekeys = new Set([
-  "Backspace",
-  "Delete",
-  "Paste",
-  "Undo",
-  "Cut",
-  "Redo",
-  "Clear",
-  "EraseEof",
-  "Insert",
-]);
-
-const formatPhoneNumber = (e: KeyboardEvent) => {
-  if (ignorekeys.has(e.key)) {
-    return;
-  }
-
-  const el = e.target as HTMLInputElement;
-
-  let m = el.value.match(/^\(?(\d{3})\)?$/);
-  if (m) {
-    const digits = m[1];
-    el.value = `(${digits}) `;
-  }
-
-  m = el.value.match(/^\(?(\d{3})\)? (\d{3})$/);
-  if (m) {
-    el.value = `(${m[1]}) ${m[2]}-`;
-  }
 }
 
 const ReservationDetailsForm = ({

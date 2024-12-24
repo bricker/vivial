@@ -7,6 +7,7 @@ import LoadingButton from "../../Buttons/LoadingButton";
 import SecondaryButton from "../../Buttons/SecondaryButton";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
+import { formatPhoneNumber } from "$eave-dashboard/js/util/phoneNumber";
 const SpreadButtonsContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
@@ -163,7 +164,7 @@ const AccountBookingInfoEditForm = ({
           <BoldInput placeholder="Last name" value={lastName} onChange={handleLastNameChange} />
         </NameInputContainer>
         <BoldInput placeholder="Email" value={email} onChange={handleEmailChange} />
-        <BoldInput placeholder="Phone #" value={phoneNumber} onChange={handlePhoneNumberChange} />
+        <BoldInput placeholder="Phone #" value={phoneNumber} onKeyUp={formatPhoneNumber} onChange={handlePhoneNumberChange} />
       </FieldsContainer>
 
       {error && (

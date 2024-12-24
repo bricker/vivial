@@ -162,7 +162,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [defaultPaymentMethod, setDefaultPaymentMethod] = useState<PaymentMethodFieldsFragment | null>(null);
 
   // We only want to run this if the user is logged in.
-  const { data: oneClickBookingCriteriaData } = useGetOneClickBookingCriteriaQuery({}, { skip: !isLoggedIn, refetchOnMountOrArgChange: true });
+  const { data: oneClickBookingCriteriaData } = useGetOneClickBookingCriteriaQuery({}, { skip: !isLoggedIn });
   const [initiateAndConfirmBooking] = useInitiateAndConfirmBookingMutation();
 
   useEffect(() => {
