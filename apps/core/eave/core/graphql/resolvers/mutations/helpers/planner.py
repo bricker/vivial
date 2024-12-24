@@ -246,14 +246,14 @@ class OutingPlanner:
                 activity_category_ids=group_activity_category_preferences_ids,
                 open_at_local=start_time_local,
                 budget=self.survey.budget,
-            ).order_by(func.random()).limit(1)
+            ).order_by(func.random())
 
-            evergreen_activity_orm = (await db_session.scalars(evergreen_activities_query)).first()
+            evergreen_activity_orms = (await db_session.scalars(evergreen_activities_query))
 
-        if evergreen_activity_orm:
-            evergreen_activity = await get_internal_activity(event_id=str(evergreen_activity_orm.id), survey=self.survey)
-            self.activity = evergreen_activity
-            return self.activity
+        for evergreen_activity_orm in evergreen_activity_orms:
+            if evergreen_activity := await get_internal_activity(event_id=str(evergreen_activity_orm.id), survey=self.survey):
+                self.activity = evergreen_activity
+                return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
         is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(

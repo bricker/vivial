@@ -212,15 +212,3 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
 
         if session:
             session.add(self)
-
-    # @override
-    # @classmethod
-    # def select(cls, *, open_at_local: datetime = NOT_SET) -> Select[tuple[Self]]:
-    #     query = super().select()
-
-    #     if open_at_local is not NOT_SET:
-    #         # FIXME: This doesn't handle `week_of`
-    #         min_of_week = (((open_at_local.weekday() * 24) + open_at_local.hour) * 60) + open_at_local.minute
-    #         query = query.where(cls.minute_spans_local.op("@>")(min_of_week))
-
-    #     return query
