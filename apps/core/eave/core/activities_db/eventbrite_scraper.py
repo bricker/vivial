@@ -3,6 +3,7 @@
 import sys
 import time
 
+from eave.stdlib.config import SHARED_CONFIG
 
 sys.path.append(".")
 
@@ -24,7 +25,8 @@ from zoneinfo import ZoneInfo
 from aiohttp import ClientResponseError
 
 import eave.core.database
-from eave.core.lib.api_clients.eventbrite_client import EVENTBRITE_API_CLIENT
+from eave.core.lib.eventbrite import EventbriteUtility
+from eave.core.lib.google_places import GoogleMapsUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
@@ -240,7 +242,10 @@ run_stats: dict[str, Any] = {
 
 
 async def get_eventbrite_events() -> None:
-    client = EVENTBRITE_API_CLIENT
+    LOGGER.info(f"GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
+
+    eventbrite = EventbriteUtility()
+    maps = GoogleMapsUtility()
 
     organizer_ids_copy = list(_EVENTBRITE_ORGANIZER_IDS)
     random.shuffle(organizer_ids_copy)
@@ -262,7 +267,7 @@ async def get_eventbrite_events() -> None:
 
         organizer_stats[organizer_id] = org_stats
 
-        paginator = client.list_events_for_organizer(
+        paginator = eventbrite.client.list_events_for_organizer(
             organizer_id=organizer_id,
             query=ListEventsQuery(
                 order_by=OrderBy.START_ASC,
@@ -445,6 +450,14 @@ async def get_eventbrite_events() -> None:
                     # These should never be different, but we need to choose one.
                     timezone = start_timezone or end_timezone or LOS_ANGELES_TIMEZONE
 
+                    google_place_id = None
+                    if (address := venue.get("address")) and (
+                        localized_address := address.get("localized_address_display")
+                    ):
+                        geocode_results = maps.geocode(address=localized_address)
+                        if len(geocode_results) > 0:
+                            google_place_id = geocode_results[0].get("place_id")
+
                     async with eave.core.database.async_session.begin() as db_session:
                         query = EventbriteEventOrm.select(
                             eventbrite_event_id=eventbrite_event_id,
@@ -459,6 +472,7 @@ async def get_eventbrite_events() -> None:
                                 eventbrite_event_id=eventbrite_event_id,
                                 eventbrite_organizer_id=event.get("organizer_id", organizer_id),
                                 title=event_name["text"],
+                                google_place_id=google_place_id,
                                 start_time=start_time_utc,
                                 end_time=end_time_utc,
                                 timezone=timezone,
@@ -474,6 +488,7 @@ async def get_eventbrite_events() -> None:
 
                         target.update(
                             title=event_name["text"],
+                            google_place_id=google_place_id,
                             start_time=start_time_utc,
                             end_time=end_time_utc,
                             timezone=timezone,

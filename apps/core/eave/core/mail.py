@@ -1,5 +1,7 @@
 import dataclasses
 
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.mail import SENDGRID_MAILER
 
 
@@ -20,16 +22,28 @@ class BookingConfirmationData:
 
 
 def send_welcome_email(to_email: str) -> None:
-    SENDGRID_MAILER.send_templated_email(
-        to_emails=[to_email],
-        template_id="d-638ba190b929408aa71a92771a85d817",
-        dynamic_data={},
-    )
+    try:
+        SENDGRID_MAILER.send_templated_email(
+            to_emails=[to_email],
+            template_id="d-638ba190b929408aa71a92771a85d817",
+            dynamic_data={},
+        )
+    except Exception as e:
+        if SHARED_CONFIG.is_local:
+            raise
+        else:
+            LOGGER.exception(e)
 
 
 def send_booking_confirmation_email(*, to_email: str, data: BookingConfirmationData) -> None:
-    SENDGRID_MAILER.send_templated_email(
-        to_emails=[to_email],
-        template_id="d-28726a7952a641408bd7946e2795e54f",
-        dynamic_data=dataclasses.asdict(data),
-    )
+    try:
+        SENDGRID_MAILER.send_templated_email(
+            to_emails=[to_email],
+            template_id="d-28726a7952a641408bd7946e2795e54f",
+            dynamic_data=dataclasses.asdict(data),
+        )
+    except Exception as e:
+        if SHARED_CONFIG.is_local:
+            raise
+        else:
+            LOGGER.exception(e)

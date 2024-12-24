@@ -123,7 +123,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     ) -> datetime:
         """
         - offset, future, and past arguments are mutually exclusive. Passing more than one is undefined behavior.
-        - offset specified in positive or negative seconds.
+        - offset specified in positive or negative seconds, and applied to the current time, effectively giving a known value.
         - if future or past are given, the datetime will be a random number of seconds in that direction, within a year of the current date.
         - if no arguments are given, the datetime will be a random number of seconds in a random direction, within a year of the current date.
         """
@@ -314,7 +314,22 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getlongitude(self, name: str) -> float:
         return self.getfloat(name)
 
-    def anyint(self, name: str | None = None, *, min: int = 0, max: int = 9999) -> int:
+    def anyint(self, name: str | None = None, *, min: int | None = None, max: int | None = None) -> int:
+        if max is None and min is None:
+            min = 0
+            max = 10**6
+
+        elif min is not None and max is None:
+            max = min + 10**6
+
+        elif max is not None and min is None:
+            if max > 0:
+                min = 0
+            else:
+                min = max - 10**6
+
+        assert min is not None and max is not None  # This is for the typechecker, it is an impossible case
+
         name = self._make_testdata_name(name)
 
         data = random.randint(min, max)
@@ -324,7 +339,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getint(self, name: str) -> int:
         return self._get_testdata_value(name)
 
-    def anyfloat(self, name: str | None = None, *, mag: int = 0, decimals: int | None = None) -> float:
+    def anyfloat(self, name: str | None = None, *, mag: int = 0, decimals: int | None = 5) -> float:
         name = self._make_testdata_name(name)
 
         data = round(random.random() * (10**mag), decimals)
@@ -540,26 +555,59 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def _add_segment_client_mocks(self) -> None:
-        def _mocked_sendgrid_track(*args: Any, **kwargs: Any) -> Any:
+        def _mocked_segment_track(*args: Any, **kwargs: Any) -> Any:
             pass
 
         self.patch(
             name="segment.analytics.track",
             patch=unittest.mock.patch("segment.analytics.track"),
-            side_effect=_mocked_sendgrid_track,
+            side_effect=_mocked_segment_track,
         )
 
-        def _mocked_sendgrid_identify(*args: Any, **kwargs: Any) -> Any:
+        def _mocked_segment_identify(*args: Any, **kwargs: Any) -> Any:
             pass
 
         self.patch(
             name="segment.analytics.identify",
             patch=unittest.mock.patch("segment.analytics.identify"),
-            side_effect=_mocked_sendgrid_identify,
+            side_effect=_mocked_segment_identify,
         )
 
     mock_eventbrite_event: Event  # pyright: ignore [reportUninitializedInstanceVariable]
     mock_eventbrite_ticket_class_batch: list[TicketClass]  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def set_mock_eventbrite_ticket_class_batch(
+        self, *, max_cost_cents: int | None = None, min_cost_cents: int | None = None
+    ) -> None:
+        if max_cost_cents is not None and min_cost_cents is None:
+            if max_cost_cents == 0:
+                min_cost_cents = 0
+            else:
+                min_cost_cents = 1
+
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(min=min_cost_cents, max=max_cost_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
 
     def get_mock_eventbrite_ticket_class_batch_cost(self) -> int:
         # These checks are just for the typechecker

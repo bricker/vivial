@@ -274,13 +274,9 @@ def istr_eq(a: str, b: str) -> bool:
 
 
 def num_with_english_suffix(num: int) -> str:
-    strnum = str(int)
-    if strnum.endswith("11"):
-        return "11th"
-    if strnum.endswith("12"):
-        return "12th"
-    if strnum.endswith("13"):
-        return "13th"
+    strnum = str(num)
+    if strnum.endswith(("11", "12", "13")):
+        return f"{num}th"
 
     lastnum = strnum[-1]
     match lastnum:

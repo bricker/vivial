@@ -19,8 +19,8 @@ from eave.core.graphql.validators.time_bounds_validator import (
     start_time_too_far_away,
     start_time_too_soon,
 )
-from eave.core.lib.api_clients.analytics_client import ANALYTICS
-from eave.core.lib.google_places import get_google_place
+from eave.core.lib.analytics_client import ANALYTICS
+from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
@@ -195,7 +195,8 @@ async def _notify_slack_booking_confirmed(
     elements: list[str] = []
 
     if len(booking_orm.reservations) > 0:
-        rez = await get_google_place(place_id=booking_orm.reservations[0].source_id)
+        places = GooglePlacesUtility()
+        rez = await places.get_google_place(place_id=booking_orm.reservations[0].source_id)
         if rez.reservable:
             elements.append("Restaurant Reservation Required")
 
@@ -271,7 +272,10 @@ async def _notify_slack_booking_confirmed(
                     """),
             )
     except Exception as e:
-        LOGGER.exception(e)
+        if SHARED_CONFIG.is_local:
+            raise
+        else:
+            LOGGER.exception(e)
 
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:

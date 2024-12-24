@@ -1,13 +1,17 @@
+import math
 from datetime import date, datetime
-from typing import NamedTuple, Self, override
+from typing import Self, override
 from uuid import UUID
 
+from geoalchemy2.functions import ST_DWithin
 from sqlalchemy import (
     DATE,
     Column,
     ForeignKey,
     Select,
     Table,
+    exists,
+    or_,
 )
 from sqlalchemy.dialects.postgresql import INT4MULTIRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +21,8 @@ from eave.core.lib.address import Address
 from eave.core.orm.image import ImageOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
 from eave.core.orm.util.user_defined_column_types import AddressColumnType
-from eave.core.shared.geo import GeoPoint
+from eave.core.shared.enums import OutingBudget
+from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
@@ -30,19 +35,6 @@ _activity_images_join_table = Table(
     Column("image_id", ForeignKey(f"{ImageOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)),
 )
 
-# yo dawg
-DailyScheduleBlocks = tuple[tuple[int, int], ...]
-
-
-class WeeklySchedule(NamedTuple):
-    monday: DailyScheduleBlocks
-    tuesday: DailyScheduleBlocks
-    wednesday: DailyScheduleBlocks
-    thursday: DailyScheduleBlocks
-    friday: DailyScheduleBlocks
-    saturday: DailyScheduleBlocks
-    sunday: DailyScheduleBlocks
-
 
 class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     __tablename__ = "evergreen_activities"
@@ -53,16 +45,13 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     activity_category_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
+    google_place_id: Mapped[str | None] = mapped_column()
     is_bookable: Mapped[bool] = mapped_column()
     booking_url: Mapped[str | None] = mapped_column()
-
     images: Mapped[list[ImageOrm]] = relationship(secondary=_activity_images_join_table, lazy="selectin")
     ticket_types: Mapped[list["EvergreenActivityTicketTypeOrm"]] = relationship(
         lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
-    # weekly_schedules: Mapped[list["WeeklyScheduleOrm"]] = relationship(
-    #     lazy="selectin", back_populates="evergreen_activity", cascade=CASCADE_ALL_DELETE_ORPHAN
-    # )
 
     def __init__(
         self,
@@ -73,8 +62,8 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         coordinates: GeoPoint,
         activity_category_id: UUID,
         duration_minutes: int,
-        # weekly_schedules: list["WeeklyScheduleOrm"],
         address: Address,
+        google_place_id: str | None,
         is_bookable: bool,
         booking_url: str | None,
     ) -> None:
@@ -83,22 +72,57 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         self.coordinates = coordinates.geoalchemy_shape()
         self.activity_category_id = activity_category_id
         self.duration_minutes = duration_minutes
-        # self.weekly_schedules = weekly_schedules
         self.address = address
+        self.google_place_id = google_place_id
         self.is_bookable = is_bookable
         self.booking_url = booking_url
 
         if session:
             session.add(self)
 
-    # def schedule_for_week(self, *, start_of_week: datetime) -> "WeeklyScheduleOrm | None":
-    #     """
-    #     Find a schedule that starts on the given date.
-    #     If none exists, then find a schedule without a date (default schedule).
-    #     """
-    #     return next((s for s in self.weekly_schedules if s.week_of == start_of_week), None) or next(
-    #         (s for s in self.weekly_schedules if s.week_of is None), None
-    #     )
+    @override
+    @classmethod
+    def select(
+        cls,
+        *,
+        within_areas: list[GeoArea] = NOT_SET,
+        activity_category_ids: list[UUID] = NOT_SET,
+        open_at_local: datetime = NOT_SET,
+        budget: OutingBudget = NOT_SET,
+    ) -> Select[tuple[Self]]:
+        query = super().select()
+
+        if within_areas is not NOT_SET:
+            query = query.where(
+                or_(
+                    *[
+                        ST_DWithin(cls.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
+                        for area in within_areas
+                    ]
+                )
+            )
+
+        if activity_category_ids is not NOT_SET:
+            query = query.where(cls.activity_category_id.in_(activity_category_ids))
+
+        if open_at_local is not NOT_SET:
+            min_of_week = (((open_at_local.weekday() * 24) + open_at_local.hour) * 60) + open_at_local.minute
+
+            query = query.join(WeeklyScheduleOrm, WeeklyScheduleOrm.evergreen_activity_id == cls.id).where(
+                WeeklyScheduleOrm.minute_spans_local.op("@>")(min_of_week)
+            )
+
+        if budget is not NOT_SET and budget.upper_limit_cents is not None:
+            # None means no upper limit, in which case there's no need to add this condition
+            query = query.where(
+                exists(
+                    EvergreenActivityTicketTypeOrm.select(total_cost_cents_lte=budget.upper_limit_cents).where(
+                        EvergreenActivityTicketTypeOrm.evergreen_activity_id == EvergreenActivityOrm.id
+                    )
+                )
+            )
+
+        return query
 
 
 class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
@@ -106,7 +130,6 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     title: Mapped[str] = mapped_column()
-    description: Mapped[str] = mapped_column()
     base_cost_cents: Mapped[int] = mapped_column()
     service_fee_cents: Mapped[int] = mapped_column()
     tax_percentage: Mapped[float] = mapped_column()
@@ -122,26 +145,52 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
         *,
         evergreen_activity: EvergreenActivityOrm,
         title: str,
-        description: str,
         base_cost_cents: int,
         service_fee_cents: int,
         tax_percentage: float,
     ) -> None:
         self.evergreen_activity = evergreen_activity
         self.title = title
-        self.description = description
-        self.base_cost_cents = base_cost_cents
-        self.service_fee_cents = service_fee_cents
-        self.tax_percentage = tax_percentage
+        self.base_cost_cents = max(0, base_cost_cents)
+        self.service_fee_cents = max(0, service_fee_cents)
+        self.tax_percentage = max(0, tax_percentage)
 
         if session:
             session.add(self)
+
+    @override
+    @classmethod
+    def select(
+        cls, *, evergreen_activity_id: UUID = NOT_SET, total_cost_cents_lte: int = NOT_SET
+    ) -> Select[tuple[Self]]:
+        query = super().select()
+
+        if evergreen_activity_id is not NOT_SET:
+            query = query.where(EvergreenActivityTicketTypeOrm.evergreen_activity_id == evergreen_activity_id)
+
+        if total_cost_cents_lte is not NOT_SET:
+            query = query.where(
+                (EvergreenActivityTicketTypeOrm.base_cost_cents + EvergreenActivityTicketTypeOrm.service_fee_cents)
+                * (EvergreenActivityTicketTypeOrm.tax_percentage + 1)
+                <= total_cost_cents_lte
+            )
+
+        return query
+
+    @property
+    def total_cost_cents(self) -> int:
+        return math.floor((self.base_cost_cents + self.service_fee_cents) * (1 + self.tax_percentage))
 
 
 class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     __tablename__ = "weekly_schedules"
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
+
+    minute_spans_local: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
+    """
+    List of ranges of minute-of-week blocks.
+    """
 
     week_of: Mapped[date | None] = mapped_column(type_=DATE)
     """
@@ -150,14 +199,6 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     "week_of" can be used to override the default schedule for a single week, eg for holidays.
     The date in this field should be the Monday of that week (i.e., the start of the week).
     """
-
-    monday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
-    tuesday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
-    wednesday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
-    thursday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
-    friday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
-    saturday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
-    sunday: Mapped[list[Range[int]]] = mapped_column(type_=INT4MULTIRANGE)
 
     evergreen_activity_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{EvergreenActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
@@ -170,49 +211,11 @@ class WeeklyScheduleOrm(Base, GetOneByIdMixin):
         *,
         evergreen_activity: EvergreenActivityOrm,
         week_of: datetime | None,
-        monday: list[Range[int]],
-        tuesday: list[Range[int]],
-        wednesday: list[Range[int]],
-        thursday: list[Range[int]],
-        friday: list[Range[int]],
-        saturday: list[Range[int]],
-        sunday: list[Range[int]],
+        minute_spans_local: list[Range[int]],
     ) -> None:
         self.evergreen_activity = evergreen_activity
         self.week_of = week_of
-        self.monday = monday
-        self.tuesday = tuesday
-        self.wednesday = wednesday
-        self.thursday = thursday
-        self.friday = friday
-        self.saturday = saturday
-        self.sunday = sunday
+        self.minute_spans_local = minute_spans_local
 
         if session:
             session.add(self)
-
-    @override
-    @classmethod
-    def select(cls, *, open_at: datetime = NOT_SET) -> Select[tuple[Self]]:
-        query = super().select()
-
-        if open_at is not NOT_SET:
-            match open_at.weekday():
-                case 0:  # Monday
-                    query = query.where(cls.monday.op("<@")(open_at.hour))
-                case 1:  # Tuesday
-                    query = query.where(cls.tuesday.op("<@")(open_at.hour))
-                case 2:  # Wednesday
-                    query = query.where(cls.wednesday.op("<@")(open_at.hour))
-                case 3:  # Thursday
-                    query = query.where(cls.thursday.op("<@")(open_at.hour))
-                case 4:  # Friday
-                    query = query.where(cls.friday.op("<@")(open_at.hour))
-                case 5:  # Saturday
-                    query = query.where(cls.saturday.op("<@")(open_at.hour))
-                case 6:  # Sunday
-                    query = query.where(cls.sunday.op("<@")(open_at.hour))
-                case _:
-                    raise ValueError("invalid case")
-
-        return query

@@ -10,8 +10,10 @@ from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.api_clients.google_routes_client import GOOGLE_MAPS_ROUTING_API_CLIENT
+from eave.core.lib.google_places import GoogleRoutesUtility
 from eave.core.shared.enums import RestaurantSource
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LOGGER
 
 
 @strawberry.type
@@ -91,9 +93,18 @@ class Itinerary:
             # departure_time=self.reservation.departure_time,
         )
 
-        response = await GOOGLE_MAPS_ROUTING_API_CLIENT.compute_routes(
-            request=routes_request, metadata=[("x-goog-fieldmask", "routes.duration")]
-        )
+        routes = GoogleRoutesUtility()
+
+        try:
+            response = await routes.client.compute_routes(
+                request=routes_request, metadata=[("x-goog-fieldmask", "routes.duration")]
+            )
+        except Exception as e:
+            if SHARED_CONFIG.is_local:
+                raise
+            else:
+                LOGGER.exception(e)
+                return None
 
         if len(response.routes) == 0:
             return None

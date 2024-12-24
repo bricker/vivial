@@ -8,7 +8,7 @@ import eave.core.database
 from eave.core.auth_cookies import set_new_auth_cookies
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account
-from eave.core.lib.api_clients.analytics_client import ANALYTICS
+from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.mail import send_welcome_email
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
