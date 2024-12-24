@@ -100,7 +100,7 @@ const AccountPreferencesPage = () => {
     }
   }, [data]);
 
-  if (isLoading) {
+  if (isLoading || outingPreferences === null) {
     return <LoadingView />;
   }
 
