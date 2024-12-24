@@ -33,7 +33,9 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
             activity_category_group_id=category.activity_category_group_id
         )
 
-    directions_uri = await places.google_maps_directions_url(format_address(activity_orm.address, singleline=True))
+    # directions_uri = await places.google_maps_directions_url(format_address(activity_orm.address, singleline=True))
+    place = await places.get_google_place(place_id=activity_orm.google_place_id)
+    directions_uri = place.google_maps_uri
 
     # Start with a price with all 0's
     most_expensive_eligible_price = CostBreakdown()

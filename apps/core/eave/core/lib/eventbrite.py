@@ -162,7 +162,10 @@ class EventbriteUtility:
             lon=float(venue_lon),
         )
 
-        directions_uri = await self._places.google_maps_directions_url(format_address(address, singleline=True))
+        # directions_uri = await self._places.google_maps_directions_url(format_address(address, singleline=True))
+        place = await self._places.get_google_place(place_id=eventbrite_event_orm.google_place_id)
+        directions_uri = place.google_maps_uri
+
 
         activity = Activity(
             source_id=event_id,
