@@ -150,7 +150,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const { reserverDetails } = useSelector((state: RootState) => state.reserverDetails);
-  // const { paymentMethods } = useSelector((state: RootState) => state.paymentMethods);
 
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookButtonLoading, setBookButtonLoading] = useState(false);
@@ -158,7 +157,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [oneClickEligible, setOneClickEligible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // const [reserverDetails, setReserverDetails] = useState<ReserverDetailsFieldsFragment | null>(null);
   const [defaultPaymentMethod, setDefaultPaymentMethod] = useState<PaymentMethodFieldsFragment | null>(null);
 
   // We only want to run this if the user is logged in.
