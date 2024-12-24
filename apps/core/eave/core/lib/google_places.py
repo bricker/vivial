@@ -28,6 +28,8 @@ from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LOGGER
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -150,16 +152,29 @@ class GooglePlacesUtility:
     async def photos_from_google_place(self, place: Place) -> Photos:
         photos = Photos(cover_photo=None, supplemental_photos=[])
 
+        # We catch these requests because if the photos can't be fetched, we should still show the Place result.
         if len(place.photos) > 0:
-            photos.cover_photo = await self.photo_from_google_place_photo(
-                place.photos[0],
-            )
+            try:
+                photos.cover_photo = await self.photo_from_google_place_photo(
+                    place.photos[0],
+                )
+            except Exception as e:
+                if SHARED_CONFIG.is_local:
+                    raise
+                else:
+                    LOGGER.exception(e)
 
         for place_photo in place.photos[1:]:
-            supplemental_photo = await self.photo_from_google_place_photo(
-                place_photo,
-            )
-            photos.supplemental_photos.append(supplemental_photo)
+            try:
+                supplemental_photo = await self.photo_from_google_place_photo(
+                    place_photo,
+                )
+                photos.supplemental_photos.append(supplemental_photo)
+            except Exception as e:
+                if SHARED_CONFIG.is_local:
+                    raise
+                else:
+                    LOGGER.exception(e)
 
         return photos
 
@@ -315,6 +330,7 @@ class GooglePlacesUtility:
             location_restriction=location_restriction,
             included_primary_types=included_primary_types[0:50],
         )
+
         response = await self.client.search_nearby(
             request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
         )
@@ -366,13 +382,19 @@ class GooglePlacesUtility:
         return can_enter and can_park and can_pee and can_sit
 
     async def google_maps_directions_url(self, address: str) -> str:
-        geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self._maps.client, address=address)
+        try:
+            geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self._maps.client, address=address)
 
-        for result in geocode_results:
-            if place_id := result.get("place_id"):
-                place = await self.get_google_place(place_id)
-                if place.google_maps_uri:
-                    return place.google_maps_uri
+            for result in geocode_results:
+                if place_id := result.get("place_id"):
+                    place = await self.get_google_place(place_id)
+                    if place.google_maps_uri:
+                        return place.google_maps_uri
+        except Exception as e:
+            if SHARED_CONFIG.is_local:
+                raise
+            else:
+                LOGGER.exception(e)
 
         urlsafe_addr = urllib.parse.quote_plus(address)
         return f"https://www.google.com/maps/place/{urlsafe_addr}"

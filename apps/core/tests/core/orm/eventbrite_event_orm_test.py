@@ -84,6 +84,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert len(results) == 1
 
     async def test_eventbrite_event_query_budget_2(self) -> None:
+        assert OutingBudget.EXPENSIVE.upper_limit_cents is not None # for typechecker
+
         async with self.db_session.begin() as session:
             obj = self.make_eventbrite_event_orm(session)
             obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents + 100  # max cost above the budget
@@ -95,6 +97,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert len(results) == 1
 
     async def test_eventbrite_event_query_budget_3(self) -> None:
+        assert OutingBudget.EXPENSIVE.upper_limit_cents is not None # for typechecker
+
         async with self.db_session.begin() as session:
             obj = self.make_eventbrite_event_orm(session)
             obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents - 100  # max cost below the budget
@@ -193,7 +197,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=start_time,
-                end_time=self.anydatetime(offset=ONE_DAY_IN_SECONDS),
+                end_time=start_time + timedelta(minutes=self.anyint(min=15, max=120)),
                 timezone=self.anytimezone(),
                 min_cost_cents=self.anyint(min=0, max=1999),
                 max_cost_cents=self.anyint(min=2000, max=9999),
@@ -214,26 +218,32 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_eventbrite_event_query_start_time_20(self) -> None:
         results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS),
+            self.anydatetime("start_time", future=True),
             timedelta(minutes=-120),
         )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_21(self) -> None:
         results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=120)
+            self.anydatetime("start_time", future=True), timedelta(minutes=120)
         )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_22(self) -> None:
         results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=15)
+            self.anydatetime("start_time", future=True), timedelta(minutes=0)
+        )
+        assert len(results) == 1
+
+    async def test_eventbrite_event_query_start_time_22_5(self) -> None:
+        results = await self._setup_results(
+            self.anydatetime("start_time", future=True), timedelta(minutes=16)
         )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_23(self) -> None:
         results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=-16)
+            self.anydatetime("start_time", future=True), timedelta(minutes=-16)
         )
         assert len(results) == 0
 

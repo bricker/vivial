@@ -6,6 +6,8 @@ from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import BookingState, OutingBudget
+from eave.stdlib.eventbrite.models.shared import CurrencyCost
+from eave.stdlib.eventbrite.models.ticket_class import TicketClass
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
 
 from ..base import BaseTestCase
@@ -22,6 +24,30 @@ class TestInitiateBookingResolver(BaseTestCase):
             account = self.make_account(session)
             survey = self.make_survey(session, account)
             outing = self.make_outing(session, account, survey)
+
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(max=survey.budget.upper_limit_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
 
         self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
 
@@ -203,6 +229,30 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         assert account.stripe_customer_id is None
 
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(max=survey.budget.upper_limit_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
+
         response = await self.make_graphql_request(
             "initiateBooking",
             {
@@ -267,6 +317,30 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
 
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(max=survey.budget.upper_limit_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
+
         response = await self.make_graphql_request(
             "initiateBooking",
             {
@@ -302,6 +376,30 @@ class TestInitiateBookingResolver(BaseTestCase):
             survey = self.make_survey(session, account)
             outing = self.make_outing(session, account, survey)
 
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(max=survey.budget.upper_limit_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
+
         response = await self.make_graphql_request(
             "initiateBooking",
             {
@@ -321,3 +419,62 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         async with self.db_session.begin() as session:
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 0
+
+    async def test_initiate_booking_auto_confirm(self) -> None:
+        self.fail()
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
+        assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
+
+        response = await self.make_graphql_request(
+            "initiateBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["initiateBooking"]
+        assert data["__typename"] == "InitiateBookingSuccess"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 1
+            booking = await BookingOrm.get_one(session, UUID(data["booking"]["id"]))
+
+        assert len(booking.reservations) == 1
+        assert booking.reservations[0].source_id == outing.reservations[0].source_id
+
+        assert len(booking.activities) == 1
+        assert booking.activities[0].source_id == outing.activities[0].source_id
+
+        assert booking.reserver_details is None
+        assert booking.state == BookingState.INITIATED
+
+        assert booking.stripe_payment_intent_reference is not None
+
+        payment_intent = data["paymentIntent"]
+        assert payment_intent is not None
+        assert payment_intent["id"] == self.mock_stripe_payment_intent.id
+        assert payment_intent["clientSecret"] == self.mock_stripe_payment_intent.client_secret
+
+        customer_session = data["customerSession"]
+        assert customer_session is not None
+        assert customer_session["clientSecret"] == self.mock_stripe_customer_session.client_secret
+
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 1
+        assert self.get_mock("stripe.Customer.create_async").call_count == 1
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1

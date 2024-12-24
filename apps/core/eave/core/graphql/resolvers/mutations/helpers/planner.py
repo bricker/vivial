@@ -21,6 +21,7 @@ from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, 
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.geo import Distance, GeoArea
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
@@ -232,8 +233,11 @@ class OutingPlanner:
                         self.activity = activity
                         return activity
                 except Exception as e:
-                    LOGGER.exception(e)
-                    continue
+                    if SHARED_CONFIG.is_local:
+                        raise
+                    else:
+                        LOGGER.exception(e)
+                        continue
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
         async with eave.core.database.async_session.begin() as db_session:
@@ -263,10 +267,17 @@ class OutingPlanner:
             place_type = "bar"
 
         for search_area in within_areas:
-            places_nearby = await self.places.get_places_nearby(
-                area=search_area,
-                included_primary_types=[place_type],
-            )
+            try:
+                places_nearby = await self.places.get_places_nearby(
+                    area=search_area,
+                    included_primary_types=[place_type],
+                )
+            except Exception as e:
+                if SHARED_CONFIG.is_local:
+                    raise
+                else:
+                    LOGGER.exception(e)
+                    continue
 
             random.shuffle(places_nearby)
 
@@ -280,8 +291,15 @@ class OutingPlanner:
 
                 # Select activities that are within (<=) their requested budget.
                 if will_be_open and place.price_level <= self.survey.budget.google_places_price_level:
-                    self.activity = await self.places.activity_from_google_place(place=place)
-                    return self.activity
+                    try:
+                        self.activity = await self.places.activity_from_google_place(place=place)
+                        return self.activity
+                    except Exception as e:
+                        if SHARED_CONFIG.is_local:
+                            raise
+                        else:
+                            LOGGER.exception(e)
+                            continue
 
         # CASE 4: No suitable activity was found :(
         self.activity = None
@@ -348,10 +366,17 @@ class OutingPlanner:
 
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:
-            restaurants_nearby = await self.places.get_places_nearby(
-                area=area,
-                included_primary_types=google_category_ids,
-            )
+            try:
+                restaurants_nearby = await self.places.get_places_nearby(
+                    area=area,
+                    included_primary_types=google_category_ids,
+                )
+            except Exception as e:
+                if SHARED_CONFIG.is_local:
+                    raise
+                else:
+                    LOGGER.exception(e)
+                    continue
 
             random.shuffle(restaurants_nearby)
 
@@ -383,8 +408,15 @@ class OutingPlanner:
                 # Select restaurants that _match_ their requested budget.
                 # So if they request an expensive date, we don't recommend McDonald's.
                 if will_be_open and price_level_matches:
-                    self.restaurant = await self.places.restaurant_from_google_place(place=restaurant)
-                    return self.restaurant
+                    try:
+                        self.restaurant = await self.places.restaurant_from_google_place(place=restaurant)
+                        return self.restaurant
+                    except Exception as e:
+                        if SHARED_CONFIG.is_local:
+                            raise
+                        else:
+                            LOGGER.exception(e)
+                            continue
 
         # No restaurant was found :(
         self.restaurant = None

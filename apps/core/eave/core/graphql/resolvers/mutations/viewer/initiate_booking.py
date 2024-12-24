@@ -243,7 +243,7 @@ async def initiate_booking_mutation(
                     stripe_payment_intent_id=stripe_payment_intent.id,
                 )
 
-                db_session.add(booking_orm)
+                db_session.add(booking_orm) # Add the existing booking_orm to this session so it can be updated.
                 booking_orm.stripe_payment_intent_reference = stripe_payment_intent_reference_orm
 
             graphql_payment_intent = PaymentIntent(

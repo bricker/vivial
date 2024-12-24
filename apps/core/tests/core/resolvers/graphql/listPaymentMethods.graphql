@@ -1,0 +1,20 @@
+query PaymentMethods {
+  viewer {
+    ... on AuthenticatedViewerQueries {
+      paymentMethods {
+        id
+        card {
+          brand
+          last4
+          expMonth
+          expYear
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

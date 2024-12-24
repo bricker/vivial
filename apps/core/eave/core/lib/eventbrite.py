@@ -6,6 +6,7 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
+from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.survey import SurveyOrm
@@ -23,6 +24,7 @@ class EventbriteUtility:
 
     def __init__(self) -> None:
         self.client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+        self._places = GooglePlacesUtility()
 
     async def get_eventbrite_activity(self, *, event_id: str, survey: SurveyOrm | None) -> Activity | None:
         event = await self.client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
@@ -157,7 +159,7 @@ class EventbriteUtility:
             lon=float(venue_lon),
         )
 
-        directions_uri = await google_maps_directions_url(format_address(address, singleline=True))
+        directions_uri = await self._places.google_maps_directions_url(format_address(address, singleline=True))
 
         activity = Activity(
             source_id=event_id,

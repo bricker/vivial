@@ -1,4 +1,5 @@
 from datetime import date, datetime
+import math
 from typing import NamedTuple, Self, override
 from uuid import UUID
 
@@ -8,6 +9,8 @@ from sqlalchemy import (
     ForeignKey,
     Select,
     Table,
+    and_,
+    exists,
     or_,
 )
 from sqlalchemy.dialects.postgresql import INT4MULTIRANGE, Range
@@ -109,14 +112,12 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
 
         if budget is not NOT_SET and budget.upper_limit_cents is not None:
             # None means no upper limit, in which case there's no need to add this condition
-            query = query.join(
-                EvergreenActivityTicketTypeOrm, EvergreenActivityTicketTypeOrm.evergreen_activity_id == cls.id
-            ).where(
-                (
-                    EvergreenActivityTicketTypeOrm.base_cost_cents + EvergreenActivityTicketTypeOrm.service_fee_cents
-                ) * (
-                    EvergreenActivityTicketTypeOrm.tax_percentage + 1
-                ) <= budget.upper_limit_cents
+            query = query.where(
+                exists(
+                    EvergreenActivityTicketTypeOrm.select(total_cost_cents_lte=budget.upper_limit_cents).where(
+                        EvergreenActivityTicketTypeOrm.evergreen_activity_id == EvergreenActivityOrm.id
+                    )
+                )
             )
 
         return query
@@ -147,13 +148,36 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
     ) -> None:
         self.evergreen_activity = evergreen_activity
         self.title = title
-        self.base_cost_cents = base_cost_cents
-        self.service_fee_cents = service_fee_cents
-        self.tax_percentage = tax_percentage
+        self.base_cost_cents = max(0, base_cost_cents)
+        self.service_fee_cents = max(0, service_fee_cents)
+        self.tax_percentage = max(0, tax_percentage)
 
         if session:
             session.add(self)
 
+    @override
+    @classmethod
+    def select(cls, *, evergreen_activity_id: UUID = NOT_SET, total_cost_cents_lte: int = NOT_SET) -> Select[tuple[Self]]:
+        query = super().select()
+
+        if evergreen_activity_id is not NOT_SET:
+            query = query.where(EvergreenActivityTicketTypeOrm.evergreen_activity_id == evergreen_activity_id)
+
+        if total_cost_cents_lte is not NOT_SET:
+            query = query.where(
+                (
+                    EvergreenActivityTicketTypeOrm.base_cost_cents + EvergreenActivityTicketTypeOrm.service_fee_cents
+                ) * (
+                    EvergreenActivityTicketTypeOrm.tax_percentage + 1
+                ) <= total_cost_cents_lte
+            )
+
+        return query
+
+
+    @property
+    def total_cost_cents(self) -> int:
+        return math.floor((self.base_cost_cents + self.service_fee_cents) * (1+self.tax_percentage))
 
 class WeeklyScheduleOrm(Base, GetOneByIdMixin):
     __tablename__ = "weekly_schedules"
