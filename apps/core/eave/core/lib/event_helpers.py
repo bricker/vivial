@@ -9,12 +9,8 @@ from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
-from eave.core.lib.eventbrite import get_eventbrite_activity
-from eave.core.lib.google_places import (
-    get_google_places_activity,
-    get_google_places_restaurant,
-    google_maps_directions_url,
-)
+from eave.core.lib.eventbrite import EventbriteUtility
+from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm
@@ -23,6 +19,8 @@ from eave.core.shared.enums import ActivitySource, RestaurantSource
 
 
 async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> Activity | None:
+    places = GooglePlacesUtility()
+
     async with database.async_session.begin() as db_session:
         activity_orm = await EvergreenActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
         images = activity_orm.images
@@ -34,7 +32,7 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
             activity_category_group_id=category.activity_category_group_id
         )
 
-    directions_uri = await google_maps_directions_url(format_address(activity_orm.address, singleline=True))
+    directions_uri = await places.google_maps_directions_url(format_address(activity_orm.address, singleline=True))
 
     return Activity(
         source_id=event_id,
@@ -78,10 +76,12 @@ async def resolve_activity_details(
             activity = await get_internal_activity(event_id=source_id, survey=survey)
 
         case ActivitySource.GOOGLE_PLACES:
-            activity = await get_google_places_activity(event_id=source_id)
+            places = GooglePlacesUtility()
+            activity = await places.get_google_places_activity(event_id=source_id)
 
         case ActivitySource.EVENTBRITE:
-            activity = await get_eventbrite_activity(event_id=source_id, survey=survey)
+            eventbrite = EventbriteUtility()
+            activity = await eventbrite.get_eventbrite_activity(event_id=source_id, survey=survey)
 
     return activity
 
@@ -91,7 +91,9 @@ async def resolve_restaurant_details(
     source: RestaurantSource,
     source_id: str,
 ) -> Restaurant:
+    places = GooglePlacesUtility()
+
     match source:
         case RestaurantSource.GOOGLE_PLACES:
-            restaurant = await get_google_places_restaurant(restaurant_id=source_id)
+            restaurant = await places.get_google_places_restaurant(restaurant_id=source_id)
             return restaurant

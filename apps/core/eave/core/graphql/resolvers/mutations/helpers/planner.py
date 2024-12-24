@@ -10,16 +10,13 @@ from eave.core.graphql.types.activity import Activity, ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Reservation, Restaurant
-from eave.core.lib.eventbrite import get_eventbrite_activity
-from eave.core.lib.google_places import (
-    activity_from_google_place,
-    get_places_nearby,
-    place_will_be_open,
-    restaurant_from_google_place,
-)
+from eave.core.lib.event_helpers import get_internal_activity
+from eave.core.lib.eventbrite import EventbriteUtility
+from eave.core.lib.google_places import GoogleMapsUtility, GooglePlacesUtility
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm, WeeklyScheduleOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
@@ -144,6 +141,10 @@ class OutingPlanner:
     restaurant, then go to an event or engage in a cute activity.
     """
 
+    places: GooglePlacesUtility
+    eventbrite: EventbriteUtility
+    # maps: GoogleMapsUtility
+
     survey: SurveyOrm
     activity: Activity | None
     restaurant: Restaurant | None
@@ -164,6 +165,9 @@ class OutingPlanner:
         activity_start_time: datetime | None = None,
         restaurant_arrival_time: datetime | None = None,
     ) -> None:
+        self.places = GooglePlacesUtility()
+        self.eventbrite = EventbriteUtility()
+
         self.survey = survey
         self.activity = activity
         self.restaurant = restaurant
@@ -206,20 +210,22 @@ class OutingPlanner:
 
         random.shuffle(within_areas)
 
+        group_activity_category_preferences_ids = [cat.id for cat in self.group_activity_category_preferences]
+
         # CASE 1: Recommend an Eventbrite event.
-        query = EventbriteEventOrm.select(
-            start_time=start_time_local,
-            budget=self.survey.budget,
-            within_areas=within_areas,
-            vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
-        ).order_by(func.random())
-
         async with eave.core.database.async_session.begin() as db_session:
-            results = await db_session.scalars(query)
+            eventbrite_events_query = EventbriteEventOrm.select(
+                start_time=start_time_local,
+                budget=self.survey.budget,
+                within_areas=within_areas,
+                vivial_activity_category_ids=group_activity_category_preferences_ids,
+            ).order_by(func.random())
 
-            for event_orm in results:
+            eventbrite_events_results = await db_session.scalars(eventbrite_events_query)
+
+            for event_orm in eventbrite_events_results:
                 try:
-                    if activity := await get_eventbrite_activity(
+                    if activity := await self.eventbrite.get_eventbrite_activity(
                         event_id=event_orm.eventbrite_event_id,
                         survey=self.survey,
                     ):
@@ -230,23 +236,20 @@ class OutingPlanner:
                     continue
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
-        # for search_area_id in self.constraints.search_area_ids:
-        #     for category in self.preferences.activity_categories:
-        #         activities = []
-        # TODO: Fetch from internal database when that is ready (pending Bryan).
-        # activities = get_evergreen_activities(
-        #     search_area_id=search_area_id,
-        #     category_id=category.id,
-        #     subcategory_id=category.subcategory_id,
-        #     start_time=activity_start_time,
-        #     end_time=activity_end_time,
-        #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
-        # )
-        # if len(activities):
-        #     random.shuffle(activities)
-        #     geo_location = GeoLocation(TODO)
-        #     self.activity = OutingComponent(TODO)
-        #     return self.activity
+        async with eave.core.database.async_session.begin() as db_session:
+            evergreen_activities_query = EvergreenActivityOrm.select(
+                within_areas=within_areas,
+                activity_category_ids=group_activity_category_preferences_ids,
+                open_at_local=start_time_local,
+                budget=self.survey.budget,
+            ).order_by(func.random()).limit(1)
+
+            evergreen_activity_orm = (await db_session.scalars(evergreen_activities_query)).first()
+
+        if evergreen_activity_orm:
+            evergreen_activity = await get_internal_activity(event_id=str(evergreen_activity_orm.id), survey=self.survey)
+            self.activity = evergreen_activity
+            return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
         is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(
@@ -260,7 +263,7 @@ class OutingPlanner:
             place_type = "bar"
 
         for search_area in within_areas:
-            places_nearby = await get_places_nearby(
+            places_nearby = await self.places.get_places_nearby(
                 area=search_area,
                 included_primary_types=[place_type],
             )
@@ -268,7 +271,7 @@ class OutingPlanner:
             random.shuffle(places_nearby)
 
             for place in places_nearby:
-                will_be_open = place_will_be_open(
+                will_be_open = self.places.place_will_be_open(
                     place=place,
                     arrival_time=start_time_local,
                     departure_time=end_time_local,
@@ -277,7 +280,7 @@ class OutingPlanner:
 
                 # Select activities that are within (<=) their requested budget.
                 if will_be_open and place.price_level <= self.survey.budget.google_places_price_level:
-                    self.activity = await activity_from_google_place(place=place)
+                    self.activity = await self.places.activity_from_google_place(place=place)
                     return self.activity
 
         # CASE 4: No suitable activity was found :(
@@ -345,7 +348,7 @@ class OutingPlanner:
 
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:
-            restaurants_nearby = await get_places_nearby(
+            restaurants_nearby = await self.places.get_places_nearby(
                 area=area,
                 included_primary_types=google_category_ids,
             )
@@ -370,7 +373,7 @@ class OutingPlanner:
                     # Otherwise, find only restaurants that match the selected price livel
                     price_level_matches = restaurant.price_level == self.survey.budget.google_places_price_level
 
-                will_be_open = place_will_be_open(
+                will_be_open = self.places.place_will_be_open(
                     place=restaurant,
                     arrival_time=arrival_time_local,
                     departure_time=departure_time_local,
@@ -380,7 +383,7 @@ class OutingPlanner:
                 # Select restaurants that _match_ their requested budget.
                 # So if they request an expensive date, we don't recommend McDonald's.
                 if will_be_open and price_level_matches:
-                    self.restaurant = await restaurant_from_google_place(place=restaurant)
+                    self.restaurant = await self.places.restaurant_from_google_place(place=restaurant)
                     return self.restaurant
 
         # No restaurant was found :(

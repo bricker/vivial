@@ -19,7 +19,7 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
-from eave.core.lib.api_clients.analytics_client import ANALYTICS
+from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError

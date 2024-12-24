@@ -25,6 +25,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     eventbrite_event_id: Mapped[str] = mapped_column(unique=True)
     eventbrite_organizer_id: Mapped[str] = mapped_column(index=True)
+    google_place_id: Mapped[str | None] = mapped_column()
     title: Mapped[str] = mapped_column()
     end_time_utc: Mapped[datetime | None] = mapped_column(type_=TIMESTAMP(timezone=True))
     min_cost_cents: Mapped[int | None] = mapped_column()
@@ -39,6 +40,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
         eventbrite_event_id: str,
         eventbrite_organizer_id: str,
         title: str,
+        google_place_id: str | None,
         start_time: datetime,
         end_time: datetime | None,
         timezone: ZoneInfo,
@@ -54,6 +56,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
 
         self.update(
             title=title,
+            google_place_id=google_place_id,
             start_time=start_time,
             end_time=end_time,
             timezone=timezone,
@@ -72,6 +75,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
         self,
         *,
         title: str,
+        google_place_id: str | None,
         start_time: datetime,
         end_time: datetime | None,
         timezone: ZoneInfo,
@@ -83,6 +87,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
         vivial_activity_format_id: UUID,
     ) -> Self:
         self.title = title
+        self.google_place_id = google_place_id
 
         self.start_time_utc = start_time.astimezone(UTC)
 
@@ -119,18 +124,12 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
 
         if vivial_activity_category_ids is not NOT_SET:
             lookup = lookup.where(
-                or_(
-                    *[
-                        cls.vivial_activity_category_id == vivial_activity_category_id
-                        for vivial_activity_category_id in vivial_activity_category_ids
-                    ]
-                )
+                cls.vivial_activity_category_id.in_(vivial_activity_category_ids)
             )
 
-        if budget is not NOT_SET:
-            if budget.upper_limit_cents is not None:
-                # None means no upper limit, in which case there's no need to add this condition
-                lookup = lookup.where(cls.min_cost_cents <= budget.upper_limit_cents)
+        if budget is not NOT_SET and budget.upper_limit_cents is not None:
+            # None means no upper limit, in which case there's no need to add this condition
+            lookup = lookup.where(cls.min_cost_cents <= budget.upper_limit_cents)
 
         if start_time is not NOT_SET:
             start_time = start_time.astimezone(UTC)
