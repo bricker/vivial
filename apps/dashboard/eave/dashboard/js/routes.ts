@@ -34,6 +34,7 @@ export enum AppRoute {
   privacy = "/privacy",
   accountPreferences = "/account/preferences",
   passwordReset = "/account/password",
+  billing = "/account/billing",
   checkoutComplete = "/checkout/complete/:bookingId",
   checkoutReserve = "/checkout/reserve/:outingId",
   itinerary = `${ITINERARY_PREFIX}/:outingId`,

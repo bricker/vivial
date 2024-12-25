@@ -22,6 +22,7 @@ export type Scalars = {
 
 export type Account = {
   __typename?: 'Account';
+  billingPortalUrl: Scalars['String']['output'];
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
   stripeCustomerId?: Maybe<Scalars['String']['output']>;
@@ -2215,6 +2216,26 @@ export type UpdateReserverDetailsAccountMutation = {
   }
 };
 
+export type BillingPortalUrlQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BillingPortalUrlQuery = {
+  __typename: 'Query',
+  viewer: {
+    __typename: 'AuthenticatedViewerQueries',
+    account: {
+      __typename: 'Account',
+      billingPortalUrl: string,
+      id: string,
+      email: string,
+      stripeCustomerId?: string | null
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
+
 export type BookedOutingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -4304,6 +4325,31 @@ fragment ReserverDetailsFields on ReserverDetails {
   lastName
   phoneNumber
 }`) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
+export const BillingPortalUrlDocument = new TypedDocumentString(`
+    query BillingPortalUrl {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      account {
+        __typename
+        ...AccountFields
+        billingPortalUrl
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    fragment AccountFields on Account {
+  __typename
+  id
+  email
+  stripeCustomerId
+}`) as unknown as TypedDocumentString<BillingPortalUrlQuery, BillingPortalUrlQueryVariables>;
 export const BookedOutingsDocument = new TypedDocumentString(`
     query BookedOutings {
   __typename
