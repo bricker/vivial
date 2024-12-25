@@ -382,7 +382,12 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
             {activityPlan.costBreakdown.taxCents + activityPlan.costBreakdown.feeCents > 0 && (
               <>
-                <CostItem>{activityPlan.activity.source === ActivitySource.Eventbrite ? "Service Fees & Taxes via Eventbrite" : "Service Feeds & Taxes"} ...</CostItem>
+                <CostItem>
+                  {activityPlan.activity.source === ActivitySource.Eventbrite
+                    ? "Service Fees & Taxes via Eventbrite"
+                    : "Service Feeds & Taxes"}{" "}
+                  ...
+                </CostItem>
                 <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
               </>
             )}
