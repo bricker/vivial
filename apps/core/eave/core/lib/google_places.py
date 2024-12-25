@@ -134,6 +134,7 @@ class GooglePlacesUtility:
         activity = Activity(
             source_id=place.id,
             source=ActivitySource.GOOGLE_PLACES,
+            is_bookable=place.reservable,
             name=place.display_name.text,
             description=place.editorial_summary,
             photos=photos,

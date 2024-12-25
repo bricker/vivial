@@ -63,6 +63,7 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
     return Activity(
         source_id=event_id,
         source=ActivitySource.INTERNAL,
+        is_bookable=activity_orm.is_bookable,
         name=activity_orm.title,
         description=activity_orm.description,
         venue=ActivityVenue(

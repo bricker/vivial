@@ -33,6 +33,7 @@ export type Activity = {
   description?: Maybe<Scalars['String']['output']>;
   doorTips?: Maybe<Scalars['String']['output']>;
   insiderTips?: Maybe<Scalars['String']['output']>;
+  isBookable: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   parkingTips?: Maybe<Scalars['String']['output']>;
   photos: Photos;
@@ -697,6 +698,7 @@ export type ActivityFieldsFragment = {
   __typename: 'Activity',
   sourceId: string,
   source: ActivitySource,
+  isBookable: boolean,
   name: string,
   description?: string | null,
   websiteUri?: string | null,
@@ -790,6 +792,7 @@ export type ActivityPlanFieldsFragment = {
     __typename: 'Activity',
     sourceId: string,
     source: ActivitySource,
+    isBookable: boolean,
     name: string,
     description?: string | null,
     websiteUri?: string | null,
@@ -988,6 +991,7 @@ type ItineraryFields_BookingDetails_Fragment = {
       __typename: 'Activity',
       sourceId: string,
       source: ActivitySource,
+      isBookable: boolean,
       name: string,
       description?: string | null,
       websiteUri?: string | null,
@@ -1179,6 +1183,7 @@ type ItineraryFields_Outing_Fragment = {
       __typename: 'Activity',
       sourceId: string,
       source: ActivitySource,
+      isBookable: boolean,
       name: string,
       description?: string | null,
       websiteUri?: string | null,
@@ -1651,6 +1656,7 @@ export type InitiateBookingMutation = {
             __typename: 'Activity',
             sourceId: string,
             source: ActivitySource,
+            isBookable: boolean,
             name: string,
             description?: string | null,
             websiteUri?: string | null,
@@ -1890,6 +1896,7 @@ export type PlanOutingMutation = {
           __typename: 'Activity',
           sourceId: string,
           source: ActivitySource,
+          isBookable: boolean,
           name: string,
           description?: string | null,
           websiteUri?: string | null,
@@ -2306,6 +2313,7 @@ export type BookingDetailsQuery = {
           __typename: 'Activity',
           sourceId: string,
           source: ActivitySource,
+          isBookable: boolean,
           name: string,
           description?: string | null,
           websiteUri?: string | null,
@@ -2544,6 +2552,7 @@ export type OutingQuery = {
         __typename: 'Activity',
         sourceId: string,
         source: ActivitySource,
+        isBookable: boolean,
         name: string,
         description?: string | null,
         websiteUri?: string | null,
@@ -2985,6 +2994,7 @@ export const ActivityFieldsFragmentDoc = new TypedDocumentString(`
   }
   sourceId
   source
+  isBookable
   name
   description
   websiteUri
@@ -3105,6 +3115,7 @@ export const ActivityPlanFieldsFragmentDoc = new TypedDocumentString(`
   }
   sourceId
   source
+  isBookable
   name
   description
   websiteUri
@@ -3323,6 +3334,7 @@ export const ItineraryFieldsFragmentDoc = new TypedDocumentString(`
   }
   sourceId
   source
+  isBookable
   name
   description
   websiteUri
@@ -3667,6 +3679,7 @@ export const InitiateBookingDocument = new TypedDocumentString(`
   }
   sourceId
   source
+  isBookable
   name
   description
   websiteUri
@@ -3912,6 +3925,7 @@ export const PlanOutingDocument = new TypedDocumentString(`
   }
   sourceId
   source
+  isBookable
   name
   description
   websiteUri
@@ -4395,6 +4409,7 @@ export const BookingDetailsDocument = new TypedDocumentString(`
   }
   sourceId
   source
+  isBookable
   name
   description
   websiteUri
@@ -4644,6 +4659,7 @@ export const OutingDocument = new TypedDocumentString(`
   }
   sourceId
   source
+  isBookable
   name
   description
   websiteUri
