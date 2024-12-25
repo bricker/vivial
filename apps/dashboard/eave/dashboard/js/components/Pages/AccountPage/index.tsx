@@ -24,12 +24,15 @@ const AccountPage = () => {
   const handlePrefsClick = useCallback(() => {
     navigate(AppRoute.accountPreferences);
   }, [navigate]);
+
   const handleBillingClick = useCallback(() => {
-    navigate(myWindow.app.stripeCustomerPortalUrl);
-  }, [navigate]);
+    window.location.href = myWindow.app.stripeCustomerPortalUrl;
+  }, []);
+
   const handlePasswordResetClick = useCallback(() => {
     navigate(AppRoute.passwordReset);
   }, [navigate]);
+
   return (
     <PageContainer>
       <EditableContainer />
