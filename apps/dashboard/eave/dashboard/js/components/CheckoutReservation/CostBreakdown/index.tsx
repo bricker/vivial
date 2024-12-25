@@ -80,7 +80,10 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   if (feesAndTaxesCents > 0) {
     breakdown.push({
       key: "taxesAndFees",
-      costName: itinerary.activityPlan?.activity.source === ActivitySource.Eventbrite ? "Service Fees & Taxes via Eventbrite" : "Service Fees & Taxes",
+      costName:
+        itinerary.activityPlan?.activity.source === ActivitySource.Eventbrite
+          ? "Service Fees & Taxes via Eventbrite"
+          : "Service Fees & Taxes",
       costValue: formatFeesAndTaxes(itinerary.costBreakdown),
     });
   }
