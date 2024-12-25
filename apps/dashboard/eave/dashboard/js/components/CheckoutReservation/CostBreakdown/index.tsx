@@ -80,7 +80,7 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   if (feesAndTaxesCents > 0) {
     breakdown.push({
       key: "taxesAndFees",
-      costName: "3rd party Service Fees & Taxes",
+      costName: "Service Fees & Taxes via Eventbrite",
       costValue: formatFeesAndTaxes(itinerary.costBreakdown),
     });
   }
