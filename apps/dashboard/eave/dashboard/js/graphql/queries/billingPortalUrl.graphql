@@ -1,13 +1,13 @@
 query BillingPortalUrl {
   viewer {
-    ...on AuthenticatedViewerQueries {
+    ... on AuthenticatedViewerQueries {
       account {
         ...AccountFields
         billingPortalUrl
       }
     }
 
-    ...on UnauthenticatedViewer {
+    ... on UnauthenticatedViewer {
       __typename
       authFailureReason
     }

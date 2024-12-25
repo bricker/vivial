@@ -1,5 +1,4 @@
 import { useGetBillingPortalUrlQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { CircularProgress } from "@mui/material";
 import React, { useEffect } from "react";
 import CenteringContainer from "../../CenteringContainer";
 
@@ -13,11 +12,7 @@ const StripeCustomerPortal = () => {
   }, [data]);
 
   // just show loading UI until we can redirect customer to their Stripe portal
-  return (
-    <CenteringContainer>
-      Redirecting you to Stripe...
-    </CenteringContainer>
-  );
+  return <CenteringContainer>Redirecting you to Stripe...</CenteringContainer>;
 };
 
 export default StripeCustomerPortal;
