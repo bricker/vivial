@@ -63,7 +63,6 @@ def web_app_endpoint(request: Request) -> Response:
             "app_version": SHARED_CONFIG.app_version,
             "segment_write_key": DASHBOARD_APP_CONFIG.segment_write_key,
             "stripe_publishable_key": SHARED_CONFIG.stripe_publishable_key,
-            "stripe_customer_portal_url": SHARED_CONFIG.stripe_customer_portal_url,
         },
     )
 

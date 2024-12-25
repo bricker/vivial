@@ -2,6 +2,7 @@ import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
+  BillingPortalUrlDocument,
   BookedOutingsDocument,
   BookingDetailsDocument,
   ConfirmBookingDocument,
@@ -16,9 +17,6 @@ import {
   PlanOutingDocument,
   ReserverDetailsDocument,
   SearchRegionsDocument,
-  StripePortalDocument,
-  StripePortalQuery,
-  StripePortalQueryVariables,
   SubmitReserverDetailsDocument,
   UpdateAccountDocument,
   UpdateAccountMutation,
@@ -30,6 +28,8 @@ import {
   UpdateReserverDetailsDocument,
   UpdateReserverDetailsMutation,
   UpdateReserverDetailsMutationVariables,
+  type BillingPortalUrlQuery,
+  type BillingPortalUrlQueryVariables,
   type BookedOutingsQuery,
   type BookedOutingsQueryVariables,
   type BookingDetailsQuery,
@@ -103,13 +103,6 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    getStripePortal: builder.query<StripePortalQuery, StripePortalQueryVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: StripePortalDocument, variables });
-        return { data };
-      }
-    }),
-
     getBookingDetails: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: BookingDetailsDocument, variables });
@@ -125,6 +118,13 @@ export const coreApiSlice = createApi({
       },
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OneClickBookingCriteriaDocument, variables });
+        return { data };
+      },
+    }),
+
+    getBillingPortalUrl: builder.query<BillingPortalUrlQuery, BillingPortalUrlQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: BillingPortalUrlDocument, variables });
         return { data };
       },
     }),
@@ -232,9 +232,9 @@ export const {
   useListBookedOutingsQuery,
   useGetOutingPreferencesQuery,
   useGetOutingQuery,
-  useGetStripePortalQuery,
   useGetBookingDetailsQuery,
   useGetOneClickBookingCriteriaQuery,
+  useGetBillingPortalUrlQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingMutation,

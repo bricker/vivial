@@ -22,6 +22,7 @@ export type Scalars = {
 
 export type Account = {
   __typename?: 'Account';
+  billingPortalUrl: Scalars['String']['output'];
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
   stripeCustomerId?: Maybe<Scalars['String']['output']>;
@@ -150,7 +151,6 @@ export type AuthenticatedViewerQueries = {
   outingPreferences: OutingPreferences;
   paymentMethods: Array<PaymentMethod>;
   reserverDetails: Array<ReserverDetails>;
-  stripePortal: StripePortal;
 };
 
 
@@ -523,11 +523,6 @@ export type SearchRegion = {
   __typename?: 'SearchRegion';
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
-};
-
-export type StripePortal = {
-  __typename?: 'StripePortal';
-  url: Scalars['String']['output'];
 };
 
 export type SubmitReserverDetailsFailure = {
@@ -2221,6 +2216,26 @@ export type UpdateReserverDetailsAccountMutation = {
   }
 };
 
+export type BillingPortalUrlQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BillingPortalUrlQuery = {
+  __typename: 'Query',
+  viewer: {
+    __typename: 'AuthenticatedViewerQueries',
+    account: {
+      __typename: 'Account',
+      billingPortalUrl: string,
+      id: string,
+      email: string,
+      stripeCustomerId?: string | null
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
+  }
+};
+
 export type BookedOutingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2762,23 +2777,6 @@ export type SearchRegionsQuery = {
     id: string,
     name: string
   }>
-};
-
-export type StripePortalQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type StripePortalQuery = {
-  __typename: 'Query',
-  viewer: {
-    __typename: 'AuthenticatedViewerQueries',
-    stripePortal: {
-      __typename: 'StripePortal',
-      url: string
-    }
-  } | {
-    __typename: 'UnauthenticatedViewer',
-    authFailureReason: AuthenticationFailureReason
-  }
 };
 
 export class TypedDocumentString<TResult, TVariables>
@@ -4327,6 +4325,31 @@ fragment ReserverDetailsFields on ReserverDetails {
   lastName
   phoneNumber
 }`) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
+export const BillingPortalUrlDocument = new TypedDocumentString(`
+    query BillingPortalUrl {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      account {
+        __typename
+        ...AccountFields
+        billingPortalUrl
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    fragment AccountFields on Account {
+  __typename
+  id
+  email
+  stripeCustomerId
+}`) as unknown as TypedDocumentString<BillingPortalUrlQuery, BillingPortalUrlQueryVariables>;
 export const BookedOutingsDocument = new TypedDocumentString(`
     query BookedOutings {
   __typename
@@ -4919,22 +4942,3 @@ export const SearchRegionsDocument = new TypedDocumentString(`
   id
   name
 }`) as unknown as TypedDocumentString<SearchRegionsQuery, SearchRegionsQueryVariables>;
-export const StripePortalDocument = new TypedDocumentString(`
-    query StripePortal {
-  __typename
-  viewer {
-    __typename
-    ... on AuthenticatedViewerQueries {
-      __typename
-      stripePortal {
-        __typename
-        url
-      }
-    }
-    ... on UnauthenticatedViewer {
-      __typename
-      authFailureReason
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<StripePortalQuery, StripePortalQueryVariables>;
