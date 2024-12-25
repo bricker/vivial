@@ -47,7 +47,7 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
         )
 
         cost_breakdown.tax_cents = math.floor(
-            cost_breakdown.calculate_total_cost_cents() * (1 + ticket_type.tax_percentage)
+            cost_breakdown.calculate_total_cost_cents() * ticket_type.tax_percentage
         )
 
         total_cost_cents = cost_breakdown.calculate_total_cost_cents()
