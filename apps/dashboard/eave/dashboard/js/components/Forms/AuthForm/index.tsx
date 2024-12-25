@@ -3,7 +3,7 @@ import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/passwo
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as EmailValidator from "email-validator";
-import React, { FormEvent, useCallback, useState } from "react";
+import React, { FormEvent, useCallback, useEffect, useState } from "react";
 
 import { AppRoute } from "$eave-dashboard/js/routes";
 import LoadingButton from "../../Buttons/LoadingButton";
@@ -102,14 +102,13 @@ const AuthForm = ({
     hasLetter: false,
     hasDigit: false,
   });
-  const [internalError, setInternalError] = useState("");
-  const error = externalError || internalError;
+  const [error, setError] = useState("");
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (validateEmail && !EmailValidator.validate(email)) {
-        setInternalError("Invalid email address.");
+        setError("Invalid email address.");
         setShowPasswordInfo(false);
         setIsDisabled(true);
         return;
@@ -120,7 +119,7 @@ const AuthForm = ({
   );
 
   const checkInputs = ({ currentEmail, currentPassword }: { currentEmail: string; currentPassword: string }) => {
-    setInternalError("");
+    setError("");
     if (validatePassword && currentPassword) {
       const newPasswordInfo = getPasswordInfo(currentPassword);
       setPasswordInfo(newPasswordInfo);
@@ -148,6 +147,14 @@ const AuthForm = ({
     setPassword(newPassword);
     checkInputs({ currentPassword: newPassword, currentEmail: email });
   };
+
+  useEffect(() => {
+    if (externalError) {
+      setError(externalError);
+      setShowPasswordInfo(false);
+      setIsDisabled(true);
+    }
+  }, [externalError]);
 
   return (
     <FormContainer onSubmit={handleSubmit}>
