@@ -7,14 +7,10 @@ mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!
         __typename
         ... on UpdateReserverDetailsAccountSuccess {
           reserverDetails {
-            id
-            firstName
-            lastName
-            phoneNumber
+            ...ReserverDetailsFields
           }
           account {
-            id
-            email
+            ...AccountFields
           }
         }
         ... on UpdateReserverDetailsAccountFailure {

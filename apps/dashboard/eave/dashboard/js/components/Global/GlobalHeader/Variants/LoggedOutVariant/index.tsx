@@ -9,7 +9,10 @@ import Header from "../../Shared/Header";
 const LoggedOutVariant = () => {
   const navigate = useNavigate();
   const handleLogin = useCallback(() => {
-    navigate(AppRoute.login);
+    navigate({
+      pathname: AppRoute.login,
+      search: window.location.search,
+    });
   }, []);
 
   return (

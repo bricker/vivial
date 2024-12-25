@@ -51,7 +51,7 @@ const EditPreferencesOption = ({ label, editable, onClickEdit }: EditPreferences
         <EditableIndicator editable={editable} />
         <Typography variant="subtitle1">{label}</Typography>
       </FlexContainer>
-      {editable && <EditButton onClick={onClickEdit} />}
+      {editable && <EditButton onClick={onClickEdit} small />}
     </OptionContainer>
   );
 };

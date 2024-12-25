@@ -8,6 +8,7 @@ from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.reserver_details import (
     ReserverDetails,
 )
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.shared.errors import ValidationError
@@ -52,16 +53,17 @@ async def submit_reserver_details_mutation(
     e.g. "+11234567890" or "1234567890"
     """
     account_id = unwrap(info.context.get("authenticated_account_id"))
-    reserver_details = ReserverDetailsOrm.build(
-        account_id=account_id,
-        first_name=input.first_name,
-        last_name=input.last_name,
-        phone_number=input.phone_number,
-    )
 
     try:
         async with database.async_session.begin() as db_session:
-            await reserver_details.save(db_session)
+            account = await AccountOrm.get_one(db_session, account_id)
+            reserver_details = ReserverDetailsOrm(
+                db_session,
+                account=account,
+                first_name=input.first_name,
+                last_name=input.last_name,
+                phone_number=input.phone_number,
+            )
 
         return SubmitReserverDetailsSuccess(reserver_details=ReserverDetails.from_orm(reserver_details))
 

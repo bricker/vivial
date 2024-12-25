@@ -1,0 +1,10 @@
+fragment ActivityPlanFields on ActivityPlan {
+  startTime
+  headcount
+  costBreakdown {
+    ...CostBreakdownFields
+  }
+  activity {
+    ...ActivityFields
+  }
+}

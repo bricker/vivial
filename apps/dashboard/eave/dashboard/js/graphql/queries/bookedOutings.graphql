@@ -1,0 +1,15 @@
+query BookedOutings {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      bookedOutings {
+        ...BookingDetailsPeekFields
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

@@ -1,0 +1,5 @@
+fragment AccountFields on Account {
+  id
+  email
+  stripeCustomerId
+}

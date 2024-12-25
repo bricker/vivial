@@ -14,6 +14,12 @@ const config = {
       rules: {
         // If the client needs the ID they'll select it.
         // "@graphql-eslint/require-id-when-available": "off",
+        "@graphql-eslint/selection-set-depth": [
+          "error",
+          {
+            maxDepth: 10, // This matches the limit on the server
+          },
+        ],
         "@graphql-eslint/require-selections": [
           "error",
           {

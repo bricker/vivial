@@ -7,7 +7,7 @@ import React from "react";
 const CustomButton = styled(BaseButton)(({ theme }) => ({
   color: theme.palette.text.primary,
   backgroundColor: colors.secondaryButtonCTA,
-  height: rem("52px"),
+  height: rem(52),
   borderRadius: 100,
   "&.Mui-disabled": {
     color: theme.palette.common.black,

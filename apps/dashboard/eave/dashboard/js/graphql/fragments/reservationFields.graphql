@@ -1,0 +1,32 @@
+fragment ReservationFields on Reservation {
+  arrivalTime
+  headcount
+  costBreakdown {
+    ...CostBreakdownFields
+  }
+  restaurant {
+    sourceId
+    source
+    name
+    reservable
+    rating
+    primaryTypeName
+    websiteUri
+    description
+    parkingTips
+    customerFavorites
+
+    location {
+      ...LocationFields
+    }
+
+    photos {
+      coverPhoto {
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        ...PhotoFields
+      }
+    }
+  }
+}

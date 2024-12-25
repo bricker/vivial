@@ -14,7 +14,7 @@ class ActivityCategoryOrm:
 
     @classmethod
     def all(cls) -> list["ActivityCategoryOrm"]:
-        return list(_ACTIVITY_CATEGORIES_TABLE)
+        return list(_ACTIVITY_CATEGORIES_TABLE)  # shallow copy
 
     @classmethod
     def one_or_exception(cls, *, activity_category_id: UUID) -> "ActivityCategoryOrm":
@@ -25,12 +25,16 @@ class ActivityCategoryOrm:
         return _ACTIVITY_CATEGORIES_PK.get(activity_category_id)
 
     @classmethod
-    def get_by_eventbrite_id(cls, *, eventbrite_subcategory_id: str) -> "ActivityCategoryOrm | None":
+    def get_by_eventbrite_subcategory_id(cls, *, eventbrite_subcategory_id: str) -> "ActivityCategoryOrm | None":
         return _ACTIVITY_CATEGORIES_EBID_IDX.get(eventbrite_subcategory_id)
 
     @classmethod
     def get_by_activity_category_group_id(cls, *, activity_category_group_id: UUID) -> list["ActivityCategoryOrm"]:
         return _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX.get(activity_category_group_id, [])
+
+    @classmethod
+    def defaults(cls) -> list["ActivityCategoryOrm"]:
+        return list(_DEFAULT_ACTIVITY_CATEGORIES)  # shallow copy
 
 
 _ACTIVITY_CATEGORIES_TABLE = (
@@ -666,6 +670,22 @@ _ACTIVITY_CATEGORIES_TABLE = (
         activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=[],
     ),
+    ActivityCategoryOrm(
+        id=UUID("390831bc03f4433abe6700969bd2bbcc"),
+        name="Water & Boating",
+        is_default=True,
+        is_manually_curated=True,
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        eventbrite_subcategory_ids=[],
+    ),
+    ActivityCategoryOrm(
+        id=UUID("fd5ab13e2f6c4c45b9e0c4931a9b261a"),
+        name="Horseback Riding",
+        is_default=True,
+        is_manually_curated=True,
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        eventbrite_subcategory_ids=[],
+    ),
 )
 
 _ACTIVITY_CATEGORIES_PK = MappingProxyType({cat.id: cat for cat in _ACTIVITY_CATEGORIES_TABLE})
@@ -684,3 +704,5 @@ def _make_category_group_id_idx() -> MappingProxyType[UUID, list[ActivityCategor
 
 
 _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX = _make_category_group_id_idx()
+
+_DEFAULT_ACTIVITY_CATEGORIES = [cat for cat in _ACTIVITY_CATEGORIES_TABLE if cat.is_default]

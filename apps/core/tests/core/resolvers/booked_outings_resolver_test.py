@@ -1,38 +1,39 @@
-from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
-from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
-from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.shared.address import Address
-from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.lib.address import Address
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 
 from ..base import BaseTestCase
 
 
 class TestBookedOutingsResolver(BaseTestCase):
-    async def test_booked_outings_with_activity_and_restaurant(self) -> None:
-        async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
-            reserver_details = await ReserverDetailsOrm.build(
-                account_id=account.id,
-                first_name=self.anyalpha(),
-                last_name=self.anyalpha(),
-                phone_number=self.anyphonenumber(),
-            ).save(db_session)
+    async def test_booked_outings_confirmed_with_activity_and_restaurant(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
 
-            booking = await BookingOrm.build(
-                account_id=account.id,
-                reserver_details_id=reserver_details.id,
-            ).save(db_session)
+            booking = BookingOrm(
+                session,
+                outing=outing,
+                accounts=[account],
+                reserver_details=reserver_details,
+                state=BookingState.CONFIRMED,
+            )
 
-            await BookingActivityTemplateOrm.build(
-                booking_id=booking.id,
+            booking_activity_template = BookingActivityTemplateOrm(
+                session,
+                booking=booking,
                 name=self.anystr("activity_name"),
                 start_time_utc=self.anydatetime("activity_start_time"),
                 timezone=self.anytimezone("activity_timezone"),
                 photo_uri=self.anyurl("activity_photo_uri"),
                 headcount=self.anyint(min=1, max=2),
-                lat=self.anylatitude(),
-                lon=self.anylongitude(),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
                 external_booking_link=self.anyurl(),
                 source=ActivitySource.EVENTBRITE,
                 source_id=self.anydigits(),
@@ -42,19 +43,23 @@ class TestBookedOutingsResolver(BaseTestCase):
                     city=self.anystr(),
                     country="US",
                     state=self.anyusstate(),
-                    zip=self.anydigits(),
+                    zip_code=self.anydigits(),
                 ),
-            ).save(db_session)
+            )
+            booking.activities.append(booking_activity_template)
 
-            await BookingReservationTemplateOrm.build(
-                booking_id=booking.id,
+            booking_reservation_template = BookingReservationTemplateOrm(
+                session,
+                booking=booking,
                 name=self.anystr("reservation_name"),
                 photo_uri=self.anyurl("reservation_photo_uri"),
                 start_time_utc=self.anydatetime("reservation_start_time"),
                 timezone=self.anytimezone("reservation_timezone"),
                 headcount=self.anyint(min=1, max=2),
-                lat=self.anylatitude(),
-                lon=self.anylongitude(),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
                 external_booking_link=self.anyurl(),
                 source=RestaurantSource.GOOGLE_PLACES,
                 source_id=self.anydigits(),
@@ -64,9 +69,10 @@ class TestBookedOutingsResolver(BaseTestCase):
                     city=self.anystr(),
                     country="US",
                     state=self.anyusstate(),
-                    zip=self.anydigits(),
+                    zip_code=self.anydigits(),
                 ),
-            ).save(db_session)
+            )
+            booking.reservations.append(booking_reservation_template)
 
         response = await self.make_graphql_request(
             "listBookedOutings",
@@ -95,3 +101,108 @@ class TestBookedOutingsResolver(BaseTestCase):
             .isoformat()
         )
         assert data[0]["photoUri"] == self.geturl("activity_photo_uri")
+
+    async def test_booked_outings_not_confirmed(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+            booking_initiated = self.make_booking(session, account, outing=outing, reserver_details=reserver_details)
+            booking_initiated.state = BookingState.INITIATED
+
+            booking_confirmed = self.make_booking(session, account, outing=outing, reserver_details=reserver_details)
+            booking_confirmed.state = BookingState.CONFIRMED
+
+        response = await self.make_graphql_request(
+            "listBookedOutings",
+            {},
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["bookedOutings"]
+        assert len(data) == 1
+
+        assert data[0]["id"] == str(booking_confirmed.id)
+
+    async def test_booked_outings_not_confirmed_no_bookings(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+            booking_initiated = self.make_booking(session, account, outing=outing, reserver_details=reserver_details)
+            booking_initiated.state = BookingState.INITIATED
+
+        response = await self.make_graphql_request(
+            "listBookedOutings",
+            {},
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["bookedOutings"]
+        assert len(data) == 0
+
+    async def test_booked_outings_details_booking_confirmed(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.CONFIRMED
+
+        response = await self.make_graphql_request(
+            "bookedOutingDetails",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                }
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        data = result.data["viewer"]["bookedOutingDetails"]
+
+        assert data["id"] == str(booking.id)
+
+    async def test_booked_outings_details_booking_not_confirmed(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.INITIATED
+
+        response = await self.make_graphql_request(
+            "bookedOutingDetails",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                }
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        assert result.data["viewer"]["bookedOutingDetails"] is None

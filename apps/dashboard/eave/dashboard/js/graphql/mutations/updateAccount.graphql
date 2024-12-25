@@ -6,7 +6,7 @@ mutation UpdateAccount($input: UpdateAccountInput!) {
         __typename
         ... on UpdateAccountSuccess {
           account {
-            email
+            ...AccountFields
           }
         }
         ... on UpdateAccountFailure {

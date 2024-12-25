@@ -1,16 +1,19 @@
-import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import type { BookingDetailsPeekFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { CircularProgress, Paper as MuiPaper, Typography, styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../../Buttons/PrimaryButton";
 import Paper from "../../Paper";
 
 const PageContainer = styled("div")(() => ({
   padding: 16,
+  maxWidth: 600,
+  margin: "0 auto",
 }));
 
 const BookingGroupContainer = styled("div")(() => ({
@@ -28,7 +31,7 @@ const PlansContainer = styled("div")(() => ({
 const CenteredArea = styled("div")(() => ({
   display: "flex",
   width: "100%",
-  height: rem("128px"),
+  height: rem(128),
   justifyContent: "center",
   alignItems: "center",
 }));
@@ -88,18 +91,19 @@ const BookingDetailsContainer = styled("div")(() => ({
 }));
 
 const NewDateCta = () => {
-  // TODO: impl button
+  const navigate = useNavigate();
   return (
     <CtaContainer>
       <CenteredText variant="subtitle2">😢 No upcoming plans. Let's fix that</CenteredText>
-      <PrimaryButton onClick={() => {}} fullWidth>
+      <PrimaryButton onClick={() => navigate(AppRoute.root)} fullWidth>
         🎲 New date
       </PrimaryButton>
     </CtaContainer>
   );
 };
 
-const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
+const BookingDetails = ({ booking }: { booking: BookingDetailsPeekFieldsFragment }) => {
+  const navigate = useNavigate();
   const imgUri = booking.photoUri;
   const dateDayString = booking.activityStartTime || booking.restaurantArrivalTime;
   if (!dateDayString) {
@@ -111,7 +115,7 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
     dateDay,
   );
   return (
-    <DetailsPaper>
+    <DetailsPaper onClick={() => navigate(routePath(AppRoute.planDetails, { bookingId: booking.id }))}>
       <BookingContainer>
         <BookingDetailsContainer>
           <DetailsTitle variant="subtitle2">{formattedDay}</DetailsTitle>
@@ -143,8 +147,8 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
 const PlansPage = () => {
   const { data, isLoading, isError } = useListBookedOutingsQuery({});
   const dispatch = useDispatch();
-  const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailPeek[]>(() => []);
-  const [pastBookings, setPastBookings] = useState<BookingDetailPeek[]>(() => []);
+  const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailsPeekFieldsFragment[]>(() => []);
+  const [pastBookings, setPastBookings] = useState<BookingDetailsPeekFieldsFragment[]>(() => []);
 
   useEffect(() => {
     switch (data?.viewer.__typename) {

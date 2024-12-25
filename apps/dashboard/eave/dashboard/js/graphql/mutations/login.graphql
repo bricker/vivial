@@ -5,8 +5,7 @@ mutation Login($input: LoginInput!) {
       __typename
 
       account {
-        id
-        email
+        ...AccountFields
       }
     }
 

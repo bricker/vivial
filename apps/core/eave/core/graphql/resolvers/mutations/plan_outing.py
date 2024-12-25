@@ -6,18 +6,14 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
-    StartTimeTooLateError,
-    StartTimeTooSoonError,
-    validate_time_within_bounds_or_exception,
-)
 from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
+from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
@@ -25,12 +21,12 @@ from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 @strawberry.input
 class PlanOutingInput:
-    visitor_id: UUID
     group_preferences: list[OutingPreferencesInput]
     start_time: datetime
     search_area_ids: list[UUID]
     budget: OutingBudget
     headcount: int
+    is_reroll: bool = False
 
 
 @strawberry.type
@@ -42,7 +38,6 @@ class PlanOutingSuccess:
 class PlanOutingFailureReason(enum.Enum):
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
-    SEARCH_AREA_IDS_EMPTY = enum.auto()
 
 
 @strawberry.type
@@ -59,41 +54,37 @@ async def plan_outing_mutation(
     input: PlanOutingInput,
 ) -> PlanOutingResult:
     account_id = info.context.get("authenticated_account_id")
+    visitor_id = info.context.get("visitor_id")
 
-    if len(input.search_area_ids) == 0:
-        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.SEARCH_AREA_IDS_EMPTY)
-
-    try:
-        validate_time_within_bounds_or_exception(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE)
-    except StartTimeTooLateError:
-        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
-    except StartTimeTooSoonError:
+    if start_time_too_soon(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
+    if start_time_too_far_away(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
+        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
+
     async with database.async_session.begin() as db_session:
-        survey = await SurveyOrm.build(
-            account_id=account_id,
-            visitor_id=input.visitor_id,
+        if account_id:
+            account = await AccountOrm.get_one(db_session, account_id)
+        else:
+            account = None
+
+        survey = SurveyOrm(
+            db_session,
+            account=account,
+            visitor_id=visitor_id,
             start_time_utc=input.start_time,
             timezone=LOS_ANGELES_TIMEZONE,
             search_area_ids=input.search_area_ids,
             budget=input.budget,
             headcount=input.headcount,
-        ).save(session=db_session)
+        )
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
-        visitor_id=input.visitor_id,
+        visitor_id=visitor_id,
+        account=account,
         survey=survey,
-    )
-
-    ANALYTICS.track(
-        event_name="outing plan created",
-        account_id=account_id,
-        visitor_id=input.visitor_id,
-        extra_properties={
-            "reroll": False,
-        },
+        is_reroll=input.is_reroll,
     )
 
     return PlanOutingSuccess(outing=outing)

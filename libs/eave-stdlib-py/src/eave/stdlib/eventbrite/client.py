@@ -1,9 +1,10 @@
+import dataclasses
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from functools import wraps
 from http import HTTPMethod
-from typing import Any
+from typing import Any, Literal
 
 import aiohttp
 
@@ -12,11 +13,10 @@ from eave.stdlib.eventbrite.models.pagination import Pagination
 from eave.stdlib.typing import NOT_SET
 
 from .models.category import Category, Subcategory
-from .models.event import Event, EventStatus
+from .models.event import Event, EventDescription, EventStatus
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
-from .models.shared import MultipartText
 from .models.ticket_class import PointOfSale, TicketClass
 
 
@@ -35,10 +35,23 @@ class GetEventQuery:
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if self.expand is not NOT_SET:
-            params["expand"] = ",".join(self.expand)
+        expand = self.expand
+        if expand is NOT_SET:
+            expand = list(Expansion)
+
+        params["expand"] = ",".join(expand)
 
         return params
+
+
+@dataclass(kw_only=True)
+class ShowMoreEventsForOrganizerQuery:
+    page_size: int = 100
+    page: int
+    type: Literal["past", "future"] = "future"
+
+    def compile(self) -> Mapping[str, Any]:
+        return dataclasses.asdict(self)
 
 
 @dataclass(kw_only=True)
@@ -61,8 +74,11 @@ class ListEventsQuery:
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if self.expand is not NOT_SET:
-            params["expand"] = ",".join(self.expand)
+        expand = self.expand
+        if expand is NOT_SET:
+            expand = list(Expansion)
+
+        params["expand"] = ",".join(self.expand)
 
         if self.status is not NOT_SET:
             params["status"] = self.status.value
@@ -176,7 +192,7 @@ def paginated[T, **P](
 
 
 class EventbriteClient:
-    base_url = "https://www.eventbrite.com/api/v3"
+    base_url = "https://www.eventbrite.com"
     api_key: str
 
     def __init__(self, api_key: str) -> None:
@@ -186,22 +202,22 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}", query=query.compile() if query else None
+            method=HTTPMethod.GET, path=f"/api/v3/events/{event_id}", query=query.compile() if query else None
         )
         j = await response.json()
         return j
 
-    async def get_event_description(self, *, event_id: str) -> MultipartText:
+    async def get_event_description(self, *, event_id: str) -> EventDescription:
         """https://www.eventbrite.com/platform/api#/reference/event-description/retrieve-full-html-description"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description")
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/api/v3/events/{event_id}/description")
         j = await response.json()
         return j
 
     async def get_organizer_by_id(self, *, organizer_id: str) -> Organizer:
         """not documented"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/organizers/{organizer_id}")
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/api/v3/organizers/{organizer_id}")
         j = await response.json()
         return j
 
@@ -213,9 +229,31 @@ class EventbriteClient:
 
         response = await self.make_request(
             method=HTTPMethod.GET,
-            path=f"/organizers/{organizer_id}/events",
+            path=f"/api/v3/organizers/{organizer_id}/events",
             query=query.compile() if query else None,
             continuation=continuation,
+        )
+        return response
+
+    async def show_more_events_for_organizer(
+        self,
+        *,
+        organizer_id: str,
+        query: ShowMoreEventsForOrganizerQuery,
+    ) -> aiohttp.ClientResponse:
+        """
+        not documented
+        This is used by the Eventbrite website when "Show More" is clicked.
+        It can be used in place of "list_events_for_organizer" in case that endpoint stops working.
+
+        This endpoint returns a "has_next_page" boolean which can be used for pagination.
+        It doesn't use the continuation token like the other endpoints.
+        """
+
+        response = await self.make_request(
+            method=HTTPMethod.GET,
+            path=f"/org/{organizer_id}/showmore",  # This endpoint does not have the /api/v3 prefix
+            query=query.compile(),
         )
         return response
 
@@ -227,7 +265,7 @@ class EventbriteClient:
 
         response = await self.make_request(
             method=HTTPMethod.GET,
-            path=f"/events/{event_id}/ticket_classes/for_sale",
+            path=f"/api/v3/events/{event_id}/ticket_classes/for_sale",
             query=query.compile() if query else None,
             continuation=continuation,
         )
@@ -241,7 +279,7 @@ class EventbriteClient:
 
         response = await self.make_request(
             method=HTTPMethod.GET,
-            path=f"/events/{event_id}/canned_questions",
+            path=f"/api/v3/events/{event_id}/canned_questions",
             query=query.compile() if query else None,
             continuation=continuation,
         )
@@ -255,7 +293,7 @@ class EventbriteClient:
 
         response = await self.make_request(
             method=HTTPMethod.GET,
-            path=f"/events/{event_id}/questions",
+            path=f"/api/v3/events/{event_id}/questions",
             query=query.compile() if query else None,
             continuation=continuation,
         )
@@ -264,7 +302,7 @@ class EventbriteClient:
     async def list_formats(self) -> list[Format]:
         """https://www.eventbrite.com/platform/api#/reference/formats/list/list-formats"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path="/formats")
+        response = await self.make_request(method=HTTPMethod.GET, path="/api/v3/formats")
         j = await response.json()
         return j["formats"]
 
@@ -272,14 +310,16 @@ class EventbriteClient:
     async def list_categories(self, *, continuation: str | None = None) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/categories/list/list-of-categories"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path="/categories", continuation=continuation)
+        response = await self.make_request(method=HTTPMethod.GET, path="/api/v3/categories", continuation=continuation)
         return response
 
     @paginated("subcategories", list[Subcategory])
     async def list_subcategories(self, *, continuation: str | None = None) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/categories/list/list-of-subcategories"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path="/subcategories", continuation=continuation)
+        response = await self.make_request(
+            method=HTTPMethod.GET, path="/api/v3/subcategories", continuation=continuation
+        )
         return response
 
     async def make_request(
@@ -299,7 +339,7 @@ class EventbriteClient:
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             response = await session.request(
                 method=method,
-                url=f"{self.base_url}/{path}",
+                url=f"{self.base_url}{path}",
                 headers={"Authorization": f"Bearer {self.api_key}"},
                 params=query,
                 json=body,

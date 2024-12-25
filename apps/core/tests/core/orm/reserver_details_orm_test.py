@@ -6,26 +6,52 @@ from ..base import BaseTestCase
 class TestReserverDetailsOrm(BaseTestCase):
     async def test_valid_reserver_details_record(self) -> None:
         async with self.db_session.begin() as session:
-            account = await self.make_account(session)
+            account = self.make_account(session)
 
-            reserver_details = await ReserverDetailsOrm.build(
-                account_id=account.id,
-                first_name=self.anyalpha(),
-                last_name=self.anyalpha(),
-                phone_number="123-456-7890",
-            ).save(session)
+            reserver_details = ReserverDetailsOrm(
+                session,
+                account=account,
+                first_name=self.anyalpha("first_name"),
+                last_name=self.anyalpha("last_name"),
+                phone_number=self.anyphonenumber("phone_number"),
+            )
 
         assert reserver_details.id is not None
+        assert reserver_details.account.id == account.id
+        assert reserver_details.account_id == account.id
+        assert reserver_details.first_name == self.getalpha("first_name")
+        assert reserver_details.last_name == self.getalpha("last_name")
+        assert reserver_details.phone_number == self.getalpha("phone_number")
+
+    async def test_reserver_details_get_one(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+
+            reserver_details_new = ReserverDetailsOrm(
+                session,
+                account=account,
+                first_name=self.anyalpha("first_name"),
+                last_name=self.anyalpha("last_name"),
+                phone_number=self.anyphonenumber("phone_number"),
+            )
+
+        async with self.db_session.begin() as session:
+            reserver_details_fetched = await ReserverDetailsOrm.get_one(
+                session, account_id=account.id, uid=reserver_details_new.id
+            )
+
+        assert reserver_details_fetched.id is not None
 
     async def test_reserver_details_validation(self) -> None:
         async with self.db_session.begin() as session:
-            account = await self.make_account(session)
+            account = self.make_account(session)
 
-        reserver_details = ReserverDetailsOrm.build(
-            account_id=account.id,
+        reserver_details = ReserverDetailsOrm(
+            session,
+            account=account,
             first_name=self.anyalpha("first_name"),
             last_name=self.anyalpha("last_name"),
-            phone_number="123-456-7890",
+            phone_number=self.anyphonenumber(),
         )
 
         validation_errors = reserver_details.validate()

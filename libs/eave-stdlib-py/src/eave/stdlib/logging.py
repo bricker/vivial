@@ -1,12 +1,9 @@
 import logging
 import sys
-import uuid
 from logging import Logger, LogRecord
-from typing import Any, cast
+from typing import Any, override
 
 import google.cloud.logging
-from asgiref.typing import HTTPScope
-from starlette.types import Scope
 
 from eave.stdlib.typing import JsonObject
 
@@ -63,6 +60,7 @@ class CustomFormatter(logging.Formatter):
         "threadName",
     )
 
+    @override
     def format(self, record: logging.LogRecord) -> str:
         log_fmt = self.get_formatstr(record.levelno, self.formatstr)
         formatter = logging.Formatter(log_fmt)
@@ -76,64 +74,13 @@ class CustomFormatter(logging.Formatter):
 class CustomFilter(logging.Filter):
     _whitelist_records = ("eave", "strawberry.execution")
 
+    @override
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
         if SHARED_CONFIG.log_level == logging.DEBUG:
             return True
         else:
             return log and record.name in self._whitelist_records
-
-
-_SCOPE_KEY = "eave_state"
-
-
-class LogContext(JsonObject):
-    @classmethod
-    def load(cls, scope: HTTPScope | Scope) -> "LogContext":
-        if "extensions" not in scope or scope["extensions"] is None:
-            scope["extensions"] = {}
-
-        if ctx := scope["extensions"].get(_SCOPE_KEY):
-            return cast(LogContext, ctx)
-        else:
-            ctx = LogContext()
-            scope["extensions"][_SCOPE_KEY] = cast(Any, ctx)
-            return ctx
-
-    def __init__(self) -> None:
-        self.eave_request_id = uuid.uuid4().hex
-
-    @property
-    def public(self) -> JsonObject:
-        return JsonObject(
-            {
-                "eave_request_id": self.eave_request_id,
-            }
-        )
-
-    @property
-    def eave_visitor_id(self) -> str | None:
-        return str(v) if (v := self.get("eave_visitor_id")) else None
-
-    @eave_visitor_id.setter
-    def eave_visitor_id(self, value: str | None) -> None:
-        self["eave_visitor_id"] = value
-
-    @property
-    def eave_authed_account_id(self) -> str | None:
-        return str(v) if (v := self.get("eave_authed_account_id")) else None
-
-    @eave_authed_account_id.setter
-    def eave_authed_account_id(self, value: str | None) -> None:
-        self["eave_authed_account_id"] = value
-
-    @property
-    def eave_request_id(self) -> str:
-        return str(self["eave_request_id"])
-
-    @eave_request_id.setter
-    def eave_request_id(self, value: str) -> None:
-        self["eave_request_id"] = value
 
 
 _root_logger = logging.getLogger()
@@ -165,30 +112,28 @@ class EaveLogger:
     def fprint(self, level: int, message: str) -> None:
         print(self.f(level, message))
 
-    def debug(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+    def debug(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         self._raw_logger.debug(**self._preparekwargs(msg, *args, **kwargs))
 
-    def info(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+    def info(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         self._raw_logger.info(**self._preparekwargs(msg, *args, **kwargs))
 
-    def warning(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+    def warning(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         self._raw_logger.warning(**self._preparekwargs(msg, *args, **kwargs))
 
-    def error(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+    def error(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.error(**self._preparekwargs(msg, *args, **kwargs))
 
-    def exception(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+    def exception(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.exception(**self._preparekwargs(msg, *args, **kwargs))
 
-    def critical(self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any) -> None:
+    def critical(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
 
-    def _preparekwargs(
-        self, msg: str | Exception, *args: JsonObject | LogContext | None, **kwargs: Any
-    ) -> dict[str, Any]:
+    def _preparekwargs(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> dict[str, Any]:
         if isinstance(msg, Exception):
             kwargs["exc_info"] = msg
 

@@ -1,0 +1,18 @@
+query OneClickBookingCriteria {
+  viewer {
+    ... on AuthenticatedViewerQueries {
+      reserverDetails {
+        ...ReserverDetailsFields
+      }
+
+      paymentMethods {
+        ...PaymentMethodFields
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

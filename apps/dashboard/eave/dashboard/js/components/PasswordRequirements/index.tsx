@@ -5,11 +5,11 @@ import React from "react";
 import InputRequirement from "../Inputs/InputRequirement";
 
 const HorizontalInputReqsContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(11),
+  lineHeight: rem(15),
   display: "flex",
+  justifyContent: "center",
   flexDirection: "row",
-  gap: 8,
 }));
 
 const VerticalInputReqsContainer = styled(HorizontalInputReqsContainer)(() => ({

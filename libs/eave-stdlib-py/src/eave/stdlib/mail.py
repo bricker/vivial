@@ -24,13 +24,10 @@ class SendgridMailer:
             subject=subject,
             html_content=Content(mime_type="text/html", content=html_content),
         )
-        try:
-            if SHARED_CONFIG.mailer_enabled:
-                self.client.send(message=message)
-            else:
-                LOGGER.warning("Mailer disabled - not sending any emails")
-        except Exception as e:
-            LOGGER.exception(e)
+        if SHARED_CONFIG.mailer_enabled:
+            self.client.send(message=message)
+        else:
+            LOGGER.warning("Mailer disabled - not sending any emails")
 
     def send_templated_email(self, template_id: str, to_emails: list[str], dynamic_data: dict[str, str]) -> None:
         """
@@ -45,10 +42,10 @@ class SendgridMailer:
         )
         message.template_id = template_id
         message.dynamic_template_data = dynamic_data
-        try:
-            if SHARED_CONFIG.mailer_enabled:
-                self.client.send(message=message)
-            else:
-                LOGGER.warning("Mailer disabled - not sending any emails")
-        except Exception as e:
-            LOGGER.exception(e)
+        if SHARED_CONFIG.mailer_enabled:
+            self.client.send(message=message)
+        else:
+            LOGGER.warning("Mailer disabled - not sending any emails")
+
+
+SENDGRID_MAILER = SendgridMailer()

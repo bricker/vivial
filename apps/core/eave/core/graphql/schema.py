@@ -11,6 +11,7 @@ from strawberry.extensions import (
 )
 from strawberry.schema.config import StrawberryConfig
 
+from eave.core.graphql.extensions.visitor_id_extension import VisitorIdExtension
 from eave.stdlib.config import SHARED_CONFIG
 
 from .mutation import Mutation
@@ -29,18 +30,18 @@ def _should_mask_error(error: GraphQLError) -> bool:
 schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,
-    config=StrawberryConfig(
-        auto_camel_case=True,
-    ),
+    config=StrawberryConfig(auto_camel_case=True, disable_field_suggestions=(not SHARED_CONFIG.is_local)),
     extensions=[
+        # Custom extensions
+        VisitorIdExtension(),
         # Security extensions
         AddValidationRules(_validation_rules),
+        QueryDepthLimiter(max_depth=10),
+        MaxAliasesLimiter(max_alias_count=15),
+        MaxTokensLimiter(max_token_count=1000),
         MaskErrors(
             error_message="Internal Server Error",
             should_mask_error=_should_mask_error,
         ),
-        QueryDepthLimiter(max_depth=10),
-        MaxAliasesLimiter(max_alias_count=15),
-        MaxTokensLimiter(max_token_count=1000),
     ],
 )

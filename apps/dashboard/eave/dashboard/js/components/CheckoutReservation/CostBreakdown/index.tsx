@@ -1,6 +1,9 @@
-import { Outing } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
-import React from "react";
+import React, { Fragment } from "react";
+
+const FREE = "FREE";
 
 const ComponentContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -47,76 +50,71 @@ const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
   fontWeight: bold ? "bold" : "inherit",
 }));
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
-
-type Breakdown = { costName: string; costValue: string };
+type Breakdown = { key: string; costName: string; costValue: string };
 
 /**
  * Build an array of cost breakdowns.
- * @param outing
+ * @param itinerary
  * @returns list of objects with named sources of a cost, and the cost as a USD currency string (or "FREE")
  */
-function buildBreakdowns(outing: Outing): Breakdown[] {
+function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
-  if (outing.restaurant) {
+  if (itinerary.reservation) {
     breakdown.push({
-      costName: outing.restaurant.name,
-      costValue: currencyFormatter.format(0),
+      key: "reservation",
+      costName: itinerary.reservation.restaurant.name,
+      costValue: formatBaseCost(itinerary.reservation.costBreakdown),
     });
   }
 
-  if (outing.activity) {
-    const cost = outing.activity.ticketInfo?.cost || 0;
+  if (itinerary.activityPlan) {
     breakdown.push({
-      costName: outing.activity.name,
-      costValue: currencyFormatter.format(cost),
+      key: "activity",
+      costName: itinerary.activityPlan.activity.name,
+      costValue: formatBaseCost(itinerary.activityPlan.costBreakdown),
     });
+  }
 
-    if (outing.activity.ticketInfo?.fee || outing.activity.ticketInfo?.tax) {
-      const taxFee = (outing.activity.ticketInfo.fee ?? 0) + (outing.activity.ticketInfo.tax ?? 0);
-
-      breakdown.push({
-        costName: "3rd party Service Fees & Taxes",
-        costValue: currencyFormatter.format(taxFee),
-      });
-    }
+  const feesAndTaxesCents = itinerary.costBreakdown.feeCents + itinerary.costBreakdown.taxCents;
+  if (feesAndTaxesCents > 0) {
+    breakdown.push({
+      key: "taxesAndFees",
+      costName: "3rd party Service Fees & Taxes",
+      costValue: formatFeesAndTaxes(itinerary.costBreakdown),
+    });
   }
 
   breakdown.push({
+    key: "vivialFees",
     costName: "Service Fees via Vivial",
-    costValue: "FREE",
+    costValue: FREE,
   });
 
   return breakdown;
 }
 
-const CostBreakdown = ({ outing }: { outing: Outing }) => {
-  const costDetails = outing.activity?.ticketInfo;
-  const totalCost = currencyFormatter.format(
-    (costDetails?.cost ?? 0) + (costDetails?.fee ?? 0) + (costDetails?.tax ?? 0),
-  );
-  const breakdown = buildBreakdowns(outing);
+const CostBreakdown = ({ itinerary }: { itinerary: ItineraryFieldsFragment }) => {
+  const totalCostFormatted = formatTotalCost(itinerary.costBreakdown);
+  const breakdown = buildBreakdowns(itinerary);
+
   return (
     <>
       <TopDivider />
       <ComponentContainer>
         <TotalCostContainer>
           <TotalText variant="subtitle2">Total Costs</TotalText>
-          <TotalText variant="subtitle2">{totalCost}</TotalText>
+          <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
         </TotalCostContainer>
         <CostDivider />
         <BreakdownContainer>
           <LineItemContainer>
             {breakdown.map((charge) => (
-              <>
+              <Fragment key={charge.key}>
                 <LineItemText>{charge.costName}</LineItemText>
                 <LineItemText>...</LineItemText>
-                <LineItemText bold={charge.costValue === "FREE"}>{charge.costValue}</LineItemText>
-              </>
+                <LineItemText bold={charge.costValue === FREE}>{charge.costValue}</LineItemText>
+              </Fragment>
             ))}
           </LineItemContainer>
         </BreakdownContainer>

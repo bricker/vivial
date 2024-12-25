@@ -1,17 +1,9 @@
 query OutingPreferences {
   activityCategoryGroups {
-    id
-    name
-    activityCategories {
-      id
-      name
-      isDefault
-    }
+    ...ActivityCategoryGroupFields
   }
   restaurantCategories {
-    id
-    name
-    isDefault
+    ...RestaurantCategoryFields
   }
 
   viewer {
@@ -20,16 +12,7 @@ query OutingPreferences {
       __typename
 
       outingPreferences {
-        restaurantCategories {
-          id
-          name
-          isDefault
-        }
-        activityCategories {
-          id
-          name
-          isDefault
-        }
+        ...OutingPreferencesFields
       }
     }
     ... on UnauthenticatedViewer {

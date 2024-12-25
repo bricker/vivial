@@ -14,8 +14,6 @@ resource "kubernetes_config_map" "app" {
   }
 
   data = {
-    LOG_LEVEL                 = var.LOG_LEVEL
-    SEGMENT_WEBSITE_WRITE_KEY = var.SEGMENT_WEBSITE_WRITE_KEY
-    STRIPE_PUBLISHABLE_KEY    = var.STRIPE_PUBLISHABLE_KEY
+    LOG_LEVEL = var.LOG_LEVEL
   }
 }

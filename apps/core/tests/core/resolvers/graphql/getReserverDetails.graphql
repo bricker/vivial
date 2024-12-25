@@ -1,0 +1,18 @@
+query ReserverDetails {
+  viewer {
+    ... on AuthenticatedViewerQueries {
+      __typename
+
+      reserverDetails {
+        firstName
+        lastName
+        phoneNumber
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

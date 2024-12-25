@@ -1,13 +1,19 @@
 import os
+import random
 import unittest.mock
+from datetime import timedelta
 from http import HTTPStatus
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar, override
 from uuid import UUID
 
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
+import stripe
+from google.maps.places import PhotoMedia
 from google.maps.places_v1.types import Place
+from google.maps.routing import ComputeRoutesResponse, Route
+from google.protobuf.duration_pb2 import Duration
 from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,19 +24,26 @@ import eave.core.database
 import eave.core.orm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
+from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
-from eave.core.database import init_database
+from eave.core.lib.address import Address
+from eave.core.lib.google_places import GeocodeGeometry, GeocodeLocation, GeocodeResult
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.base import get_base_metadata
-from eave.core.orm.outing import OutingOrm
+from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
+from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.jwt import JWTPurpose, create_jws
-from eave.stdlib.time import ONE_YEAR_IN_MINUTES
+from eave.stdlib.time import ONE_DAY_IN_SECONDS, ONE_YEAR_IN_MINUTES
 
 
 class AnyStandardOrm(Protocol):
@@ -40,9 +53,7 @@ class AnyStandardOrm(Protocol):
 T = TypeVar("T")
 J = TypeVar("J", bound=AnyStandardOrm)
 
-# eave.core.internal.database.async_engine.echo = False  # shhh
-
-_DB_SETUP: bool = False
+_db_setup: bool = False
 
 
 class MockPlacesResponse:
@@ -52,12 +63,18 @@ class MockPlacesResponse:
         self.places = places
 
 
+# eave.core.database.async_engine.echo = True
+
+
 class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
+    _gql_cache: dict[str, str]  # pyright: ignore [reportUninitializedInstanceVariable]
+
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
 
+    @override
     async def asyncSetUp(self) -> None:
-        global _DB_SETUP
+        global _db_setup
 
         # Attempt to prevent running destructive database operations against non-test database
         assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
@@ -65,34 +82,38 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             eave.core.database.async_engine.url.database == "eave-test"
         ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test")'
 
-        if not _DB_SETUP:
+        if not _db_setup:
             print("Running one-time DB setup...")
             await init_database()
-            _DB_SETUP = True
+            _db_setup = True
 
         CORE_API_APP_CONFIG.reset_cached_properties()
 
         await super().asyncSetUp()
-        self.mock_google_places()
+        self._add_google_places_client_mocks()
+        self._add_stripe_client_mocks()
+        self._add_google_routes_client_mocks()
+        self._add_google_maps_client_mocks()
 
         engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
-        self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
-        # self.db_session = eave.core.internal.database.async_session
+        self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)  # pyright: ignore [reportUninitializedInstanceVariable]
 
         transport = ASGITransport(
-            app=eave.core.app.app,  # type:ignore
+            app=eave.core.app.app,
             raise_app_exceptions=True,
         )
-        self.httpclient = AsyncClient(
+        self.httpclient = AsyncClient(  # pyright: ignore [reportUninitializedInstanceVariable]
             base_url=SHARED_CONFIG.eave_api_base_url_public,
             transport=transport,
         )
 
         self._gql_cache = {}
 
+    @override
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
+    @override
     async def cleanup(self) -> None:
         await super().cleanup()
 
@@ -111,10 +132,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         return self._gql_cache[name]
 
-    async def save(self, session: AsyncSession, /, obj: J) -> J:
-        session.add(obj)
-        return obj
-
     async def reload(self, session: AsyncSession, /, obj: J) -> J | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)
         result: J | None = await session.scalar(stmt)
@@ -131,6 +148,38 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             count = 0
         return count
 
+    def anyaddress(self, name: str | None = None) -> Address:
+        name = self._make_testdata_name(name)
+
+        data = Address(
+            address1=self.anystr(),
+            address2=self.anystr(),
+            city=self.anystr(),
+            country=self.anystr(),
+            state=self.anyusstate(),
+            zip_code=self.anydigits(length=5),
+        )
+
+        self.testdata[name] = data
+        return self.getaddress(name)
+
+    def getaddress(self, name: str) -> Address:
+        return self.testdata[name]
+
+    def anycoordinates(self, name: str | None = None) -> GeoPoint:
+        name = self._make_testdata_name(name)
+
+        data = GeoPoint(
+            lat=self.anylatitude(),
+            lon=self.anylongitude(),
+        )
+
+        self.testdata[name] = data
+        return self.getcoordinates(name)
+
+    def getcoordinates(self, name: str) -> GeoPoint:
+        return self.testdata[name]
+
     def parse_graphql_response(self, response: Response) -> ExecutionResult:
         j = response.json()
 
@@ -142,11 +191,17 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         return result
 
     async def make_graphql_request(
-        self, query_name: str, variables: dict[str, Any], *, account_id: UUID | None = None
+        self,
+        query_name: str,
+        variables: dict[str, Any],
+        *,
+        account_id: UUID | None = None,
+        cookies: dict[str, str] | None = None,
     ) -> Response:
-        cookies: dict[str, str] = {}
+        if cookies is None:
+            cookies = {}
 
-        if account_id:
+        if account_id and ACCESS_TOKEN_COOKIE_NAME not in cookies:
             jws = create_jws(
                 purpose=JWTPurpose.ACCESS,
                 issuer=JWT_ISSUER,
@@ -170,56 +225,335 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         assert response.status_code == HTTPStatus.OK
         return response
 
-    async def make_account(
+    def make_account(
         self,
         session: AsyncSession,
     ) -> AccountOrm:
-        account = await AccountOrm.build(
-            email=self.anyemail("make_account.email"),
-            plaintext_password=self.anystr("make_account.plaintext_password"),
-        ).save(session)
+        account = AccountOrm(
+            session,
+            email=self.anyemail(),
+            plaintext_password=self.anystr(),
+        )
 
         return account
 
-    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
-        acct = await AccountOrm.get_one(session, id)
-        return acct
+    def make_survey(self, session: AsyncSession, account: AccountOrm | None) -> SurveyOrm:
+        survey = SurveyOrm(
+            session,
+            account=account,
+            budget=self.random_outing_budget(),
+            headcount=self.anyint(min=1, max=2),
+            search_area_ids=[s.id for s in self.random_search_areas(k=3)],
+            start_time_utc=self.anydatetime(
+                offset=self.anyint(min=ONE_DAY_IN_SECONDS * 2, max=ONE_DAY_IN_SECONDS * 14),
+            ),
+            timezone=self.anytimezone(),
+            visitor_id=self.anystr(),
+        )
+        return survey
 
-    async def make_outing(
-        self,
-        session: AsyncSession,
-        account_id: UUID | None = None,
-        survey_id: UUID | None = None,
-    ) -> OutingOrm:
-        act_id = account_id
-        if act_id is None:
-            account = await self.make_account(session=session)
-            act_id = account.id
+    def make_outing(self, session: AsyncSession, account: AccountOrm | None, survey: SurveyOrm) -> OutingOrm:
+        outing = OutingOrm(
+            session,
+            visitor_id=survey.visitor_id,
+            account=account,
+            survey=survey,
+        )
 
-        surv_id = survey_id
-        if surv_id is None:
-            survey = await SurveyOrm.build(
-                visitor_id=self.anyuuid(),
-                start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
-                timezone=self.anytimezone(),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-            ).save(session)
-            surv_id = survey.id
+        outing.activities.append(
+            OutingActivityOrm(
+                session,
+                outing=outing,
+                headcount=survey.headcount,
+                source=ActivitySource.EVENTBRITE,
+                source_id=self.getdigits("eventbrite.Event.id"),
+                start_time_utc=survey.start_time_utc + timedelta(hours=2),
+                timezone=survey.timezone,
+            )
+        )
 
-        outing = await OutingOrm.build(
-            visitor_id=self.anyuuid(),
-            survey_id=surv_id,
-        ).save(session)
+        outing.reservations.append(
+            OutingReservationOrm(
+                session,
+                outing=outing,
+                headcount=survey.headcount,
+                source=RestaurantSource.GOOGLE_PLACES,
+                source_id=self.getstr("Place.id"),
+                start_time_utc=survey.start_time_utc,
+                timezone=survey.timezone,
+            )
+        )
 
         return outing
 
-    def mock_google_places(self) -> None:
+    def make_reserver_details(self, session: AsyncSession, account: AccountOrm) -> ReserverDetailsOrm:
+        reserver_details = ReserverDetailsOrm(
+            session,
+            account=account,
+            first_name=self.anystr(),
+            last_name=self.anystr(),
+            phone_number=self.anyphonenumber(),
+        )
+        return reserver_details
+
+    def make_stripe_payment_intent_reference(
+        self, session: AsyncSession, account: AccountOrm
+    ) -> StripePaymentIntentReferenceOrm:
+        stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            session, account=account, stripe_payment_intent_id=self.mock_stripe_payment_intent.id
+        )
+        return stripe_payment_intent_reference
+
+    def make_booking(
+        self,
+        session: AsyncSession,
+        account: AccountOrm,
+        outing: OutingOrm,
+        stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None,
+        reserver_details: ReserverDetailsOrm | None = None,
+    ) -> BookingOrm:
+        booking = BookingOrm(
+            session,
+            outing=outing,
+            accounts=[account],
+            reserver_details=reserver_details,
+            stripe_payment_intent_reference=stripe_payment_intent_reference,
+        )
+
+        booking_activity_template = BookingActivityTemplateOrm(
+            session,
+            booking=booking,
+            name=self.anystr(),
+            start_time_utc=outing.activities[0].start_time_utc,
+            timezone=self.anytimezone(),
+            photo_uri=self.anyurl(),
+            headcount=outing.survey.headcount if outing.survey else self.anyint(min=1, max=2),
+            coordinates=GeoPoint(
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
+            ),
+            external_booking_link=self.anyurl(),
+            source=ActivitySource.EVENTBRITE,
+            source_id=self.mock_eventbrite_event.get("id", "MISSING"),
+            address=Address(
+                address1=self.anystr(),
+                address2=self.anystr(),
+                city=self.anystr(),
+                country="US",
+                state=self.anyusstate(),
+                zip_code=self.anydigits(),
+            ),
+        )
+        booking.activities.append(booking_activity_template)
+
+        booking_reservation_template = BookingReservationTemplateOrm(
+            session,
+            booking=booking,
+            name=self.anystr(),
+            photo_uri=self.anyurl(),
+            start_time_utc=outing.reservations[0].start_time_utc,
+            timezone=self.anytimezone(),
+            headcount=outing.survey.headcount if outing.survey else self.anyint(min=1, max=2),
+            coordinates=GeoPoint(
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
+            ),
+            external_booking_link=self.anyurl(),
+            source=RestaurantSource.GOOGLE_PLACES,
+            source_id=self.mock_google_place.id,
+            address=Address(
+                address1=self.anystr(),
+                address2=self.anystr(),
+                city=self.anystr(),
+                country="US",
+                state=self.anyusstate(),
+                zip_code=self.anydigits(),
+            ),
+        )
+        booking.reservations.append(booking_reservation_template)
+
+        return booking
+
+    mock_stripe_payment_intent: stripe.PaymentIntent  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer: stripe.Customer  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer_session: stripe.CustomerSession  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer_payment_methods: list[stripe.PaymentMethod]  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def _add_stripe_client_mocks(self) -> None:
+        mock_stripe_payment_intent = stripe.PaymentIntent(
+            id=self.anystr("stripe.PaymentIntent.id"),
+        )
+        mock_stripe_payment_intent.client_secret = self.anystr("stripe.PaymentIntent.client_secret")
+        mock_stripe_payment_intent.status = "requires_capture"
+        self.mock_stripe_payment_intent = mock_stripe_payment_intent
+
+        async def _mock_payment_intent_create_async(**kwargs: Any) -> stripe.PaymentIntent:
+            return self.mock_stripe_payment_intent
+
+        self.patch(
+            name="stripe.PaymentIntent.create_async",
+            patch=unittest.mock.patch("stripe.PaymentIntent.create_async"),
+            side_effect=_mock_payment_intent_create_async,
+        )
+
+        async def _mock_payment_intent_retrieve_async(**kwargs: Any) -> stripe.PaymentIntent:
+            return self.mock_stripe_payment_intent
+
+        self.patch(
+            name="stripe.PaymentIntent.retrieve_async",
+            patch=unittest.mock.patch("stripe.PaymentIntent.retrieve_async"),
+            side_effect=_mock_payment_intent_retrieve_async,
+        )
+
+        self.mock_stripe_customer = stripe.Customer(
+            id=self.anystr("stripe.Customer.id"),
+        )
+
+        async def _mock_customer_create_async(**kwargs: Any) -> stripe.Customer:
+            return self.mock_stripe_customer
+
+        self.patch(
+            name="stripe.Customer.create_async",
+            patch=unittest.mock.patch("stripe.Customer.create_async"),
+            side_effect=_mock_customer_create_async,
+        )
+
+        self.mock_stripe_customer_payment_methods = [
+            stripe.PaymentMethod(
+                id=self.anystr(),
+            ),
+        ]
+
+        setattr(
+            self.mock_stripe_customer_payment_methods[0],
+            "card",
+            stripe.Card(
+                brand="visa",
+                last4=self.anydigits(length=4),
+                exp_month=self.anyint(min=1, max=12),
+                exp_year=self.anyint(min=2020, max=2100),
+            ),
+        )
+
+        async def _mock_customer_list_payment_methods(*args: Any, **kwargs: Any) -> list[stripe.PaymentMethod]:
+            return self.mock_stripe_customer_payment_methods
+
+        self.patch(
+            name="stripe.Customer.list_payment_methods_async",
+            patch=unittest.mock.patch("stripe.Customer.list_payment_methods_async"),
+            side_effect=_mock_customer_list_payment_methods,
+        )
+
+        self.mock_stripe_customer_session = stripe.CustomerSession()
+        self.mock_stripe_customer_session.client_secret = self.anystr("stripe.CustomerSession.client_secret")
+
+        async def _mock_customer_session_create_async(**kwargs: Any) -> stripe.CustomerSession:
+            return self.mock_stripe_customer_session
+
+        self.patch(
+            name="stripe.CustomerSession.create_async",
+            patch=unittest.mock.patch("stripe.CustomerSession.create_async"),
+            side_effect=_mock_customer_session_create_async,
+        )
+
+    mock_google_place: Place  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_google_places_photo_media: PhotoMedia  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def _add_google_places_client_mocks(self) -> None:
+        self.mock_google_place = Place(
+            id=self.anystr("Place.id"),
+        )
+
+        async def _mock_google_places_search_nearby(*args, **kwargs) -> MockPlacesResponse:
+            return MockPlacesResponse(places=[self.mock_google_place])
+
         self.patch(
             name="google places searchNearby",
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
             ),
-            return_value=MockPlacesResponse([]),
+            side_effect=_mock_google_places_search_nearby,
         )
+
+        async def _mock_google_places_get_place(*args, **kwargs) -> Place:
+            return self.mock_google_place
+
+        self.patch(
+            name="PlacesAsyncClient.get_place",
+            patch=unittest.mock.patch("google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"),
+            side_effect=_mock_google_places_get_place,
+        )
+
+        self.mock_google_places_photo_media = PhotoMedia(
+            name=self.anystr("PhotoMedia.name"),
+            photo_uri=self.anyurl("PhotoMedia.photo_uri"),
+        )
+
+        async def _mock_google_places_get_photo_media(*args: Any, **kwargs: Any) -> PhotoMedia:
+            return self.mock_google_places_photo_media
+
+        self.patch(
+            name="PlacesAsyncClient.get_photo_media",
+            patch=unittest.mock.patch(
+                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_photo_media"
+            ),
+            side_effect=_mock_google_places_get_photo_media,
+        )
+
+    mock_compute_routes_response: ComputeRoutesResponse  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def _add_google_routes_client_mocks(self) -> None:
+        self.mock_compute_routes_response = ComputeRoutesResponse(
+            routes=[
+                Route(
+                    duration=Duration(
+                        seconds=self.anyint(),
+                    ),
+                ),
+            ],
+        )
+
+        async def _mock_google_routes_compute_routes(*args, **kwargs) -> ComputeRoutesResponse:
+            return self.mock_compute_routes_response
+
+        self.patch(
+            name="google routes compute_routes",
+            patch=unittest.mock.patch("google.maps.routing.RoutesAsyncClient.compute_routes"),
+            side_effect=_mock_google_routes_compute_routes,
+        )
+
+    mock_maps_geocoding_response: list[GeocodeResult]  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def _add_google_maps_client_mocks(self) -> None:
+        self.mock_maps_geocoding_response = [
+            GeocodeResult(
+                place_id=self.anystr(),
+                geometry=GeocodeGeometry(
+                    location=GeocodeLocation(
+                        lat=self.anylatitude(),
+                        lng=self.anylongitude(),
+                    ),
+                ),
+            ),
+        ]
+
+        def _mock_google_maps_geocode(*args, **kwargs) -> list[GeocodeResult]:
+            return self.mock_maps_geocoding_response
+
+        self.patch(
+            name="google maps geocode",
+            patch=unittest.mock.patch("googlemaps.geocoding.geocode"),
+            side_effect=_mock_google_maps_geocode,
+        )
+
+    def random_search_areas(self, k: int = 3) -> list[SearchRegionOrm]:
+        return random.choices(SearchRegionOrm.all(), k=k)
+
+    def random_restaurant_categories(self, k: int = 3) -> list[RestaurantCategoryOrm]:
+        return random.choices(RestaurantCategoryOrm.all(), k=k)
+
+    def random_activity_categories(self, k: int = 3) -> list[ActivityCategoryOrm]:
+        return random.choices(ActivityCategoryOrm.all(), k=k)
+
+    def random_outing_budget(self) -> OutingBudget:
+        return random.choice(list(OutingBudget))

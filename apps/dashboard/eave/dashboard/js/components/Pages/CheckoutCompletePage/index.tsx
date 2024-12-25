@@ -1,10 +1,15 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
+import { useGetBookingDetailsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
-import { Divider, styled, Typography } from "@mui/material";
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { CircularProgress, Divider, Typography, styled } from "@mui/material";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
+import CenteringContainer from "../../CenteringContainer";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
 import Paper from "../../Paper";
@@ -86,7 +91,7 @@ const ConfirmationOption = ({ option }: { option: ConfirmationOptionDetail }) =>
 const confirmationOptions: ConfirmationOptionDetail[] = [
   {
     attrs: logos["vivial"]!,
-    text: "for a itinerary confirmation and receipt (if applicable).",
+    text: "for an itinerary confirmation and receipt (if applicable).",
   },
   {
     attrs: logos["opentable"]!,
@@ -99,12 +104,70 @@ const confirmationOptions: ConfirmationOptionDetail[] = [
 ];
 
 const CheckoutCompletePage = () => {
-  // const [searchParams] = useSearchParams();
-
-  // const paymentIntentId = searchParams.get("payment_intent");
-  // const clientSecret = searchParams.get("payment_intent_client_secret");
-  // const redirectStatus = searchParams.get("redirect_status");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const params = useParams();
+  const bookingId = params["bookingId"]!;
+
+  const {
+    isLoading: getBookingDetailsIsLoading,
+    data: getBookingDetailsData,
+    error: getBookingDetailsError,
+  } = useGetBookingDetailsQuery({
+    input: { bookingId },
+  });
+
+  useEffect(() => {
+    if (getBookingDetailsData?.viewer.__typename === "AuthenticatedViewerQueries") {
+      const bookingDetails = getBookingDetailsData.viewer.bookedOutingDetails;
+      if (bookingDetails) {
+        dispatch(setBookingDetails({ bookingDetails }));
+        console.debug(bookingDetails);
+      }
+    }
+  }, [getBookingDetailsData]);
+
+  // These are passed by Stripe for redirects. For card payments, there is no redirect.
+  // Also we don't use these. This is just here for reference.
+  // const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
+  // const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
+  // const redirectStatus = searchParams.get(SearchParam.stripeRedirectStatus);
+
+  if (getBookingDetailsIsLoading) {
+    return (
+      <CenteringContainer>
+        <CircularProgress color="secondary" />
+      </CenteringContainer>
+    );
+  }
+
+  if (getBookingDetailsError) {
+    // TODO: Better error handling
+    // 500 error
+    console.error("Unexected Graphql result");
+    return null;
+  }
+
+  if (!getBookingDetailsData) {
+    // TODO: Better error handling
+    console.error("confirmBooking data error");
+    return null;
+  }
+
+  switch (getBookingDetailsData.viewer.__typename) {
+    case "AuthenticatedViewerQueries": {
+      // Handled in useEffect above
+      break;
+    }
+    case "UnauthenticatedViewer":
+      dispatch(loggedOut());
+      window.location.assign(AppRoute.logout);
+      return;
+    default:
+      console.error("Unexected Graphql result");
+      return;
+  }
 
   const handleNewDateClick = () => {
     navigate(AppRoute.root);

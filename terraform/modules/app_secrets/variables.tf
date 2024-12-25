@@ -20,5 +20,9 @@ variable "secrets" {
       data      = string
       accessors = list(string)
     })
+    GOOGLE_MAPS_API_KEY = object({
+      data      = string
+      accessors = list(string)
+    })
   })
 }

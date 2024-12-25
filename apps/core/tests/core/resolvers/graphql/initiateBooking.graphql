@@ -1,0 +1,40 @@
+mutation InitiateBooking($input: InitiateBookingInput!) {
+  viewer {
+    ... on AuthenticatedViewerMutations {
+      __typename
+
+      initiateBooking(input: $input) {
+        ... on InitiateBookingSuccess {
+          __typename
+
+          booking {
+            id
+          }
+
+          paymentIntent {
+            id
+            clientSecret
+          }
+
+          customerSession {
+            clientSecret
+          }
+        }
+
+        ... on InitiateBookingFailure {
+          __typename
+          failureReason
+
+          validationErrors {
+            field
+          }
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

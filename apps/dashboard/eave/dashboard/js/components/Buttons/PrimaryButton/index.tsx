@@ -12,7 +12,7 @@ const CustomButton = styled(BaseButton, {
 })<PrimaryButtonProps>(({ bg, theme }) => ({
   color: theme.palette.common.black,
   backgroundColor: bg || theme.palette.primary.main,
-  height: rem("52px"),
+  height: rem(52),
   borderRadius: 100,
   "&.Mui-disabled": {
     color: theme.palette.common.black,

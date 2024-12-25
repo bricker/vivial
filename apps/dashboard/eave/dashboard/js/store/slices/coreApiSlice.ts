@@ -2,20 +2,19 @@ import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
+  BookedOutingsDocument,
+  BookingDetailsDocument,
+  ConfirmBookingDocument,
   CreateAccountDocument,
-  CreateBookingDocument,
-  CreatePaymentIntentDocument,
-  ListBookedOutingsDocument,
-  ListBookedOutingsQuery,
-  ListBookedOutingsQueryVariables,
-  ListReserverDetailsDocument,
+  InitiateBookingDocument,
   LoginDocument,
+  OneClickBookingCriteriaDocument,
   OutingDocument,
   OutingPreferencesDocument,
   OutingQuery,
   OutingQueryVariables,
   PlanOutingDocument,
-  ReplanOutingDocument,
+  ReserverDetailsDocument,
   SearchRegionsDocument,
   StripePortalDocument,
   StripePortalQuery,
@@ -31,22 +30,26 @@ import {
   UpdateReserverDetailsDocument,
   UpdateReserverDetailsMutation,
   UpdateReserverDetailsMutationVariables,
+  type BookedOutingsQuery,
+  type BookedOutingsQueryVariables,
+  type BookingDetailsQuery,
+  type BookingDetailsQueryVariables,
+  type ConfirmBookingMutation,
+  type ConfirmBookingMutationVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
-  type CreateBookingMutation,
-  type CreateBookingMutationVariables,
-  type CreatePaymentIntentMutation,
-  type CreatePaymentIntentMutationVariables,
-  type ListReserverDetailsQuery,
-  type ListReserverDetailsQueryVariables,
+  type InitiateBookingMutation,
+  type InitiateBookingMutationVariables,
   type LoginMutation,
   type LoginMutationVariables,
+  type OneClickBookingCriteriaQuery,
+  type OneClickBookingCriteriaQueryVariables,
   type OutingPreferencesQuery,
   type OutingPreferencesQueryVariables,
   type PlanOutingMutation,
   type PlanOutingMutationVariables,
-  type ReplanOutingMutation,
-  type ReplanOutingMutationVariables,
+  type ReserverDetailsQuery,
+  type ReserverDetailsQueryVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
   type SubmitReserverDetailsMutation,
@@ -79,16 +82,16 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    listReserverDetails: builder.query<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>({
+    listReserverDetails: builder.query<ReserverDetailsQuery, ReserverDetailsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: ListReserverDetailsDocument, variables });
+        const data = await executeOperation({ query: ReserverDetailsDocument, variables });
         return { data };
       },
     }),
 
-    listBookedOutings: builder.query<ListBookedOutingsQuery, ListBookedOutingsQueryVariables>({
+    listBookedOutings: builder.query<BookedOutingsQuery, BookedOutingsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: ListBookedOutingsDocument, variables });
+        const data = await executeOperation({ query: BookedOutingsDocument, variables });
         return { data };
       },
     }),
@@ -103,6 +106,25 @@ export const coreApiSlice = createApi({
     getStripePortal: builder.query<StripePortalQuery, StripePortalQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: StripePortalDocument, variables });
+        return { data };
+      }
+    }),
+
+    getBookingDetails: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: BookingDetailsDocument, variables });
+        return { data };
+      },
+    }),
+
+    getOneClickBookingCriteria: builder.query<OneClickBookingCriteriaQuery, OneClickBookingCriteriaQueryVariables>({
+      forceRefetch(_args) {
+        // This operation gets data from Stripe, and the payment methods may have changed through some other means besides this client.
+        // Therefore, we have to force-refetch to get the most up to date data.
+        return true;
+      },
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: OneClickBookingCriteriaDocument, variables });
         return { data };
       },
     }),
@@ -141,13 +163,6 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    createPaymentIntent: builder.mutation<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreatePaymentIntentDocument, variables });
-        return { data };
-      },
-    }),
-
     submitReserverDetails: builder.mutation<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
@@ -175,21 +190,35 @@ export const coreApiSlice = createApi({
 
     planOuting: builder.mutation<PlanOutingMutation, PlanOutingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        console.info("Planning outing with the following inputs:", variables.input);
         const data = await executeOperation({ query: PlanOutingDocument, variables });
         return { data };
       },
     }),
 
-    replanOuting: builder.mutation<ReplanOutingMutation, ReplanOutingMutationVariables>({
+    initiateBooking: builder.query<InitiateBookingMutation, InitiateBookingMutationVariables>({
+      // This is marked as query on purpose.
+      // On the server it's a mutation but this needs to be called when a component loads and rtk-query
+      // doesn't seem to allow that.
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: ReplanOutingDocument, variables });
+        const data = await executeOperation({ query: InitiateBookingDocument, variables });
         return { data };
       },
     }),
 
-    createBooking: builder.mutation<CreateBookingMutation, CreateBookingMutationVariables>({
+    initiateAndConfirmBooking: builder.mutation<InitiateBookingMutation, InitiateBookingMutationVariables>({
+      // This is marked as query on purpose.
+      // On the server it's a mutation but this needs to be called when a component loads and rtk-query
+      // doesn't seem to allow that.
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreateBookingDocument, variables });
+        const data = await executeOperation({ query: InitiateBookingDocument, variables });
+        return { data };
+      },
+    }),
+
+    confirmBooking: builder.mutation<ConfirmBookingMutation, ConfirmBookingMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ConfirmBookingDocument, variables });
         return { data };
       },
     }),
@@ -204,15 +233,18 @@ export const {
   useGetOutingPreferencesQuery,
   useGetOutingQuery,
   useGetStripePortalQuery,
+  useGetBookingDetailsQuery,
+  useGetOneClickBookingCriteriaQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingMutation,
   useCreateAccountMutation,
   useLoginMutation,
-  useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
-  useCreateBookingMutation,
+  useInitiateAndConfirmBookingMutation,
+  useInitiateBookingQuery, // This is actually a mutation but we need to make it available as a query so we can run it on component load
+  useConfirmBookingMutation,
   useUpdateReserverDetailsMutation,
   useSubmitReserverDetailsMutation,
   useUpdateOutingPreferencesMutation,

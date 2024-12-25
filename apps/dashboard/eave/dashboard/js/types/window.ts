@@ -3,10 +3,15 @@ export type GlobalWindow = Window &
     app: {
       apiBase?: string;
       appEnv?: string;
+      version?: string;
       assetBase?: string;
       segmentWriteKey?: string;
       analyticsEnabled?: boolean;
+      monitoringEnabled?: boolean;
       stripePublishableKey?: string;
+      stripeCustomerPortalUrl: string;
+      datadogApplicationId?: string;
+      datadogClientToken?: string;
     };
   };
 

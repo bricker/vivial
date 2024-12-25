@@ -3,20 +3,44 @@ mutation PlanOuting($input: PlanOutingInput!) {
     ... on PlanOutingSuccess {
       outing {
         id
-        headcount
-        activity {
-          sourceId
-          source
-          name
+        survey {
+          headcount
+          budget
         }
-        activityStartTime
-        restaurant {
-          sourceId
-          source
-          name
+        travel {
+          durationMinutes
         }
-        restaurantArrivalTime
-        drivingTime
+        activityPlan {
+          costBreakdown {
+            baseCostCents
+            feeCents
+            taxCents
+            totalCostCents
+          }
+          headcount
+          startTime
+          activity {
+            sourceId
+            source
+            name
+          }
+        }
+
+        reservation {
+          arrivalTime
+          headcount
+          costBreakdown {
+            totalCostCents
+            feeCents
+            baseCostCents
+            taxCents
+          }
+          restaurant {
+            sourceId
+            source
+            name
+          }
+        }
       }
     }
     ... on PlanOutingFailure {

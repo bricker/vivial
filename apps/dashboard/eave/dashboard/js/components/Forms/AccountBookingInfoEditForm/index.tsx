@@ -1,5 +1,6 @@
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { formatPhoneNumber } from "$eave-dashboard/js/util/phoneNumber";
 import { styled } from "@mui/material";
 import * as EmailValidator from "email-validator";
 import React, { useCallback, useState } from "react";
@@ -30,13 +31,13 @@ const BoldInput = styled(Input)(() => ({
   padding: "5px 16px",
   fontFamily: fontFamilies.inter,
   fontWeight: 600,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
+  fontSize: rem(16),
+  lineHeight: rem(30),
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -46,12 +47,12 @@ const InputErrorContainer = styled("div")(() => ({
 
 const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   padding: "10px 14px",
-  minWidth: rem("76px"),
+  minWidth: rem(76),
 }));
 
 const PaddedSecondaryButton = styled(SecondaryButton)(() => ({
   padding: "10px 14px",
-  minWidth: rem("76px"),
+  minWidth: rem(76),
 }));
 
 const AccountBookingInfoEditForm = ({
@@ -163,7 +164,12 @@ const AccountBookingInfoEditForm = ({
           <BoldInput placeholder="Last name" value={lastName} onChange={handleLastNameChange} />
         </NameInputContainer>
         <BoldInput placeholder="Email" value={email} onChange={handleEmailChange} />
-        <BoldInput placeholder="Phone #" value={phoneNumber} onChange={handlePhoneNumberChange} />
+        <BoldInput
+          placeholder="Phone #"
+          value={phoneNumber}
+          onKeyUp={formatPhoneNumber}
+          onChange={handlePhoneNumberChange}
+        />
       </FieldsContainer>
 
       {error && (

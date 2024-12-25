@@ -95,7 +95,7 @@ const DateAreaSelections = ({ cta, regions, onSubmit }: DateAreaSelectionsProps)
           <Row key={region.id}>
             <SelectButton onClick={() => selectRegion(region.id)} disableRipple>
               <SelectedIndicator selected={selectedRegionIds.includes(region.id)} />
-              <Typography>{region.name}</Typography>
+              <Typography noWrap>{region.name}</Typography>
             </SelectButton>
           </Row>
         ))}

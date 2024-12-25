@@ -1,0 +1,31 @@
+fragment ItineraryFields on Itinerary {
+  id
+  startTime
+  headcount
+
+  survey {
+    ...SurveyFields
+  }
+
+  searchRegions {
+    ...SearchRegionFields
+  }
+
+  costBreakdown {
+    ...CostBreakdownFields
+  }
+
+  activityPlan {
+    ...ActivityPlanFields
+  }
+
+  reservation {
+    ...ReservationFields
+  }
+}
+
+fragment TravelFields on Itinerary {
+  travel {
+    durationMinutes
+  }
+}

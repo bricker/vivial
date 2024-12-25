@@ -1,6 +1,5 @@
 query SearchRegions {
   searchRegions {
-    id
-    name
+    ...SearchRegionFields
   }
 }

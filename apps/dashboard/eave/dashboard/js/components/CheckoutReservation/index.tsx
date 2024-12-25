@@ -1,32 +1,36 @@
 import {
-  CreateBookingFailureReason,
-  Outing,
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
+  type ItineraryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
 import {
-  useCreateBookingMutation,
-  useGetOutingQuery,
+  useConfirmBookingMutation,
+  useInitiateBookingQuery,
   useListReserverDetailsQuery,
   useSubmitReserverDetailsMutation,
   useUpdateReserverDetailsMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
+import { colors } from "$eave-dashboard/js/theme/colors";
+import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { Typography, styled } from "@mui/material";
-import { useElements, useStripe } from "@stripe/react-stripe-js";
+import { myWindow } from "$eave-dashboard/js/types/window";
+import { CircularProgress, Typography, styled } from "@mui/material";
+import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
+import { loadStripe, type Appearance, type CssFontSource, type CustomFontSource } from "@stripe/stripe-js";
 import React, { FormEvent, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LoadingButton from "../Buttons/LoadingButton";
+import CenteringContainer from "../CenteringContainer";
 import InputError from "../Inputs/InputError";
 import LogoPill, { logos } from "../LogoPill";
 import Paper from "../Paper";
-import StripeElementsProvider from "../StripeElementsProvider";
 import CostBreakdown from "./CostBreakdown";
 import PaymentForm from "./PaymentForm";
 import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetailsForm";
@@ -53,8 +57,8 @@ const FormContainer = styled("form")(() => ({
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -89,49 +93,57 @@ const FooterText = styled(Typography)(() => ({
   textAlign: "center",
 }));
 
-function hasPaidActivity(outing: Outing | null): boolean {
-  const costData = outing?.activity?.ticketInfo;
-  return !!(costData?.cost || costData?.fee || costData?.tax);
+const ErrorText = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  textAlign: "center",
+}));
+
+function isPaidOuting(bookingDetails?: ItineraryFieldsFragment): boolean {
+  if (!bookingDetails) {
+    return false;
+  }
+  return bookingDetails.costBreakdown.totalCostCents > 0;
 }
+
 const CheckoutForm = ({
-  outingId,
   showStripeBadge,
   showCostBreakdown,
 }: {
-  outingId: string;
   showStripeBadge?: boolean;
   showCostBreakdown?: boolean;
 }) => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   // https://docs.stripe.com/sdks/stripejs-react
   const stripeClient = useStripe();
   const stripeElements = useElements();
 
-  const localOuting = useSelector((state: RootState) => state.outing.details);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+  const bookingDetails = useSelector((state: RootState) => state.booking.bookingDetails);
+  const account = useSelector((state: RootState) => state.auth.account);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
-  const { data: outingData, isLoading: outingIsLoading } = useGetOutingQuery({ input: { id: outingId } });
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
-  const [createBooking, { isLoading: createBookingIsLoading }] = useCreateBookingMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
+  const [confirmBooking, { isLoading: confirmBookingIsLoading }] = useConfirmBookingMutation();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
-  const [paymentError, setPaymentError] = useState<string | undefined>(undefined);
-  const [bookingError, setBookingError] = useState<string | undefined>(undefined);
-  const [isUsingNewCard, setIsUsingNewCard] = useState(false);
+  const [paymentError] = useState<string | undefined>(undefined);
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
-  const [outing, setOuting] = useState<Outing | null>(localOuting);
 
-  const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading || submitDetailsIsLoading;
+  const [submissionIsLoading, setSubmissionIsLoading] = useState(false);
+
+  useEffect(() => {
+    setSubmissionIsLoading(updateDetailsIsLoading || submitDetailsIsLoading || confirmBookingIsLoading);
+  }, [updateDetailsIsLoading, submitDetailsIsLoading, confirmBookingIsLoading]);
+
   // only prevent submit on internalError since that can be fixed w/o another submit
-  const submitButtonDisabled = !!(submissionIsLoading || listDetailsIsLoading || internalReserverDetailError);
+  const submitButtonDisabled = !!(submissionIsLoading || listDetailsIsLoading);
   const reserverDetailError = internalReserverDetailError || externalReserverDetailError;
-  const error = [paymentError, bookingError].filter((e) => e).join("\n");
+  const error = [paymentError].filter((e) => e).join("\n");
 
   function checkReserverDetailsInputs(details: ReserverFormFields) {
     if (details.firstName.length === 0) {
@@ -172,15 +184,6 @@ const CheckoutForm = ({
     }
   }, [reserverDetailsData]);
 
-  useEffect(() => {
-    if (outingData) {
-      // prefer in-memory data (if vailable)
-      if (!outing) {
-        setOuting(outingData.outing);
-      }
-    }
-  }, [outingData]);
-
   const handleReserverDetailChange = useCallback(
     (key: keyof ReserverFormFields, value: string) => {
       const newDetails = {
@@ -196,23 +199,25 @@ const CheckoutForm = ({
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+
       if (!stripeClient || !stripeElements) {
         console.warn("stripe not loaded; must wrap in StripeElementsProvider");
         return;
       }
       setInternalReserverDetailError(undefined);
-      const isPaidActivity = hasPaidActivity(outing);
-      // clone reserverDetails state so we can mutate values w/ network responses
-      const bookingDetails = { ...reserverDetails };
+      setSubmissionIsLoading(true);
+
+      const isPaidActivity = isPaidOuting(bookingDetails);
+
       try {
-        if (outing?.restaurant) {
+        if (bookingDetails?.reservation) {
           // if the reserver details dont have db ID yet, create a new entry
           if (reserverDetails.id.length === 0) {
             const submitDetailsResp = await submitReserverDetails({
               input: {
-                firstName: bookingDetails.firstName,
-                lastName: bookingDetails.lastName,
-                phoneNumber: bookingDetails.phoneNumber,
+                firstName: reserverDetails.firstName,
+                lastName: reserverDetails.lastName,
+                phoneNumber: reserverDetails.phoneNumber,
               },
             });
             switch (submitDetailsResp.data?.viewer.__typename) {
@@ -220,8 +225,7 @@ const CheckoutForm = ({
                 const createdData = submitDetailsResp.data.viewer.submitReserverDetails;
                 switch (createdData?.__typename) {
                   case "SubmitReserverDetailsSuccess": {
-                    bookingDetails.id = createdData.reserverDetails.id;
-                    dispatch(storeReserverDetails({ details: bookingDetails }));
+                    dispatch(storeReserverDetails({ details: createdData.reserverDetails }));
                     // allow success case to continue execution
                     break;
                   }
@@ -238,7 +242,9 @@ const CheckoutForm = ({
                     }
                     return;
                   default:
-                    throw new Error("Unexected Graphql result");
+                    console.error("Unexected Graphql result");
+                    setSubmissionIsLoading(false);
+                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -250,8 +256,9 @@ const CheckoutForm = ({
               default:
                 if (submitDetailsResp.error) {
                   // 500 error
-                  console.debug(submitDetailsResp.error);
-                  throw new Error("Graphql error");
+                  console.error(submitDetailsResp.error);
+                  setSubmissionIsLoading(false);
+                  return;
                 }
                 break;
             }
@@ -260,10 +267,10 @@ const CheckoutForm = ({
           else {
             const updateDetailsResp = await updateReserverDetails({
               input: {
-                id: bookingDetails.id,
-                firstName: bookingDetails.firstName,
-                lastName: bookingDetails.lastName,
-                phoneNumber: bookingDetails.phoneNumber,
+                id: reserverDetails.id,
+                firstName: reserverDetails.firstName,
+                lastName: reserverDetails.lastName,
+                phoneNumber: reserverDetails.phoneNumber,
               },
             });
             switch (updateDetailsResp.data?.viewer.__typename) {
@@ -285,9 +292,12 @@ const CheckoutForm = ({
                         console.error("Unhandled case for UpdateReserverDetailsFailure", updatedData.failureReason);
                         break;
                     }
+                    setSubmissionIsLoading(false);
                     return;
                   default:
-                    throw new Error("Unexected Graphql result");
+                    console.error("Unexected Graphql result");
+                    setSubmissionIsLoading(false);
+                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -299,105 +309,103 @@ const CheckoutForm = ({
               default:
                 if (updateDetailsResp.error) {
                   // 500 error
-                  console.debug(updateDetailsResp.error);
-                  throw new Error("Graphql error");
+                  console.error(updateDetailsResp.error);
+                  setSubmissionIsLoading(false);
+                  return;
                 }
                 break;
             }
           }
         }
 
-        if (isPaidActivity) {
-          const serverHasNoPaymentDetails = false;
-          if (serverHasNoPaymentDetails) {
-            // TODO: create payment details
-          } else {
-            // TODO: update payment details
-          }
-        }
-
-        const createBookingResp = await createBooking({
-          input: {
-            reserverDetailsId: bookingDetails.id,
-            outingId,
-          },
-        });
-        switch (createBookingResp.data?.viewer.__typename) {
-          case "AuthenticatedViewerMutations": {
-            const createdData = createBookingResp.data?.viewer.createBooking;
-            switch (createdData?.__typename) {
-              case "CreateBookingSuccess":
-                navigate(AppRoute.checkoutComplete);
-                // allow success case to continue execution
-                break;
-              case "CreateBookingFailure":
-                switch (createdData.failureReason) {
-                  case CreateBookingFailureReason.ValidationErrors: {
-                    // TODO: when would this happen????
-                    const invalidFields = createdData.validationErrors?.map((e) => e.field).join(", ");
-                    setBookingError(`The following fields are invalid: ${invalidFields}`);
-                    break;
-                  }
-                  default:
-                    console.error("Unhandled case for CreateBookingFailure", createdData.failureReason);
-                    break;
-                }
-                return;
-              default:
-                throw new Error("Unexected Graphql result");
-            }
-            // allow success case to continue execution
-            break;
-          }
-          case "UnauthenticatedViewer":
-            dispatch(loggedOut());
-            window.location.assign(AppRoute.logout);
-            return;
-          default:
-            if (createBookingResp.error) {
-              // 500 error
-              console.debug(createBookingResp.error);
-              throw new Error("Graphql error");
-            }
-            break;
-        }
+        const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: bookingDetails!.id });
 
         // execute the payment
         if (isPaidActivity) {
-          // TODO: send w/ existing payment details when not using new card
-          if (isUsingNewCard) {
-            const response = await stripeClient.confirmPayment({
-              elements: stripeElements,
-              clientSecret: "", // This property is required but already provided by stripeElements
-              confirmParams: {
-                return_url: `${window.location.origin}${AppRoute.checkoutComplete}`,
-              },
-            });
+          const { error: confirmPaymentError } = await stripeClient.confirmPayment({
+            elements: stripeElements,
+            redirect: "if_required",
+            confirmParams: {
+              return_url: `${window.location.origin}${returnPath}`,
+              save_payment_method: true,
+              receipt_email: account?.email,
+            },
+          });
 
-            if (response.error) {
-              console.error(response.error);
-              setPaymentError(response.error.message);
-              return;
-            }
+          if (confirmPaymentError) {
+            setSubmissionIsLoading(false);
+            console.error(confirmPaymentError.message, confirmPaymentError);
+            setInternalReserverDetailError("There was an error submitting your payment.");
+            return;
           }
         }
-      } catch {
+
+        const { data: confirmBookingData, error: confirmBookingError } = await confirmBooking({
+          input: {
+            bookingId: bookingDetails!.id,
+          },
+        });
+
+        if (confirmBookingError || !confirmBookingData) {
+          console.error(confirmBookingError);
+          setInternalReserverDetailError("There was an error during booking.");
+          setSubmissionIsLoading(false);
+          return;
+        }
+
+        switch (confirmBookingData.viewer.__typename) {
+          case "AuthenticatedViewerMutations": {
+            switch (confirmBookingData.viewer.confirmBooking.__typename) {
+              case "ConfirmBookingSuccess": {
+                navigate(returnPath);
+                break;
+              }
+              case "ConfirmBookingFailure": {
+                console.error(`failure: ${confirmBookingData.viewer.confirmBooking.failureReason}`);
+                setInternalReserverDetailError("There was an error during booking.");
+                setSubmissionIsLoading(false);
+                return;
+              }
+              default: {
+                console.error("unexpected graphql response");
+                setInternalReserverDetailError("There was an error during booking.");
+                setSubmissionIsLoading(false);
+                return;
+              }
+            }
+            break;
+          }
+          case "UnauthenticatedViewer": {
+            dispatch(loggedOut());
+            window.location.assign(AppRoute.logout);
+            return;
+          }
+          default: {
+            console.error("unexpected graphql response");
+            setInternalReserverDetailError("There was an error during booking.");
+            setSubmissionIsLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
         // network error
+        console.error(e);
+        setSubmissionIsLoading(false);
         setInternalReserverDetailError("Unable to book your outing. Please try again later.");
       }
     },
-    [reserverDetails, stripeClient, stripeElements, outing],
+    [reserverDetails, stripeClient, stripeElements, bookingDetails],
   );
 
-  const requiresPayment = hasPaidActivity(outing);
+  const requiresPayment = isPaidOuting(bookingDetails);
   // when outing has been completely loaded into state & doesnt cost anything, use diff UI
-  const usingAltUI = !requiresPayment && !outingIsLoading && outing;
+  const usingAltUI = !requiresPayment;
   const Wrapper = usingAltUI ? FormPaper : PlainDiv;
   const PageContainer = usingAltUI ? AltPageContainer : PlainDiv;
 
   return (
     <PageContainer>
-      {showCostBreakdown && requiresPayment && <CostBreakdown outing={outing!} />}
+      {showCostBreakdown && requiresPayment && <CostBreakdown itinerary={bookingDetails!} />}
 
       <Wrapper>
         {usingAltUI && (
@@ -415,14 +423,7 @@ const CheckoutForm = ({
             showStripeBadge={showStripeBadge && requiresPayment}
           />
 
-          {/* TODO pass real payment data */}
-          {requiresPayment && (
-            <PaymentForm
-              paymentDetails="Visa *1234"
-              isUsingNewCard={isUsingNewCard}
-              setIsUsingNewCard={setIsUsingNewCard}
-            />
-          )}
+          {requiresPayment && <PaymentForm />}
 
           {error && (
             <InputErrorContainer>
@@ -450,27 +451,119 @@ const CheckoutForm = ({
   );
 };
 
-/**
- * This wrapper is necessary to make stripe hooks available inside the
- * CheckoutForm component where all the logic is.
- * The StripeElementsProvider can't be put in the App.tsx providers
- * component because it requires the user to be authed, which we don't want
- * in our App root.
- */
-const CheckoutReservation = ({
-  outingId,
-  showStripeBadge,
-  showCostBreakdown,
-}: {
-  outingId: string;
-  showStripeBadge?: boolean;
-  showCostBreakdown?: boolean;
-}) => {
+const stripePromise = loadStripe(myWindow.app.stripePublishableKey!);
+
+const stripeElementsAppearance: Appearance = {
+  theme: "night",
+  labels: "floating",
+  variables: {
+    colorPrimary: colors.almostBlackBG,
+    fontFamily: `${fontFamilies.inter}, system-ui, sans-serif`,
+    gridColumnSpacing: "0px",
+    gridRowSpacing: "0px",
+    borderRadius: "0px",
+    colorBackground: colors.fieldBackground.primary,
+    colorText: colors.whiteText,
+  },
+  rules: {
+    ".Error": {
+      paddingBottom: "8px",
+    },
+  },
+};
+
+const CheckoutFormStripeElementsProvider = ({ outingId }: { outingId: string }) => {
+  const dispatch = useDispatch();
+
+  const {
+    data: initiateBookingData,
+    isLoading: initiateBookingIsLoading,
+    error: initiateBookingError,
+  } = useInitiateBookingQuery({
+    input: {
+      outingId,
+    },
+  });
+
+  useEffect(() => {
+    if (
+      initiateBookingData?.viewer.__typename === "AuthenticatedViewerMutations" &&
+      initiateBookingData.viewer.initiateBooking.__typename === "InitiateBookingSuccess"
+    ) {
+      dispatch(setBookingDetails({ bookingDetails: initiateBookingData.viewer.initiateBooking.booking }));
+    }
+  }, [initiateBookingData]);
+
+  if (initiateBookingIsLoading || !initiateBookingData) {
+    return (
+      <CenteringContainer>
+        <CircularProgress color="secondary" />
+      </CenteringContainer>
+    );
+  }
+
+  const errorView = (
+    <CenteringContainer>
+      <ErrorText variant="h2">Unable to process payments right now. Please try again later.</ErrorText>
+    </CenteringContainer>
+  );
+
+  if (initiateBookingError) {
+    console.error(initiateBookingError);
+    return errorView;
+  }
+
+  switch (initiateBookingData.viewer.__typename) {
+    case "AuthenticatedViewerMutations": {
+      break;
+    }
+    case "UnauthenticatedViewer": {
+      console.error("unauthenticated user");
+      dispatch(loggedOut());
+      window.location.assign(AppRoute.logout);
+      return;
+    }
+    default: {
+      console.error("unexepected graphql response viewer type");
+      return errorView;
+    }
+  }
+
+  switch (initiateBookingData.viewer.initiateBooking.__typename) {
+    case "InitiateBookingSuccess": {
+      // Already handled in useEffect above
+      break;
+    }
+    case "InitiateBookingFailure": {
+      console.error(`failure: ${initiateBookingData.viewer.initiateBooking.failureReason}`);
+      return errorView;
+    }
+    default: {
+      console.error("unexepected graphql response InitiateBookingResult type");
+      return errorView;
+    }
+  }
+
+  let fonts: Array<CssFontSource | CustomFontSource> | undefined = undefined;
+
+  // Get the CSS Font source from the <link> tag in the document header.
+  const globalFontSrcElement = document.getElementById("global-font-src") as HTMLLinkElement;
+  const fontUrl = globalFontSrcElement?.href;
+  if (fontUrl) {
+    fonts = [{ cssSrc: fontUrl }];
+  }
+
+  const clientSecret = initiateBookingData.viewer.initiateBooking.paymentIntent?.clientSecret;
+  const customerSessionClientSecret = initiateBookingData.viewer.initiateBooking.customerSession?.clientSecret;
+
   return (
-    <StripeElementsProvider>
-      <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
-    </StripeElementsProvider>
+    <Elements
+      stripe={stripePromise}
+      options={{ clientSecret, customerSessionClientSecret, appearance: stripeElementsAppearance, fonts: fonts }}
+    >
+      <CheckoutForm showStripeBadge showCostBreakdown />
+    </Elements>
   );
 };
 
-export default CheckoutReservation;
+export default CheckoutFormStripeElementsProvider;

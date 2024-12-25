@@ -2,6 +2,7 @@ import { RootState } from "$eave-dashboard/js/store";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
+import { formatPhoneNumber } from "$eave-dashboard/js/util/phoneNumber";
 import { CircularProgress, Typography, styled } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
@@ -23,8 +24,8 @@ const FieldsContainer = styled("div")(() => ({
 const RoundableInput = styled(Input)<{ rounded: Corner[] }>(({ theme, rounded }) => ({
   padding: "5px 16px",
   fontFamily: fontFamilies.inter,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
+  fontSize: rem(16),
+  lineHeight: rem(30),
   borderStyle: "solid",
   borderWidth: 1,
   borderColor: theme.palette.grey[800],
@@ -40,8 +41,8 @@ const NameInputContainer = styled("div")(() => ({
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -70,7 +71,7 @@ const CenteringContainer = styled("div")(() => ({
 }));
 
 const StripeImg = styled("img")(() => ({
-  height: rem("24px"),
+  height: rem(24),
   maxHeight: 32,
 }));
 
@@ -117,19 +118,24 @@ const ReservationDetailsForm = ({
               value={reserverDetails.firstName}
               onChange={(e) => onChange("firstName", e.target.value)}
               rounded={[Corner.TOP_LEFT]}
+              required
             />
             <RoundableInput
               placeholder="Last name"
               value={reserverDetails.lastName}
               onChange={(e) => onChange("lastName", e.target.value)}
               rounded={[Corner.TOP_RIGHT]}
+              required
             />
           </NameInputContainer>
           <RoundableInput
             placeholder="Phone #"
             value={reserverDetails.phoneNumber}
             onChange={(e) => onChange("phoneNumber", e.target.value)}
+            onKeyUp={formatPhoneNumber}
             rounded={shouldShowEmail ? [] : [Corner.BOTTOM_LEFT, Corner.BOTTOM_RIGHT]}
+            required
+            type="tel"
           />
           {shouldShowEmail && (
             <RoundableInput
@@ -137,6 +143,8 @@ const ReservationDetailsForm = ({
               contentEditable={false}
               disabled={true}
               rounded={[Corner.BOTTOM_LEFT, Corner.BOTTOM_RIGHT]}
+              required
+              type="email"
             />
           )}
         </FieldsContainer>

@@ -1,5 +1,0 @@
-mutation ReplanOuting($input: ReplanOutingInput!) {
-  replanOuting(input: $input) {
-    ...ReplanOutingFields
-  }
-}

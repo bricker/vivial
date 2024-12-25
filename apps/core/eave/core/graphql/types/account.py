@@ -9,10 +9,8 @@ from eave.core.orm.account import AccountOrm
 class Account:
     id: UUID
     email: str
+    stripe_customer_id: str | None
 
     @classmethod
     def from_orm(cls, orm: AccountOrm) -> "Account":
-        return Account(
-            id=orm.id,
-            email=orm.email,
-        )
+        return Account(id=orm.id, email=orm.email, stripe_customer_id=orm.stripe_customer_id)

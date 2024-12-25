@@ -1,6 +1,7 @@
 from collections.abc import MutableMapping
 from typing import Literal
 
+from eave.core._database_setup import get_base_metadata
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -32,7 +33,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-target_metadata = eave.core.orm.base.get_base_metadata()
+target_metadata = get_base_metadata()
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

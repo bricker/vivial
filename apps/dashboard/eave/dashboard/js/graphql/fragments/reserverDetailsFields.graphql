@@ -1,0 +1,6 @@
+fragment ReserverDetailsFields on ReserverDetails {
+  id
+  firstName
+  lastName
+  phoneNumber
+}

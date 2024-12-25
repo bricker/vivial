@@ -11,7 +11,7 @@ interface LoadingButtonProps extends ButtonProps {
 const CustomLoadingButton = styled(Button)(({ theme }: { theme: Theme }) => ({
   color: theme.palette.common.black,
   backgroundColor: theme.palette.primary.main,
-  height: rem("52px"),
+  height: rem(52),
   borderRadius: 100,
   "&.Mui-disabled": {
     color: theme.palette.common.black,

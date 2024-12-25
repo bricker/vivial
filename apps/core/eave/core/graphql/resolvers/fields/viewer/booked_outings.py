@@ -4,98 +4,111 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
-from eave.core.lib.event_helpers import get_activity, get_restaurant
-from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
-from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
+from eave.core.graphql.types.activity import ActivityPlan
+from eave.core.graphql.types.booking import BookingDetails, BookingDetailsPeek
+from eave.core.graphql.types.restaurant import Reservation
+from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
+from eave.core.orm.account import AccountOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.shared.enums import BookingState
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
 
 async def _get_booking_details(
-    booking_id: UUID,
+    booking_orm: BookingOrm,
 ) -> BookingDetails:
-    activities_query = BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking_id)
-    reservations_query = BookingReservationTemplateOrm.select().where(
-        BookingReservationTemplateOrm.booking_id == booking_id
-    )
+    # NOTE: only getting 1 (or None) result here instead of full scalars result since
+    # response type only accepts one of each
 
-    async with database.async_session.begin() as session:
-        # NOTE: only getting 1 (or None) result here instead of full scalars result since
-        # response type only accepts one of each
-        activity = await session.scalar(activities_query)
-        reservation = await session.scalar(reservations_query)
+    activity_plan: ActivityPlan | None = None
+    reservation: Reservation | None = None
 
-    details = BookingDetails(
-        id=booking_id,
-        headcount=0,
-        activity=None,
-        activity_start_time=None,
-        restaurant=None,
-        restaurant_arrival_time=None,
-        driving_time=None,  # TODO: can we fill this in?
-    )
+    if len(booking_orm.activities) > 0:
+        activity_orm = booking_orm.activities[0]
 
-    if activity:
-        details.activity_start_time = activity.start_time_local
-        details.activity = await get_activity(
-            source_id=activity.source_id,
-            source=activity.source,
+        activity = await resolve_activity_details(
+            source_id=activity_orm.source_id,
+            source=activity_orm.source,
+            survey=booking_orm.outing.survey if booking_orm.outing else None,
         )
-        details.headcount = max(details.headcount, activity.headcount)
 
-    if reservation:
-        details.restaurant_arrival_time = reservation.start_time_local
-        details.restaurant = await get_restaurant(
-            source_id=reservation.source_id,
-            source=reservation.source,
+        if activity:
+            activity_plan = ActivityPlan(
+                activity=activity,
+                start_time=activity_orm.start_time_local,
+                headcount=activity_orm.headcount,
+            )
+
+    if len(booking_orm.reservations) > 0:
+        reservation_orm = booking_orm.reservations[0]
+        restaurant = await resolve_restaurant_details(
+            source_id=reservation_orm.source_id,
+            source=reservation_orm.source,
         )
-        details.headcount = max(details.headcount, reservation.headcount)
 
-    return details
+        reservation = Reservation(
+            restaurant=restaurant,
+            arrival_time=reservation_orm.start_time_local,
+            headcount=reservation_orm.headcount,
+        )
+
+    return BookingDetails(
+        id=booking_orm.id,
+        state=booking_orm.state,
+        survey=None,
+        activity_plan=activity_plan,
+        reservation=reservation,
+    )
 
 
 async def list_bookings_query(
     *,
     info: strawberry.Info[GraphQLContext],
-) -> list[BookingDetailPeek]:
+) -> list[BookingDetailsPeek]:
     account_id = unwrap(info.context.get("authenticated_account_id"))
-    query = BookingOrm.select().where(BookingOrm.account_id == account_id)
-    booking_details = []
 
     async with database.async_session.begin() as db_session:
-        booking_orms = await db_session.scalars(query)
+        account = await AccountOrm.get_one(db_session, account_id)
 
-        for booking in booking_orms:
-            activities_query = BookingActivityTemplateOrm.select().where(
-                BookingActivityTemplateOrm.booking_id == booking.id
-            )
-            reservations_query = BookingReservationTemplateOrm.select().where(
-                BookingReservationTemplateOrm.booking_id == booking.id
-            )
-            # NOTE: only getting 1 (or None) result here instead of full scalars result since
-            # response type only accepts one of each
-            activity = await db_session.scalar(activities_query)
-            reservation = await db_session.scalar(reservations_query)
+    booking_peeks = []
 
+    for booking in sorted(account.bookings, key=lambda booking: booking.start_time_utc):
+        if booking.state != BookingState.CONFIRMED:
+            # Only show the user confirmed bookings
+            continue
+
+        # NOTE: only getting 1 (or None) result here instead of full scalars result since
+        # response type only accepts one of each
+        activity_orm: BookingActivityTemplateOrm | None = None
+        reservation_orm: BookingReservationTemplateOrm | None = None
+
+        if len(booking.activities) > 0:
+            activity_orm = booking.activities[0]
+
+        if len(booking.reservations) > 0:
+            reservation_orm = booking.reservations[0]
+
+        if activity_orm and activity_orm.photo_uri:
+            photo_uri = activity_orm.photo_uri
+        elif reservation_orm and reservation_orm.photo_uri:
+            photo_uri = reservation_orm.photo_uri
+        else:
             photo_uri = None
-            if reservation and reservation.photo_uri:
-                photo_uri = reservation.photo_uri
-            if activity and activity.photo_uri:
-                photo_uri = activity.photo_uri
 
-            booking_details.append(
-                BookingDetailPeek(
-                    id=booking.id,
-                    activity_start_time=activity.start_time_local if activity else None,
-                    activity_name=activity.name if activity else None,
-                    restaurant_name=reservation.name if reservation else None,
-                    restaurant_arrival_time=reservation.start_time_local if reservation else None,
-                    photo_uri=photo_uri,
-                )
+        booking_peeks.append(
+            BookingDetailsPeek(
+                id=booking.id,
+                activity_start_time=activity_orm.start_time_local if activity_orm else None,
+                activity_name=activity_orm.name if activity_orm else None,
+                restaurant_name=reservation_orm.name if reservation_orm else None,
+                restaurant_arrival_time=reservation_orm.start_time_local if reservation_orm else None,
+                photo_uri=photo_uri,
+                state=booking.state,
             )
+        )
 
-    return booking_details
+    return booking_peeks
 
 
 @strawberry.input
@@ -107,16 +120,19 @@ async def get_booking_details_query(
     *,
     info: strawberry.Info[GraphQLContext],
     input: GetBookingDetailsQueryInput,
-) -> BookingDetails:
+) -> BookingDetails | None:
     account_id = unwrap(info.context.get("authenticated_account_id"))
-    query = BookingOrm.select().where(BookingOrm.account_id == account_id).where(BookingOrm.id == input.booking_id)
 
-    # validate the requesting account owns the booking requested
-    async with database.async_session.begin() as db_session:
-        booking_orm = (await db_session.scalars(query)).one()
+    async with database.async_session.begin() as session:
+        account = await AccountOrm.get_one(session, account_id)
+
+    booking_orm = account.get_booking(booking_id=input.booking_id)
+    if not booking_orm or booking_orm.state != BookingState.CONFIRMED:
+        LOGGER.warning("Booking not found or invalid state", {"bookingId": str(input.booking_id)})
+        return None
 
     detail = await _get_booking_details(
-        booking_id=booking_orm.id,
+        booking_orm=booking_orm,
     )
 
     return detail

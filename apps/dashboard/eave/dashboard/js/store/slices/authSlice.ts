@@ -1,14 +1,10 @@
 import { getVisitorId, identify } from "$eave-dashboard/js/analytics/segment";
+import type { AccountFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
-
-interface Account {
-  id: string;
-  email: string;
-}
 
 export interface AuthState {
   isLoggedIn: boolean | null;
-  account: Account | null;
+  account: AccountFieldsFragment | null;
 }
 
 const initialState: AuthState = {
@@ -20,7 +16,7 @@ export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    loggedIn: (state, action: { payload: { account: Account } }) => {
+    loggedIn: (state, action: { payload: { account: AccountFieldsFragment } }) => {
       state.isLoggedIn = true;
       state.account = action.payload.account;
       getVisitorId()

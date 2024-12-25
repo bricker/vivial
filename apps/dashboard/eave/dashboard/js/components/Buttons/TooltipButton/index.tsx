@@ -9,6 +9,7 @@ import TooltipIcon from "../../Icons/TooltipIcon";
 interface TooltipButtonProps {
   info: string;
   iconColor?: string;
+  iconLarge?: boolean;
 }
 
 const Button = styled(IconButton)(() => ({
@@ -22,8 +23,8 @@ const tooltipStyles = {
   padding: "24px",
   borderRadius: "8px",
   maxWidth: 260,
-  fontSize: rem("14px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(14),
+  lineHeight: rem(16),
   backgroundColor: tooltipBgStyle,
   border: tooltipBorderStyle,
 };
@@ -34,11 +35,11 @@ const arrowStyles = {
   },
 };
 
-const TooltipButton = ({ info, iconColor }: TooltipButtonProps) => {
+const TooltipButton = ({ info, iconColor, iconLarge }: TooltipButtonProps) => {
   return (
     <Tooltip slotProps={{ tooltip: { sx: tooltipStyles }, arrow: { sx: arrowStyles } }} title={info} arrow>
       <Button>
-        <TooltipIcon color={iconColor} />
+        <TooltipIcon color={iconColor} large={iconLarge} />
       </Button>
     </Tooltip>
   );

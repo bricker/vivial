@@ -2,7 +2,31 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import React from "react";
 import { IconProps } from "../types";
 
-const TooltipIcon = ({ color = colors.mediumPurpleAccent }: IconProps) => {
+interface TooltipIconProps extends IconProps {
+  large?: boolean;
+}
+
+const TooltipIcon = ({ color = colors.mediumPurpleAccent, large = false }: TooltipIconProps) => {
+  if (large) {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path
+          d="M8.25 8.23453C8.25 7.82031 8.58579 7.48453 9 7.48453C9.41421 7.48453 9.75 7.82031 9.75 8.23453V12.7345C9.75 13.1487 9.41421 13.4845 9 13.4845C8.58579 13.4845 8.25 13.1487 8.25 12.7345V8.23453Z"
+          fill={color}
+        />
+        <path
+          d="M9 4.53836C8.58579 4.53836 8.25 4.87415 8.25 5.28836C8.25 5.70257 8.58579 6.03836 9 6.03836C9.41421 6.03836 9.75 5.70257 9.75 5.28836C9.75 4.87415 9.41421 4.53836 9 4.53836Z"
+          fill={color}
+        />
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M9 1.5C4.85786 1.5 1.5 4.85786 1.5 9C1.5 13.1421 4.85786 16.5 9 16.5C13.1421 16.5 16.5 13.1421 16.5 9C16.5 4.85786 13.1421 1.5 9 1.5ZM3 9C3 12.3137 5.68629 15 9 15C12.3137 15 15 12.3137 15 9C15 5.68629 12.3137 3 9 3C5.68629 3 3 5.68629 3 9Z"
+          fill={color}
+        />
+      </svg>
+    );
+  }
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path

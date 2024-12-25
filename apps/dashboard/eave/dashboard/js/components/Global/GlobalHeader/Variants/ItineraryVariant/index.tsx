@@ -1,13 +1,12 @@
 import VivialLogo from "$eave-dashboard/js/components/Logo";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-
+import { formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { styled } from "@mui/material";
+
 import React, { useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-
-import { getTotalCost } from "$eave-dashboard/js/components/Pages/DateItineraryPage/helpers";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import Typography from "@mui/material/Typography";
@@ -24,24 +23,26 @@ const Cost = styled("span")(() => ({
 
 const ItineraryVariant = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const cost = getTotalCost(outing);
   const navigate = useNavigate();
 
   const handleBook = useCallback(() => {
-    navigate(`${AppRoute.checkout}/${outing?.id}`);
+    if (outing?.id) {
+      const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
+      navigate(reservePath);
+    }
   }, [outing]);
+
+  if (!outing) {
+    return null;
+  }
 
   return (
     <Header>
       <VivialLogo hideText />
-      {cost && (
-        <Typography variant="subtitle1">
-          Total: <Cost>{cost}</Cost>
-        </Typography>
-      )}
-      <BookButton onClick={handleBook} disabled={!outing}>
-        Book
-      </BookButton>
+      <Typography variant="subtitle1">
+        Total: <Cost>{formatTotalCost(outing.costBreakdown)}</Cost>
+      </Typography>
+      <BookButton onClick={handleBook}>Book</BookButton>
     </Header>
   );
 };

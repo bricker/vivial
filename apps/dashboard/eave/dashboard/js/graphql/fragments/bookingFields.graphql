@@ -1,0 +1,17 @@
+fragment BookingFields on Booking {
+  id
+  state
+  reserverDetails {
+    ...ReserverDetailsFields
+  }
+}
+
+fragment BookingDetailsPeekFields on BookingDetailsPeek {
+  id
+  activityStartTime
+  restaurantArrivalTime
+  activityName
+  restaurantName
+  photoUri
+  state
+}

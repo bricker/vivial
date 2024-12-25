@@ -1,0 +1,15 @@
+query BookingDetails($input: GetBookingDetailsQueryInput!) {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      bookedOutingDetails(input: $input) {
+        ...ItineraryFields
+        ...TravelFields
+      }
+    }
+    ... on UnauthenticatedViewer {
+      authFailureReason
+    }
+  }
+}

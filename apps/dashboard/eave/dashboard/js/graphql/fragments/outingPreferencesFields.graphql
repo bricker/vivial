@@ -1,0 +1,8 @@
+fragment OutingPreferencesFields on OutingPreferences {
+  restaurantCategories {
+    ...RestaurantCategoryFields
+  }
+  activityCategories {
+    ...ActivityCategoryFields
+  }
+}

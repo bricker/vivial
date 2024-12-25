@@ -1,18 +1,45 @@
-from datetime import timedelta
+import random
+from collections.abc import Sequence
+from datetime import datetime, timedelta
+from uuid import UUID
 
-from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.stdlib.time import ONE_DAY_IN_SECONDS
+from eave.core.shared.enums import OutingBudget
+from eave.core.shared.geo import Distance, GeoArea, GeoPoint
 
 from ..base import BaseTestCase
 
 
 class TestEventbriteEventOrm(BaseTestCase):
-    async def test_new_event_record(self) -> None:
+    def make_eventbrite_event_orm(self, session: AsyncSession) -> EventbriteEventOrm:
+        return EventbriteEventOrm(
+            session,
+            eventbrite_event_id=self.anystr("eventbrite_event_id"),
+            eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
+            title=self.anystr(),
+            google_place_id=self.anystr(),
+            vivial_activity_category_id=self.anyuuid(),
+            vivial_activity_format_id=self.anyuuid(),
+            start_time=self.anydatetime("start_time", past=True),
+            end_time=self.anydatetime("end_time", future=True),
+            timezone=self.anytimezone(),
+            min_cost_cents=self.anyint("min_cost", min=0, max=999),
+            max_cost_cents=self.anyint("max_cost", min=1000, max=9999),
+            lat=self.anylatitude("lat"),
+            lon=self.anylongitude("lon"),
+        )
+
+    async def test_eventbrite_event_new_event_record(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
-            obj.update(
+            obj = EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
                 title=self.anystr(),
+                google_place_id=None,
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
@@ -24,8 +51,6 @@ class TestEventbriteEventOrm(BaseTestCase):
                 lon=self.anylongitude("lon"),
             )
 
-            session.add(obj)
-
         async with self.db_session.begin() as session:
             obj = (
                 await session.scalars(
@@ -36,169 +61,249 @@ class TestEventbriteEventOrm(BaseTestCase):
             ).one()
 
             assert obj.eventbrite_event_id == self.getstr("eventbrite_event_id")
-            assert obj.time_range_utc.lower == self.getdatetime("start_time")
-            assert obj.time_range_utc.upper == self.getdatetime("end_time")
-            assert obj.cost_cents_range.lower == self.getint("min_cost")
-            assert obj.cost_cents_range.upper == self.getint("max_cost") + 1
+            assert obj.eventbrite_organizer_id == self.getstr("eventbrite_organizer_id")
+            assert obj.start_time_utc == self.getdatetime("start_time")
+            assert obj.end_time_utc == self.getdatetime("end_time")
+            assert obj.max_cost_cents == self.getint("max_cost")
             assert obj.timezone == self.gettimezone("timezone")
 
-    async def test_query_cost_range(self) -> None:
+    async def test_eventbrite_event_query_budget_1(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
-            obj.update(
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents  # Matches upper limit exactly
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (
+                await session.scalars(
+                    EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE),
+                )
+            ).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_2(self) -> None:
+        assert OutingBudget.EXPENSIVE.upper_limit_cents is not None  # for typechecker
+
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents + 100  # max cost above the budget
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_3(self) -> None:
+        assert OutingBudget.EXPENSIVE.upper_limit_cents is not None  # for typechecker
+
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents - 100  # max cost below the budget
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_3_1(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.MODERATE.upper_limit_cents  # max cost below the budget
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_4(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.VERY_EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.MODERATE.upper_limit_cents  # Min cost below budget max
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_5(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.MODERATE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.INEXPENSIVE.upper_limit_cents
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_6(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.VERY_EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents  # Exact budget match
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_7(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.VERY_EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents  # above budget
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.MODERATE))).all()
+
+            assert len(results) == 0
+
+    async def test_eventbrite_event_query_budget_8(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = 0
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.MODERATE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_9(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.MODERATE.upper_limit_cents
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.FREE))).all()
+
+            assert len(results) == 0
+
+    async def _setup_results(self, start_time: datetime, delta: timedelta) -> Sequence[EventbriteEventOrm]:
+        async with self.db_session.begin() as session:
+            EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr(),
+                eventbrite_organizer_id=self.anystr(),
                 title=self.anystr(),
+                google_place_id=None,
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
-                start_time=self.anydatetime("start_time", past=True),
-                end_time=self.anydatetime("end_time", future=True),
+                start_time=start_time,
+                end_time=start_time + timedelta(minutes=self.anyint(min=15, max=120)),
                 timezone=self.anytimezone(),
-                min_cost_cents=self.anyint("min_cost", min=0, max=999),
-                max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
-                lat=self.anylatitude("lat"),
-                lon=self.anylongitude("lon"),
+                min_cost_cents=self.anyint(min=0, max=1999),
+                max_cost_cents=self.anyint(min=2000, max=9999),
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
             )
 
-            session.add(obj)
-
         async with self.db_session.begin() as session:
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        cost_range_contains=self.getint("min_cost") - 1,  # out of range
+                        start_time=start_time + delta,
                     )
                 )
             ).all()
 
-            assert len(results) == 0, "query expected to fail, but found a result"
+        return results
 
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        cost_range_contains=self.getint("max_cost") + 1,  # out of range
-                    )
-                )
-            ).all()
+    async def test_eventbrite_event_query_start_time_20(self) -> None:
+        results = await self._setup_results(
+            self.anydatetime("start_time", future=True),
+            timedelta(minutes=-120),
+        )
+        assert len(results) == 0
 
-            assert len(results) == 0, "query expected to fail, but found a result"
+    async def test_eventbrite_event_query_start_time_21(self) -> None:
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=120))
+        assert len(results) == 0
 
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        cost_range_contains=self.getint("min_cost"),  # lower bound of range
-                    )
-                )
-            ).all()
+    async def test_eventbrite_event_query_start_time_22(self) -> None:
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=0))
+        assert len(results) == 1
 
-            assert len(results) == 1, "query failed, but a result was expected"
+    async def test_eventbrite_event_query_start_time_22_5(self) -> None:
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=16))
+        assert len(results) == 0
 
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        cost_range_contains=self.getint("max_cost"),  # upper bound of range
-                    )
-                )
-            ).all()
+    async def test_eventbrite_event_query_start_time_23(self) -> None:
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=-16))
+        assert len(results) == 0
 
-            assert len(results) == 1, "query failed, but a result was expected"
+    async def test_eventbrite_event_query_start_time_1(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 00), timedelta(minutes=45))
+        assert len(results) == 0
 
-    async def test_query_time_range(self) -> None:
+    async def test_eventbrite_event_query_start_time_2(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 00), timedelta(minutes=10))
+        assert len(results) == 1
+
+    async def test_eventbrite_event_query_start_time_3(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 00), timedelta(minutes=-5))
+        assert len(results) == 0
+
+    async def test_eventbrite_event_query_start_time_3_5(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 9, 59), timedelta(minutes=-5))
+        assert len(results) == 1
+
+    async def test_eventbrite_event_query_start_time_4(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 10), timedelta(minutes=5))
+        assert len(results) == 1
+
+    async def test_eventbrite_event_query_start_time_5(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 10), timedelta(minutes=-15))
+        assert len(results) == 0
+
+    async def test_eventbrite_event_query_start_time_6(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 10), timedelta(minutes=15))
+        assert len(results) == 0
+
+    async def test_eventbrite_event_query_start_time_7(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 30), timedelta(minutes=-10))
+        assert len(results) == 0
+
+    async def test_eventbrite_event_query_start_time_7_5(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 30), timedelta(minutes=5))
+        assert len(results) == 1
+
+    async def test_eventbrite_event_query_start_time_8(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 50), timedelta(minutes=12))
+        assert len(results) == 0
+
+    async def test_eventbrite_event_query_start_time_9(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 55), timedelta(minutes=10))
+        assert len(results) == 0
+
+    async def test_eventbrite_event_query_start_time_10(self) -> None:
+        results = await self._setup_results(datetime(2024, 12, 18, 10, 55), timedelta(minutes=-10))
+        assert len(results) == 1
+
+    async def test_eventbrite_event_query_search_area(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
-            obj.update(
+            EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
                 title=self.anystr(),
-                vivial_activity_category_id=self.anyuuid(),
-                vivial_activity_format_id=self.anyuuid(),
-                start_time=self.anydatetime("start_time", offset=-ONE_DAY_IN_SECONDS),
-                end_time=self.anydatetime("end_time", offset=ONE_DAY_IN_SECONDS),
-                timezone=self.anytimezone(),
-                min_cost_cents=self.anyint("min_cost", min=0, max=999),
-                max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
-                lat=self.anylatitude("lat"),
-                lon=self.anylongitude("lon"),
-            )
-
-            session.add(obj)
-
-        async with self.db_session.begin() as session:
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("start_time") - timedelta(minutes=1),  # out of range
-                    )
-                )
-            ).all()
-
-            assert len(results) == 0, "query expected to fail, but found a result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("end_time") + timedelta(minutes=1),  # out of range
-                    )
-                )
-            ).all()
-
-            assert len(results) == 0, "query expected to fail, but found a result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("start_time"),  # lower bound
-                    )
-                )
-            ).all()
-
-            assert len(results) == 1, "query failed, but expected 1 result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("start_time")
-                        + timedelta(minutes=1),  # just inside of the lower bound
-                    )
-                )
-            ).all()
-
-            assert len(results) == 1, "query failed, but expected 1 result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("end_time"),  # upper bound EXCLUSIVE
-                    )
-                )
-            ).all()
-
-            assert len(results) == 0, "query expected to fail, but found a result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("end_time")
-                        - timedelta(minutes=1),  # just inside of the upper bound
-                    )
-                )
-            ).all()
-
-            assert len(results) == 1, "query failed, but expected 1 result"
-
-    async def test_query_search_area(self) -> None:
-        async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
-            obj.update(
-                title=self.anystr(),
+                google_place_id=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime(past=True),
                 end_time=self.anydatetime(future=True),
                 timezone=self.anytimezone(),
-                min_cost_cents=self.anyint(min=0, max=999),
+                min_cost_cents=0,
                 max_cost_cents=self.anyint(min=1000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
-
-            session.add(obj)
 
         async with self.db_session.begin() as session:
             search_area = GeoArea(
@@ -230,11 +335,14 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             assert len(results) == 0, "query expected to fail, but found a result"
 
-    async def test_update_existing_record(self) -> None:
+    async def test_eventbrite_event_update_existing_record(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
-            obj.update(
+            EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
                 title=self.anystr(),
+                google_place_id=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
@@ -245,8 +353,6 @@ class TestEventbriteEventOrm(BaseTestCase):
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
-
-            session.add(obj)
 
         async with self.db_session.begin() as session:
             qobj = (
@@ -259,11 +365,12 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             qobj.update(
                 title=self.anystr("new title"),
+                google_place_id=None,
                 vivial_activity_category_id=self.anyuuid("new vivial_activity_category_id"),
                 vivial_activity_format_id=self.anyuuid("new vivial_activity_format_id"),
                 start_time=self.anydatetime("new start_time", past=True),
                 end_time=self.anydatetime("new end_time", future=True),
-                timezone=self.anytimezone(),
+                timezone=self.anytimezone("new timezone"),
                 min_cost_cents=self.anyint("new min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("new max_cost", min=1000, max=9999),
                 lat=self.anylatitude("new lat"),
@@ -283,6 +390,127 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert qobj.title == self.getdatetime("new title")
             assert qobj.vivial_activity_category_id == self.getdatetime("new vivial_activity_category_id")
             assert qobj.vivial_activity_format_id == self.getdatetime("new vivial_activity_format_id")
-            assert qobj.time_range_utc.upper == self.getdatetime("new end_time")
-            assert qobj.cost_cents_range.lower == self.getint("new min_cost")
-            assert qobj.cost_cents_range.upper == self.getint("new max_cost") + 1
+            assert qobj.start_time_utc == self.getdatetime("new start_time")
+            assert qobj.end_time_utc == self.getdatetime("new end_time")
+            assert qobj.max_cost_cents == self.getint("new max_cost")
+            assert qobj.min_cost_cents == self.getint("new min_cost")
+            assert qobj.timezone == self.gettimezone("new timezone")
+            assert qobj.coordinates_to_geopoint().lat == self.getlatitude("new lat")
+            assert qobj.coordinates_to_geopoint().lon == self.getlatitude("new lon")
+
+    async def _setup_eventbrite_events_for_query_by_activity_category(
+        self, activity_category_id: UUID
+    ) -> EventbriteEventOrm:
+        async with self.db_session.begin() as session:
+            obj = EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr(),
+                eventbrite_organizer_id=self.anystr(),
+                title=self.anystr(),
+                google_place_id=None,
+                vivial_activity_category_id=activity_category_id,
+                vivial_activity_format_id=self.anyuuid(),
+                start_time=self.anydatetime(past=True),
+                end_time=self.anydatetime(future=True),
+                timezone=self.anytimezone(),
+                min_cost_cents=self.anyint(min=0, max=999),
+                max_cost_cents=self.anyint(min=1000, max=9999),
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
+            )
+
+        return obj
+
+    async def test_eventbrite_event_query_vivial_activity_category_ids_1(self) -> None:
+        activity_category_id = random.choice(ActivityCategoryOrm.all()).id
+        obj = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id)
+
+        async with self.db_session.begin() as session:
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id]))
+            ).all()
+            assert len(result) == 1
+            assert result[0].id == obj.id
+
+    async def test_eventbrite_event_query_vivial_activity_category_ids_2(self) -> None:
+        activity_category_id_1 = random.choice(ActivityCategoryOrm.all()).id
+        activity_category_id_2 = random.choice(ActivityCategoryOrm.all()).id
+
+        await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
+        obj_2 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
+
+        async with self.db_session.begin() as session:
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))
+            ).all()
+            assert len(result) == 1
+            assert result[0].id == obj_2.id
+
+    async def test_eventbrite_event_query_vivial_activity_category_ids_3(self) -> None:
+        activity_category_id_1 = random.choice(ActivityCategoryOrm.all()).id
+        activity_category_id_2 = random.choice(ActivityCategoryOrm.all()).id
+
+        await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
+        await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
+        obj_2 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
+        obj_3 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
+
+        async with self.db_session.begin() as session:
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))
+            ).all()
+            assert len(result) == 2
+            assert result[0].id == obj_2.id
+            assert result[1].id == obj_3.id
+
+    async def test_eventbrite_event_query_vivial_activity_category_ids_4(self) -> None:
+        activity_category_id_1 = random.choice(ActivityCategoryOrm.all()).id
+        activity_category_id_2 = random.choice(ActivityCategoryOrm.all()).id
+
+        obj_1 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
+        obj_2 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
+        obj_3 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
+        obj_4 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
+
+        async with self.db_session.begin() as session:
+            result = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        vivial_activity_category_ids=[activity_category_id_1, activity_category_id_2]
+                    )
+                )
+            ).all()
+            assert len(result) == 4
+            assert result[0].id == obj_1.id
+            assert result[1].id == obj_2.id
+            assert result[2].id == obj_3.id
+            assert result[3].id == obj_4.id
+
+    async def test_eventbrite_event_query_vivial_activity_category_ids_5(self) -> None:
+        activity_category_id_1 = random.choice(ActivityCategoryOrm.all()).id
+        activity_category_id_2 = random.choice(ActivityCategoryOrm.all()).id
+
+        obj_1 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
+
+        async with self.db_session.begin() as session:
+            result = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        vivial_activity_category_ids=[activity_category_id_1, activity_category_id_2]
+                    )
+                )
+            ).all()
+            assert len(result) == 1
+            assert result[0].id == obj_1.id
+
+    async def test_eventbrite_event_query_vivial_activity_category_ids_6(self) -> None:
+        activity_category_id_1 = random.choice(ActivityCategoryOrm.all()).id
+        activity_category_id_2 = random.choice(ActivityCategoryOrm.all()).id
+
+        await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
+
+        async with self.db_session.begin() as session:
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))
+            ).all()
+            assert len(result) == 0

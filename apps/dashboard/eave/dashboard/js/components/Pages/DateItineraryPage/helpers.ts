@@ -1,31 +1,10 @@
-import { type Outing, type OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
-import { imageUrl } from "$eave-dashboard/js/util/asset";
-import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
+import {
+  ActivitySource,
+  type ActivityFieldsFragment,
+  type ItineraryFieldsFragment,
+  type PhotosFieldsFragment,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
-import { getMultiRegionLabel } from "$eave-dashboard/js/util/region";
-
-export function getTotalCost(outing: Outing | null): string | null {
-  if (outing?.activity) {
-    const { headcount, activity } = outing;
-    const ticketInfo = activity.ticketInfo;
-    if (ticketInfo) {
-      const cost = ticketInfo.cost || 0;
-      const fee = ticketInfo.fee || 0;
-      const tax = ticketInfo.tax || 0;
-      const totalCost = (cost + fee + tax) * headcount;
-      if (totalCost) {
-        return `$${(totalCost / 100).toFixed(2)}`;
-      }
-    }
-  }
-  return null;
-}
-
-export function getBackgroundImgUrl(_outing: Outing | null): string {
-  // TODO: return different URL based on search area id.
-  // NOTE: All of the images already exist in /static/images/regions
-  return imageUrl("regions/dtla.png");
-}
 
 export function getTimeLabel(startTime: Date): string {
   const weekday = getDayOfWeek(startTime);
@@ -35,8 +14,53 @@ export function getTimeLabel(startTime: Date): string {
   return `${weekday}, ${month} ${date} @${time}`;
 }
 
-export function getPlaceLabel(headcount: number, searchAreaIds: string[], budget: OutingBudget): string {
-  const regionLabel = getMultiRegionLabel(searchAreaIds);
-  const budgetLabel = getBudgetLabel(budget);
-  return `For ${headcount} • ${regionLabel} • ${budgetLabel}`;
+export function getImgUrls(photos: PhotosFieldsFragment): string[] {
+  let imgUrls: string[] = [];
+  if (!photos) {
+    return imgUrls;
+  }
+  if (photos.coverPhoto) {
+    imgUrls.push(photos.coverPhoto.src);
+  }
+  imgUrls = imgUrls.concat(photos.supplementalPhotos.map((p) => p.src));
+  return imgUrls;
+}
+
+export function getTicketInfo(itinerary: ItineraryFieldsFragment): string {
+  const activity = itinerary.activityPlan?.activity;
+  if (activity) {
+    if (activity.source === ActivitySource.Eventbrite) {
+      if (itinerary.headcount === 1) {
+        return `${itinerary.headcount} Ticket`;
+      }
+      return `${itinerary.headcount} Tickets`;
+    }
+    if (activity.source === ActivitySource.GooglePlaces) {
+      const primaryTypeName = activity.primaryTypeName?.toLocaleLowerCase();
+      if (primaryTypeName?.includes("bar")) {
+        return "Drinks";
+      }
+      if (primaryTypeName?.includes("ice cream")) {
+        return "Dessert";
+      }
+    }
+  }
+  return "Activity";
+}
+
+export function getActivityCategoryInfo(activity: ActivityFieldsFragment): string {
+  if (activity.primaryTypeName) {
+    return activity.primaryTypeName;
+  }
+  if (activity.categoryGroup?.name) {
+    return activity.categoryGroup.name;
+  }
+  return "";
+}
+
+export function getActivityVenueName(activity: ActivityFieldsFragment): string {
+  if (activity.source !== ActivitySource.GooglePlaces) {
+    return activity.venue.name;
+  }
+  return "";
 }

@@ -1,5 +1,6 @@
 import os
 import time
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 ONE_SECOND_IN_MS = 1000
@@ -26,3 +27,24 @@ LOS_ANGELES_TIMEZONE = ZoneInfo("America/Los_Angeles")
 def set_utc() -> None:
     os.environ["TZ"] = "UTC"
     time.tzset()
+
+
+def datetime_window(dt: datetime, *, minutes: int) -> tuple[datetime, datetime]:
+    """
+    Returns a window of size `minutes` around the given datetime, with the bounds quantized to the nearest `minutes`-minute interval below and above the given datetime.
+    For example, if 30 minutes is given, the window will always be a 30-minute window starting and ending at either :30 or :00,
+    regardless of where the given datetime falls within that window.
+    """
+
+    dt = dt.replace(second=0, microsecond=0)
+    one_second = timedelta(seconds=1)
+
+    lower = dt - one_second
+    lower -= timedelta(minutes=lower.minute % minutes)
+    lower = lower.replace(second=0)
+
+    upper = dt + timedelta(minutes=minutes)
+    upper -= timedelta(minutes=upper.minute % minutes)
+    upper = upper - one_second
+
+    return (lower, upper)

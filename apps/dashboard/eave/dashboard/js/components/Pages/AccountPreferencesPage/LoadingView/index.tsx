@@ -5,6 +5,8 @@ import React from "react";
 
 const ViewContainer = styled("div")(() => ({
   padding: "12px 16px 24px",
+  maxWidth: 600,
+  margin: "0 auto",
 }));
 
 const Skeleton = styled(BaseSkeleton)(() => ({

@@ -21,14 +21,18 @@ export function getAccentColor(categoryId?: string): string {
   return colors.lightOrangeAccent;
 }
 
-export function getDefaults(preferredCategories: Category[], categoryOptions: Category[]): Category[] {
-  if (preferredCategories?.length) {
+export function getDefaults({
+  preferredCategories,
+  allCategories,
+}: {
+  preferredCategories: Category[];
+  allCategories: Category[];
+}): Category[] {
+  if (preferredCategories.length) {
     return preferredCategories;
+  } else {
+    return allCategories.filter((category) => category.isDefault);
   }
-  if (categoryOptions?.length) {
-    return categoryOptions.filter((category) => category.isDefault);
-  }
-  return [];
 }
 
 export function initCollapsedGroups(groups: ActivityCategoryGroup[]): Map<string, boolean> {

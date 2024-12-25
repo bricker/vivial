@@ -38,8 +38,8 @@ const LabeledInfoContainer = styled("div")(() => ({
 
 const LabelText = styled("p")(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
+  fontSize: rem(16),
+  lineHeight: rem(30),
   fontFamily: fontFamilies.inter,
   fontWeight: 400,
   margin: 0,
@@ -47,8 +47,8 @@ const LabelText = styled("p")(({ theme }) => ({
 
 const ValueText = styled("p")(({ theme }) => ({
   color: theme.palette.text.primary,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
+  fontSize: rem(16),
+  lineHeight: rem(30),
   fontFamily: fontFamilies.inter,
   fontWeight: 400,
   margin: 0,
