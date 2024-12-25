@@ -1,10 +1,3 @@
-from uuid import UUID
-
-from httpx import Response
-
-from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
-from eave.core.orm.account import AccountOrm
-from eave.stdlib.analytics import SEGMENT_ANONYMOUS_ID_COOKIE_NAME
 from eave.stdlib.config import SHARED_CONFIG
 
 from ..base import BaseTestCase
@@ -36,8 +29,13 @@ class TestBillingPortalUrlQuery(BaseTestCase):
         assert data == self.geturl("billing portal url")
 
         assert self.get_mock("stripe.billing_portal.Session.create_async").call_count == 1
-        assert self.get_mock("stripe.billing_portal.Session.create_async").call_args_list[0].kwargs["customer"] == self.getstr("stripe customer id")
-        assert self.get_mock("stripe.billing_portal.Session.create_async").call_args_list[0].kwargs["return_url"] == f"{SHARED_CONFIG.eave_dashboard_base_url_public}/account"
+        assert self.get_mock("stripe.billing_portal.Session.create_async").call_args_list[0].kwargs[
+            "customer"
+        ] == self.getstr("stripe customer id")
+        assert (
+            self.get_mock("stripe.billing_portal.Session.create_async").call_args_list[0].kwargs["return_url"]
+            == f"{SHARED_CONFIG.eave_dashboard_base_url_public}/account"
+        )
 
     async def test_get_billing_portal_url_without_customer_id_available(self) -> None:
         async with self.db_session.begin() as session:

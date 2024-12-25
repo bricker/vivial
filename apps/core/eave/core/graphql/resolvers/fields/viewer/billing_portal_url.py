@@ -3,7 +3,6 @@ import stripe
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.account import Account
 from eave.core.orm.account import AccountOrm
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.util import unwrap

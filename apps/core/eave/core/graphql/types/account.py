@@ -1,10 +1,8 @@
 from uuid import UUID
 
 import strawberry
-import stripe
 
 from eave.core.orm.account import AccountOrm
-from eave.stdlib.config import SHARED_CONFIG
 
 
 @strawberry.type
