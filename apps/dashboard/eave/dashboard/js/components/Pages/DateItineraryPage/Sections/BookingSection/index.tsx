@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import {
+  ActivitySource,
   OutingBudget,
   type Itinerary,
   type PaymentMethodFieldsFragment,
@@ -378,8 +379,13 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           <>
             <CostItem>{activityPlan.activity.name} Tickets ...</CostItem>
             <CostItem>{formatBaseCost(activityPlan.costBreakdown)}</CostItem>
-            <CostItem>Service Fees & Taxes via Eventbrite ...</CostItem>
-            <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
+
+            {activityPlan.costBreakdown.taxCents + activityPlan.costBreakdown.feeCents > 0 && (
+              <>
+                <CostItem>{activityPlan.activity.source === ActivitySource.Eventbrite ? "Service Fees & Taxes via Eventbrite" : "Service Feeds & Taxes"} ...</CostItem>
+                <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
+              </>
+            )}
           </>
         )}
         <CostItem>Service Fees via Vivial ...</CostItem>

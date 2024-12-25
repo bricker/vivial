@@ -1,4 +1,4 @@
-import { type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
+import { ActivitySource, type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React, { Fragment } from "react";
@@ -80,7 +80,7 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   if (feesAndTaxesCents > 0) {
     breakdown.push({
       key: "taxesAndFees",
-      costName: "3rd party Service Fees & Taxes",
+      costName: itinerary.activityPlan?.activity.source === ActivitySource.Eventbrite ? "Service Fees & Taxes via Eventbrite" : "Service Fees & Taxes",
       costValue: formatFeesAndTaxes(itinerary.costBreakdown),
     });
   }

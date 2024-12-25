@@ -300,33 +300,12 @@ class TestInitiateBookingResolver(BaseTestCase):
             account.stripe_customer_id = self.anystr("stripe_customer_id")
 
             survey = self.make_survey(session, account)
+            # survey.budget = OutingBudget.EXPENSIVE
             outing = self.make_outing(session, account, survey)
 
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
 
-        self.mock_eventbrite_ticket_class_batch = [
-            TicketClass(
-                id=self.anydigits(),
-                cost=CurrencyCost(
-                    currency="usd",
-                    display=self.anystr(),
-                    major_value=self.anystr(),
-                    value=self.anyint(max=survey.budget.upper_limit_cents),
-                ),
-                fee=CurrencyCost(
-                    currency="usd",
-                    display=self.anystr(),
-                    major_value=self.anystr(),
-                    value=0,
-                ),
-                tax=CurrencyCost(
-                    currency="usd",
-                    display=self.anystr(),
-                    major_value=self.anystr(),
-                    value=0,
-                ),
-            )
-        ]
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=survey.budget.upper_limit_cents)
 
         response = await self.make_graphql_request(
             "initiateBooking",

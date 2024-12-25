@@ -220,6 +220,7 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            survey.budget = OutingBudget.EXPENSIVE
             outing = self.make_outing(session, account, survey)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
             booking = self.make_booking(
@@ -229,6 +230,7 @@ class TestConfirmBookingResolver(BaseTestCase):
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
 
+        self.set_mock_eventbrite_ticket_class_batch(max_cost_cents=survey.budget.upper_limit_cents)
         self.mock_stripe_payment_intent.amount = (
             self.get_mock_eventbrite_ticket_class_batch_cost() * booking.headcount
         ) - 1000

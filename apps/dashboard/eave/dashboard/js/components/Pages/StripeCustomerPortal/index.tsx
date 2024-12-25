@@ -6,8 +6,8 @@ const StripeCustomerPortal = () => {
   const { data } = useGetBillingPortalUrlQuery({});
 
   useEffect(() => {
-    if (data?.viewer.__typename === "AuthenticatedViewerQueries" && data.viewer.account.billingPortalUrl) {
-      window.location.assign(data.viewer.account.billingPortalUrl);
+    if (data?.viewer.__typename === "AuthenticatedViewerQueries" && data.viewer.billingPortalUrl) {
+      window.location.assign(data.viewer.billingPortalUrl);
     }
   }, [data]);
 
