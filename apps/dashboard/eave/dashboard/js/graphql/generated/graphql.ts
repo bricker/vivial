@@ -15,14 +15,12 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** Date with time (isoformat) */
   DateTime: { input: string; output: string; }
   UUID: { input: string; output: string; }
 };
 
 export type Account = {
   __typename?: 'Account';
-  billingPortalUrl: Scalars['String']['output'];
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
   stripeCustomerId?: Maybe<Scalars['String']['output']>;
@@ -146,6 +144,7 @@ export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
 export type AuthenticatedViewerQueries = {
   __typename?: 'AuthenticatedViewerQueries';
   account: Account;
+  billingPortalUrl: Scalars['String']['output'];
   bookedOutingDetails?: Maybe<BookingDetails>;
   bookedOutings: Array<BookingDetailsPeek>;
   outingPreferences: OutingPreferences;
@@ -2223,13 +2222,7 @@ export type BillingPortalUrlQuery = {
   __typename: 'Query',
   viewer: {
     __typename: 'AuthenticatedViewerQueries',
-    account: {
-      __typename: 'Account',
-      billingPortalUrl: string,
-      id: string,
-      email: string,
-      stripeCustomerId?: string | null
-    }
+    billingPortalUrl: string
   } | {
     __typename: 'UnauthenticatedViewer',
     authFailureReason: AuthenticationFailureReason
@@ -4332,11 +4325,7 @@ export const BillingPortalUrlDocument = new TypedDocumentString(`
     __typename
     ... on AuthenticatedViewerQueries {
       __typename
-      account {
-        __typename
-        ...AccountFields
-        billingPortalUrl
-      }
+      billingPortalUrl
     }
     ... on UnauthenticatedViewer {
       __typename
@@ -4344,12 +4333,7 @@ export const BillingPortalUrlDocument = new TypedDocumentString(`
     }
   }
 }
-    fragment AccountFields on Account {
-  __typename
-  id
-  email
-  stripeCustomerId
-}`) as unknown as TypedDocumentString<BillingPortalUrlQuery, BillingPortalUrlQueryVariables>;
+    `) as unknown as TypedDocumentString<BillingPortalUrlQuery, BillingPortalUrlQueryVariables>;
 export const BookedOutingsDocument = new TypedDocumentString(`
     query BookedOutings {
   __typename

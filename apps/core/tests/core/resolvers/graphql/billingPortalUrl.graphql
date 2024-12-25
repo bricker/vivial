@@ -1,10 +1,11 @@
 query BillingPortalUrl {
   viewer {
-    ... on AuthenticatedViewerQueries {
+    __typename
+    ...on AuthenticatedViewerQueries {
       billingPortalUrl
     }
 
-    ... on UnauthenticatedViewer {
+    ...on UnauthenticatedViewer {
       __typename
       authFailureReason
     }

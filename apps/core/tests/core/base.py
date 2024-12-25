@@ -378,6 +378,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     mock_stripe_customer: stripe.Customer  # pyright: ignore [reportUninitializedInstanceVariable]
     mock_stripe_customer_session: stripe.CustomerSession  # pyright: ignore [reportUninitializedInstanceVariable]
     mock_stripe_customer_payment_methods: list[stripe.PaymentMethod]  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_billing_session: stripe.billing_portal.Session  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_stripe_client_mocks(self) -> None:
         mock_stripe_payment_intent = stripe.PaymentIntent(
@@ -454,6 +455,18 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             name="stripe.CustomerSession.create_async",
             patch=unittest.mock.patch("stripe.CustomerSession.create_async"),
             side_effect=_mock_customer_session_create_async,
+        )
+
+        self.mock_stripe_billing_session = stripe.billing_portal.Session()
+        self.mock_stripe_billing_session.url = self.anyurl()
+
+        async def _mock_billing_session_create_async(**kwargs: Any) -> stripe.billing_portal.Session:
+            return self.mock_stripe_billing_session
+
+        self.patch(
+            name="stripe.billing_portal.Session.create_async",
+            patch=unittest.mock.patch("stripe.billing_portal.Session.create_async"),
+            side_effect=_mock_billing_session_create_async,
         )
 
     mock_google_place: Place  # pyright: ignore [reportUninitializedInstanceVariable]
