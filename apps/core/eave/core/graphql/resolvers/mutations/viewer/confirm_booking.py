@@ -209,8 +209,6 @@ async def _notify_slack_booking_confirmed(
     else:
         msg += "no action required (probably)"
 
-    msg += " @customer-support"
-
     try:
         channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
