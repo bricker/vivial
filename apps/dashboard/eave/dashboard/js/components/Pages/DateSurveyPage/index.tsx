@@ -126,9 +126,7 @@ const DateSurveyPage = () => {
   const [areasOpen, setAreasOpen] = useState(false);
   const [outingPreferences, setOutingPreferences] = useState<OutingPreferencesSelections | null>(null);
   const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferencesSelections | null>(null);
-  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(
-    searchParams.get(SearchParam.variant) === DateSurveyPageVariant.PreferencesOpen,
-  );
+  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -229,6 +227,10 @@ const DateSurveyPage = () => {
     const redirectPath = searchParams.get(SearchParam.redirect);
     if (redirectPath) {
       navigate(redirectPath);
+      return;
+    }
+    if (searchParams.get(SearchParam.variant) === DateSurveyPageVariant.PreferencesOpen) {
+      setOutingPreferencesOpen(true);
     }
   }, [searchParams]);
 
