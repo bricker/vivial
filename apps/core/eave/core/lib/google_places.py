@@ -2,10 +2,11 @@ import enum
 import urllib.parse
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from typing import TypedDict
+from typing import MutableSequence, TypedDict
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+from google.geo.type import Viewport
 import googlemaps.geocoding
 from google.maps.places import (
     GetPhotoMediaRequest,
@@ -13,11 +14,13 @@ from google.maps.places import (
     Place,
     PlacesAsyncClient,
     SearchNearbyRequest,
+    SearchTextRequest,
 )
 from google.maps.places import (
     Photo as PlacePhoto,
 )
 from google.maps.routing import RoutesAsyncClient
+import google.type.latlng_pb2
 
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
@@ -25,6 +28,7 @@ from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.lib.address import Address
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
@@ -59,19 +63,25 @@ _SEARCH_NEARBY_FIELD_MASK = ",".join([f"places.{s}" for s in _PLACE_FIELDS])
 _PLACE_FIELD_MASK = ",".join(_PLACE_FIELDS)
 
 
-class GeocodeLocation(TypedDict, total=False):
+class GeocodeLocation(TypedDict, total=True):
     lat: float
     lng: float
 
 
 class GeocodeGeometry(TypedDict, total=False):
     location: GeocodeLocation
+    location_type: str
 
+class GeocodeAddressComponents(TypedDict, total=False):
+    long_name: str
+    short_name: str
+    types: list[str]
 
 class GeocodeResult(TypedDict, total=False):
     place_id: str | None
     geometry: GeocodeGeometry
-
+    address_components: GeocodeAddressComponents
+    formatted_address: str
 
 class GooglePlaceAddressComponentType(enum.StrEnum):
     administrative_area_level_1 = "administrative_area_level_1"
@@ -184,11 +194,23 @@ class GooglePlacesUtility:
         return photos
 
     def location_from_google_place(self, place: Place) -> Location:
-        address = GraphQLAddress(
+        address = self.address_from_address_components(place.address_components)
+
+        return Location(
+            directions_uri=place.google_maps_uri,
+            coordinates=GeoPoint(
+                lat=place.location.latitude,
+                lon=place.location.longitude,
+            ),
+            address=GraphQLAddress.from_address(address),
+        )
+
+    def address_from_address_components(self, address_components: MutableSequence[Place.AddressComponent]) -> Address:
+        address = Address(
             country=next(
                 (
                     component.short_text
-                    for component in place.address_components
+                    for component in address_components
                     if GooglePlaceAddressComponentType.country.value in component.types
                 ),
                 None,
@@ -196,7 +218,7 @@ class GooglePlacesUtility:
             state=next(
                 (
                     component.short_text
-                    for component in place.address_components
+                    for component in address_components
                     if GooglePlaceAddressComponentType.administrative_area_level_1.value in component.types
                 ),
                 None,
@@ -204,7 +226,7 @@ class GooglePlacesUtility:
             city=next(
                 (
                     component.long_text
-                    for component in place.address_components
+                    for component in address_components
                     if GooglePlaceAddressComponentType.locality.value in component.types
                 ),
                 "",
@@ -212,7 +234,7 @@ class GooglePlacesUtility:
             zip_code=next(
                 (
                     component.long_text
-                    for component in place.address_components
+                    for component in address_components
                     if GooglePlaceAddressComponentType.postal_code.value in component.types
                 ),
                 None,
@@ -220,7 +242,7 @@ class GooglePlacesUtility:
             address1=next(
                 (
                     component.long_text
-                    for component in place.address_components
+                    for component in address_components
                     if GooglePlaceAddressComponentType.street_address.value in component.types
                 ),
                 None,
@@ -230,7 +252,7 @@ class GooglePlacesUtility:
                     next(
                         (
                             component.long_text
-                            for component in place.address_components
+                            for component in address_components
                             if GooglePlaceAddressComponentType.street_number.value in component.types
                         ),
                         "",
@@ -238,7 +260,7 @@ class GooglePlacesUtility:
                     next(
                         (
                             component.long_text
-                            for component in place.address_components
+                            for component in address_components
                             if GooglePlaceAddressComponentType.route.value in component.types
                         ),
                         "",
@@ -248,21 +270,14 @@ class GooglePlacesUtility:
             address2=next(
                 (
                     component.long_text
-                    for component in place.address_components
+                    for component in address_components
                     if GooglePlaceAddressComponentType.subpremise.value in component.types
                 ),
                 None,
             ),
         )
 
-        return Location(
-            directions_uri=place.google_maps_uri,
-            coordinates=GeoPoint(
-                lat=place.location.latitude,
-                lon=place.location.longitude,
-            ),
-            address=address,
-        )
+        return address
 
     # Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
     async def photo_from_google_place_photo(
@@ -309,6 +324,32 @@ class GooglePlacesUtility:
         restaurant = await self.restaurant_from_google_place(place)
         return restaurant
 
+    async def text_search_best_match(self, *, query: str, area: GeoArea) -> Place | None:
+        location_restriction = SearchTextRequest.LocationRestriction(
+            rectangle=Viewport(
+                # southwest corner
+                low=google.type.latlng_pb2.LatLng(  # type: ignore - protobuf types can't be found by the static analyzer
+                    latitude=area.center.lat,
+                    longitude=area.center.lon,
+                ),
+                # northeast corner
+                high=google.type.latlng_pb2.LatLng(  # type: ignore - protobuf types can't be found by the static analyzer
+                    latitude=area.center.lat,
+                    longitude=area.center.lon,
+                )
+            )
+        )
+
+        response = await self.client.search_text(request=SearchTextRequest(
+            text_query=query,
+            location_restriction=location_restriction,
+        ), metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)])
+
+        if len(response.places) == 0:
+            return None
+
+        return response.places[0]
+
     async def get_places_nearby(
         self,
         *,
@@ -326,6 +367,7 @@ class GooglePlacesUtility:
         location_restriction.circle.radius = area.rad.meters
         location_restriction.circle.center.latitude = area.center.lat
         location_restriction.circle.center.longitude = area.center.lon
+
         request = SearchNearbyRequest(
             location_restriction=location_restriction,
             included_primary_types=included_primary_types[0:50],

@@ -1,3 +1,4 @@
+from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
@@ -9,9 +10,11 @@ from eave.core.lib.address import format_address
 from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget
 from eave.core.shared.geo import GeoPoint
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
@@ -162,10 +165,23 @@ class EventbriteUtility:
             lon=float(venue_lon),
         )
 
-        # directions_uri = await self._places.google_maps_directions_url(format_address(address, singleline=True))
-        place = await self._places.get_google_place(place_id=eventbrite_event_orm.google_place_id)
-        directions_uri = place.google_maps_uri
+        async with database.async_session.begin() as session:
+            eventbrite_event_orm = (await session.scalars(EventbriteEventOrm.select(eventbrite_event_id=event_id))).first()
 
+        directions_uri: str | None = None
+
+        if eventbrite_event_orm and eventbrite_event_orm.google_place_id:
+            try:
+                place = await self._places.get_google_place(place_id=eventbrite_event_orm.google_place_id)
+                directions_uri = place.google_maps_uri
+            except Exception as e:
+                if SHARED_CONFIG.is_local:
+                    raise
+                else:
+                    LOGGER.exception(e)
+
+        if not directions_uri:
+            directions_uri = await self._places.google_maps_directions_url(format_address(address, singleline=True))
 
         activity = Activity(
             source_id=event_id,

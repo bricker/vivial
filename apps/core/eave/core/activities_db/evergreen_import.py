@@ -1,10 +1,12 @@
 # isort: off
 
 import math
+from pprint import pprint
 import sys
 
 sys.path.append(".")
 
+from eave.core.shared.geo import Distance, GeoArea, GeoPoint
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -31,7 +33,7 @@ header = "[Title, Description, Address, Images, Category, Subcategory, Format, A
 
 
 async def import_evergreen_activities() -> None:
-    with open(os.path.dirname(os.path.abspath(__file__)) + "/evergreen.csv") as f:  # noqa: ASYNC230
+    with open(os.path.dirname(os.path.abspath(__file__)) + "/test.csv") as f:  # noqa: ASYNC230
         rdr = csv.reader(f)
         i = 0
         for row in rdr:
@@ -81,8 +83,32 @@ async def import_evergreen_activities() -> None:
             place_id = geocode_result.get("place_id")
             assert place_id
 
+            address_components = geocode_result.get("address_components")
+            assert address_components
+
+            geometry = geocode_result.get("geometry")
+            assert geometry
+
+            geo_location = geometry.get("location")
+            assert geo_location
+
+            pprint(geocode_result)
+
             places = GooglePlacesUtility()
-            google_place = await places.get_google_place(place_id)
+            google_place = await places.text_search_best_match(query=title, area=GeoArea(
+                center=GeoPoint(
+                    lat=geo_location["lat"],
+                    lon=geo_location["lng"],
+                ),
+                rad=Distance(
+                    miles=0.5,
+                )
+            ))
+
+            pprint(google_place)
+            if not google_place:
+                google_place = await places.get_google_place(place_id)
+
             location = places.location_from_google_place(google_place)
 
             # geometry = geocode_result.get("geometry")

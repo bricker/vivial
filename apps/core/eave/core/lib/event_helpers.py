@@ -17,6 +17,8 @@ from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm, EvergreenActivityTicketTypeOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LOGGER
 
 
 async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> Activity | None:
@@ -33,9 +35,21 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
             activity_category_group_id=category.activity_category_group_id
         )
 
-    # directions_uri = await places.google_maps_directions_url(format_address(activity_orm.address, singleline=True))
-    place = await places.get_google_place(place_id=activity_orm.google_place_id)
-    directions_uri = place.google_maps_uri
+    directions_uri: str | None = None
+
+    if activity_orm.google_place_id:
+        try:
+            place = await places.get_google_place(place_id=activity_orm.google_place_id)
+            directions_uri = place.google_maps_uri
+        except Exception as e:
+            if SHARED_CONFIG.is_local:
+                raise
+            else:
+                LOGGER.exception(e)
+
+    if not directions_uri:
+        # Fallback
+        directions_uri = await places.google_maps_directions_url(format_address(activity_orm.address, singleline=True))
 
     # Start with a price with all 0's
     most_expensive_eligible_price = CostBreakdown()
