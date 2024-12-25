@@ -18,6 +18,7 @@ const OptionContainer = styled("div")(({ theme }) => ({
 const FlexContainer = styled("div")(() => ({
   display: "flex",
   alignItems: "center",
+  maxWidth: "85%",
 }));
 
 interface EditableIndicator extends React.HTMLAttributes<HTMLDivElement> {
@@ -30,6 +31,7 @@ const EditableIndicator = styled("div", {
   marginRight: 10,
   height: 16,
   width: 16,
+  minWidth: 16,
   borderRadius: "50%",
   backgroundColor: theme.palette.primary.main,
   ...(editable && {
@@ -49,7 +51,9 @@ const EditPreferencesOption = ({ label, editable, onClickEdit }: EditPreferences
     <OptionContainer>
       <FlexContainer>
         <EditableIndicator editable={editable} />
-        <Typography variant="subtitle1">{label}</Typography>
+        <Typography variant="subtitle1" noWrap>
+          {label}
+        </Typography>
       </FlexContainer>
       {editable && <EditButton onClick={onClickEdit} small />}
     </OptionContainer>
