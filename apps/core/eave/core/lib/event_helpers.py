@@ -46,9 +46,7 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
             tax_cents=0,  # We'll calculate this below
         )
 
-        cost_breakdown.tax_cents = math.floor(
-            cost_breakdown.calculate_total_cost_cents() * ticket_type.tax_percentage
-        )
+        cost_breakdown.tax_cents = math.floor(cost_breakdown.calculate_total_cost_cents() * ticket_type.tax_percentage)
 
         total_cost_cents = cost_breakdown.calculate_total_cost_cents()
         max_budget = survey.budget if survey else OutingBudget.default()
