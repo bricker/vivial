@@ -167,6 +167,7 @@ class EventbriteUtility:
         activity = Activity(
             source_id=event_id,
             source=ActivitySource.EVENTBRITE,
+            is_bookable=True,  # Eventbrite tickets always bookable
             name=event_name["text"],
             description=event_description_text,
             photos=photos,
