@@ -20,7 +20,12 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 
-import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
+import {
+  formatBaseCost,
+  formatFeesAndTaxes,
+  formatTotalCost,
+  hasUnbookableCost,
+} from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
 import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
@@ -323,6 +328,9 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     return null;
   }
 
+  const isUnbookable = hasUnbookableCost(outing);
+  const costHeader = isUnbookable ? "Due Today" : "Total Costs";
+  const cost = isUnbookable ? "$0.00" : formatTotalCost(outing.costBreakdown);
   const activityPlan = outing.activityPlan;
   const reservation = outing.reservation;
 
@@ -365,8 +373,8 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     <Section>
       <VivialBadge />
       <Header>
-        <Typography variant="inherit">Total Costs</Typography>
-        <Typography variant="inherit">{formatTotalCost(outing.costBreakdown)}</Typography>
+        <Typography variant="inherit">{costHeader}</Typography>
+        <Typography variant="inherit">{cost}</Typography>
       </Header>
       <CostBreakdown>
         {reservation && reservation.restaurant.reservable && (
