@@ -37,7 +37,7 @@ const ItineraryVariant = () => {
   }
 
   const isUnbookable = hasUnbookableCost(outing);
-  const costHeader = isUnbookable ? "Due Today" : "Total Costs";
+  const costHeader = isUnbookable ? "Due Today" : "Total";
   const cost = isUnbookable ? "$0.00" : formatTotalCost(outing.costBreakdown);
 
   return (
