@@ -78,12 +78,14 @@ interface AuthFormProps {
   validatePassword?: boolean;
   showForgotPassword?: boolean;
   showLegal?: boolean;
+  purpose?: "login" | "signup";
 }
 
 const AuthForm = ({
   title,
   cta,
   onSubmit,
+  purpose,
   subtitle = "",
   externalError = "",
   isLoading = false,
@@ -156,6 +158,22 @@ const AuthForm = ({
     }
   }, [externalError]);
 
+  let passwordAutoComplete: string | undefined;
+
+  switch (purpose) {
+    case "login": {
+      passwordAutoComplete = "current-password";
+      break;
+    }
+    case "signup": {
+      passwordAutoComplete = "new-password";
+      break;
+    }
+    default: {
+      passwordAutoComplete = undefined;
+    }
+  }
+
   return (
     <FormContainer onSubmit={handleSubmit}>
       <FormContent>
@@ -163,8 +181,8 @@ const AuthForm = ({
           <Typography variant="h2">{title}</Typography>
           {subtitle && <Subtitle variant="subtitle2">{subtitle}</Subtitle>}
         </TitleContainer>
-        <EmailInput placeholder="Email" onChange={handleEmailChange} />
-        <SensitiveInput placeholder="Password" onChange={handlePasswordChange} />
+        <EmailInput placeholder="Email" onChange={handleEmailChange} autoComplete="email" />
+        <SensitiveInput placeholder="Password" onChange={handlePasswordChange} autoComplete={passwordAutoComplete} />
       </FormContent>
       {error && (
         <InputErrorContainer>

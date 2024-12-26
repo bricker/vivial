@@ -15,10 +15,22 @@ function main() (
 
 	while test $_tries -lt 5; do
 		_tries=$((_tries + 1))
+		_status=$(gcloud --project="$_gcloudproject" --format=json compute instances describe core-api-bastion | jq -r ".status")
+		if test "$_status" -eq "RUNNING"; then
+			break
+		fi
+		sleep 3
+	done
+
+	_tries=0
+
+	while test $_tries -lt 5; do
+		_tries=$((_tries + 1))
 		gcloud --project="$_gcloudproject" compute start-iap-tunnel core-api-bastion 5432 --local-host-port=localhost:5430
 		if test $? == 0; then
 			break
 		fi
+		sleep 3
 	done
 
 	set -e

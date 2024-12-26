@@ -46,8 +46,8 @@ const CollapseButton = styled(DropdownButton)(() => ({
 
 interface PreferenceSelectionsProps {
   categoryGroupName: string;
-  categories: Category[] | [];
-  defaultCategories: Category[] | [];
+  categories: Category[];
+  defaultCategories: Category[];
   onSubmit: (selectedCategories: Category[], removedCategories?: Category[]) => void;
   onCollapse?: () => void;
   categoryGroupId?: string;
@@ -103,6 +103,7 @@ const PreferenceSelections = ({
         setRemovedCategories(removedCategories.filter((c) => c.id !== category.id));
         setSelectedCategories([...selectedCategories, category]);
       }
+
       setSelectedCategoryMap(mapClone);
     },
     [selectedCategoryMap, removedCategories, selectedCategories],
@@ -126,8 +127,6 @@ const PreferenceSelections = ({
   useEffect(() => {
     setIsCollapsed(collapsed);
   }, [collapsed]);
-
-  // console.debug("SELECTED", selectedCategories);
 
   return (
     <RowContainer>
