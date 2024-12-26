@@ -1,8 +1,6 @@
-import { datadogRum } from "@datadog/browser-rum";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { myWindow } from "./types/window";
 
 // This breaks React state. Disabling for now.
 // if (myWindow.app.monitoringEnabled && myWindow.app.datadogApplicationId && myWindow.app.datadogClientToken) {
