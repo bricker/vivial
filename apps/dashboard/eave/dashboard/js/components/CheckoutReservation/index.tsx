@@ -141,22 +141,15 @@ const CheckoutForm = ({
   }, [updateDetailsIsLoading, submitDetailsIsLoading, confirmBookingIsLoading]);
 
   // only prevent submit on internalError since that can be fixed w/o another submit
-  const submitButtonDisabled = !!(submissionIsLoading || listDetailsIsLoading);
+  const submitButtonDisabled = !!(
+    submissionIsLoading ||
+    listDetailsIsLoading ||
+    !reserverDetails.firstName ||
+    !reserverDetails.lastName ||
+    !reserverDetails.phoneNumber
+  );
   const reserverDetailError = internalReserverDetailError || externalReserverDetailError;
   const error = [paymentError].filter((e) => e).join("\n");
-
-  function checkReserverDetailsInputs(details: ReserverFormFields) {
-    if (details.firstName.length === 0) {
-      setInternalReserverDetailError("First name required");
-    } else if (details.lastName.length === 0) {
-      setInternalReserverDetailError("Last name required");
-    } else if (details.phoneNumber.length === 0) {
-      setInternalReserverDetailError("Phone number required");
-    } else {
-      // all good
-      setInternalReserverDetailError(undefined);
-    }
-  }
 
   // set existing reservation details in form once we get them
   useEffect(() => {
@@ -191,7 +184,7 @@ const CheckoutForm = ({
         [key]: value,
       };
       setReserverDetails(newDetails);
-      checkReserverDetailsInputs(newDetails);
+      setInternalReserverDetailError(undefined);
     },
     [reserverDetails],
   );
