@@ -78,11 +78,11 @@ async def initiate_booking_mutation(
         account_orm = await AccountOrm.get_one(db_session, account_id)
         outing_orm = await OutingOrm.get_one(db_session, input.outing_id)
 
-    if start_time_too_soon(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
-        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
+    # if start_time_too_soon(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
+    #     return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
 
-    if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
-        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
+    # if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
+    #     return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
 
     activity_plan: ActivityPlan | None = None
     reservation: Reservation | None = None

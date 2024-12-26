@@ -84,11 +84,11 @@ async def confirm_booking_mutation(
             booking=Booking.from_orm(booking_orm),
         )
 
-    if start_time_too_soon(start_time=booking_orm.start_time_utc, timezone=booking_orm.timezone):
-        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
+    # if start_time_too_soon(start_time=booking_orm.start_time_utc, timezone=booking_orm.timezone):
+    #     return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
 
-    if start_time_too_far_away(start_time=booking_orm.start_time_utc, timezone=booking_orm.timezone):
-        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_LATE)
+    # if start_time_too_far_away(start_time=booking_orm.start_time_utc, timezone=booking_orm.timezone):
+    #     return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_LATE)
 
     if booking_orm.stripe_payment_intent_reference:
         # Get the given payment intent from the Stripe API

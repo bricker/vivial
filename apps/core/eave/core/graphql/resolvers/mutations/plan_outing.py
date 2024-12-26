@@ -56,11 +56,11 @@ async def plan_outing_mutation(
     account_id = info.context.get("authenticated_account_id")
     visitor_id = info.context.get("visitor_id")
 
-    if start_time_too_soon(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
-        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
+    # if start_time_too_soon(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
+    #     return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
-    if start_time_too_far_away(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
-        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
+    # if start_time_too_far_away(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
+    #     return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
 
     async with database.async_session.begin() as db_session:
         if account_id:
