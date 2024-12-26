@@ -131,7 +131,7 @@ const PreferenceSelections = ({
     setIsCollapsed(collapsed);
   }, [collapsed]);
 
-  console.log("selectedCategoryMap",selectedCategoryMap);
+  console.log("selectedCategoryMap", selectedCategoryMap);
 
   return (
     <RowContainer>
