@@ -7,7 +7,6 @@ from uuid import UUID
 import strawberry
 import stripe
 
-from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
@@ -16,6 +15,7 @@ from eave.core.graphql.types.booking import (
     Booking,
 )
 from eave.core.graphql.types.survey import Survey
+from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email

@@ -11,7 +11,16 @@ function main() (
 	cd "$(e.parentpath)"
 	bin/lint
 
-	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s dashboard
+	_live_version=$(curl -s https://www-preview.vivialapp.com/status | jq -r .version)
+
+	statusmsg -a "Diff since last deployment:"
+	git log --oneline "$_live_version"..HEAD
+
+	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
+
+	if e.confirm; then
+		"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s dashboard
+	fi
 )
 
 main "$@"
