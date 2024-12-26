@@ -431,7 +431,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           // badge={<StripeBadge />} // Avoid a double stripe badge
           padChildren={false}
         >
-          <CheckoutFormStripeElementsProvider outingId={outing.id} />;
+          <CheckoutFormStripeElementsProvider outingId={outing.id} />
         </Modal>
       )}
     </Section>
