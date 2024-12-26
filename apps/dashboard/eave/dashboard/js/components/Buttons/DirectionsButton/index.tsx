@@ -24,7 +24,7 @@ interface DirectionsButtonProps {
 
 const DirectionsButton = ({ uri }: DirectionsButtonProps) => {
   const handleClick = useCallback(() => {
-    window.open(uri);
+    window.location.assign(uri);
   }, [uri]);
 
   return (
