@@ -12,7 +12,7 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
-from eave.core.graphql.validators.time_bounds_validator import start_time_too_soon
+from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
@@ -58,6 +58,9 @@ async def plan_outing_mutation(
 
     if start_time_too_soon(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
+
+    if start_time_too_far_away(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
+        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
 
     async with database.async_session.begin() as db_session:
         if account_id:
