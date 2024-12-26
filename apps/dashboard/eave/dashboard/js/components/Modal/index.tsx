@@ -3,7 +3,7 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled, Typography } from "@mui/material";
 
 import IconButton from "@mui/material/IconButton";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import BackIcon from "../Icons/BackIcon";
 
 const ModalContainer = styled("div")(() => ({
@@ -75,13 +75,23 @@ interface ModalProps {
 
 const Modal = ({ title, open, onClose, children, badge, padChildren = true }: ModalProps) => {
   useEffect(() => {
+    const keydownHandler = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") {
+        return;
+      }
+
+      onClose();
+    };
+
     if (open) {
       document.body.setAttribute("style", "overflow: hidden;");
+      window.addEventListener("keydown", keydownHandler, { once: true });
     } else {
       document.body.setAttribute("style", "overflow: visible;");
     }
     return () => {
       document.body.setAttribute("style", "overflow: visible;");
+      window.removeEventListener("keydown", keydownHandler)
     };
   }, [open]);
 
