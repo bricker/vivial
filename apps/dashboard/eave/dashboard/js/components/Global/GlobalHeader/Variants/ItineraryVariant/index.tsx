@@ -1,7 +1,7 @@
 import VivialLogo from "$eave-dashboard/js/components/Logo";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { formatTotalCost, hasUnbookableCost, ZERO_DOLLARS_FORMATTED } from "$eave-dashboard/js/util/currency";
+import { ZERO_DOLLARS_FORMATTED, formatTotalCost, hasUnbookableCost } from "$eave-dashboard/js/util/currency";
 import { styled } from "@mui/material";
 
 import React, { useCallback } from "react";
