@@ -105,6 +105,7 @@ const SignUpPage = () => {
         validateEmail
         validatePassword
         showLegal
+        purpose="signup"
       />
       <ValuePropsImg src={imageUrl("vivial-account-value-props.png")} />
     </PageContainer>
