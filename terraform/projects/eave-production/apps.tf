@@ -55,7 +55,7 @@ module "dashboard_app" {
   LOG_LEVEL       = "DEBUG"
   release_version = "latest"
 
-  iap_enabled                       = true # This is temporary during prelaunch
-  iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
-  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+  iap_enabled                       = false
+  # iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
+  # iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }
