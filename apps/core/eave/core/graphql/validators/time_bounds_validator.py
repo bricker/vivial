@@ -15,7 +15,7 @@ def start_time_too_soon(*, start_time: datetime, timezone: ZoneInfo) -> bool:
     lower_bound_incl = now + delta
     lower_bound_incl = lower_bound_incl.replace(minute=0, second=0)
 
-    return start_time >= lower_bound_incl
+    return start_time < lower_bound_incl
 
 
 def start_time_too_far_away(*, start_time: datetime, timezone: ZoneInfo) -> bool:
@@ -27,4 +27,4 @@ def start_time_too_far_away(*, start_time: datetime, timezone: ZoneInfo) -> bool
     upper_bound_incl = now + delta
     upper_bound_incl = upper_bound_incl.replace(hour=23, minute=59, second=59)
 
-    return start_time <= upper_bound_incl
+    return start_time > upper_bound_incl

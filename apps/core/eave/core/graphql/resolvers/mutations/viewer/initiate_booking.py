@@ -18,6 +18,7 @@ from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
+from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
@@ -77,11 +78,11 @@ async def initiate_booking_mutation(
         account_orm = await AccountOrm.get_one(db_session, account_id)
         outing_orm = await OutingOrm.get_one(db_session, input.outing_id)
 
-    # if start_time_too_soon(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
-    #     return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
+    if start_time_too_soon(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
+        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
 
-    # if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
-    #     return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
+    if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
+        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
 
     activity_plan: ActivityPlan | None = None
     reservation: Reservation | None = None
