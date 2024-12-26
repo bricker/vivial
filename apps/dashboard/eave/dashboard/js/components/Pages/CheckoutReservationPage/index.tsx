@@ -5,7 +5,9 @@ import CheckoutFormStripeElementsProvider from "../../CheckoutReservation";
 const CheckoutReservationPage = () => {
   const params = useParams();
   const outingId = params["outingId"]!;
-  return <CheckoutFormStripeElementsProvider outingId={outingId} />
+  return (
+    <CheckoutFormStripeElementsProvider outingId={outingId} />
+  );
 };
 
 export default CheckoutReservationPage;

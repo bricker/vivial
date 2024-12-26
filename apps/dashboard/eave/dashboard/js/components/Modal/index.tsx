@@ -3,7 +3,7 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled, Typography } from "@mui/material";
 
 import IconButton from "@mui/material/IconButton";
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect } from "react";
 import BackIcon from "../Icons/BackIcon";
 
 const ModalContainer = styled("div")(() => ({
@@ -91,7 +91,7 @@ const Modal = ({ title, open, onClose, children, badge, padChildren = true }: Mo
     }
     return () => {
       document.body.setAttribute("style", "overflow: visible;");
-      window.removeEventListener("keydown", keydownHandler)
+      window.removeEventListener("keydown", keydownHandler);
     };
   }, [open]);
 
