@@ -97,7 +97,8 @@ const OneClickInputs = styled("div")(() => ({
     'email emailVal'
     'pay payVal'
   `,
-  gridColumnGap: "40px",
+  gridColumnGap: "37px",
+  gridTemplateColumns: "60px 1fr",
 }));
 
 const OneClickHeader = styled(Typography)(({ theme }) => ({
@@ -345,18 +346,21 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           <OneClickInputsContainer>
             <OneClickInputs>
               <OneClickInputName gridArea="name">Name</OneClickInputName>
-              <OneClickInputValue gridArea="nameVal">
+              <OneClickInputValue gridArea="nameVal" noWrap>
                 {reserverDetails.firstName} {reserverDetails.lastName}
               </OneClickInputValue>
               <OneClickInputName gridArea="phone">Phone #</OneClickInputName>
-              <OneClickInputValue gridArea="phoneVal">{reserverDetails.phoneNumber}</OneClickInputValue>
+              <OneClickInputValue gridArea="phoneVal" noWrap>
+                {reserverDetails.phoneNumber}
+              </OneClickInputValue>
               <OneClickInputName gridArea="email">Email</OneClickInputName>
-              <OneClickInputValue gridArea="emailVal">{account.email}</OneClickInputValue>
-
+              <OneClickInputValue gridArea="emailVal" noWrap>
+                {account.email}
+              </OneClickInputValue>
               {isPaidOuting(outing) && defaultPaymentMethod?.card && (
                 <>
                   <OneClickInputName gridArea="pay">Pay with</OneClickInputName>
-                  <OneClickInputValue gridArea="payVal">
+                  <OneClickInputValue gridArea="payVal" noWrap>
                     {capitalize(defaultPaymentMethod.card.brand)} *{defaultPaymentMethod.card.last4}
                   </OneClickInputValue>
                 </>
