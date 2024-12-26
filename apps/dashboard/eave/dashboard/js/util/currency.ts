@@ -5,6 +5,8 @@ export const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
+export const ZERO_DOLLARS_FORMATTED = currencyFormatter.format(0);
+
 export function formatTotalCost(costBreakdown: CostBreakdownFieldsFragment): string {
   return currencyFormatter.format(costBreakdown.totalCostCents / 100);
 }
