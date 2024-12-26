@@ -25,6 +25,7 @@ import {
   formatFeesAndTaxes,
   formatTotalCost,
   hasUnbookableCost,
+  ZERO_DOLLARS_FORMATTED,
 } from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
@@ -331,7 +332,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   const isUnbookable = hasUnbookableCost(outing);
   const costHeader = isUnbookable ? "Due Today" : "Total Costs";
-  const cost = isUnbookable ? "$0.00" : formatTotalCost(outing.costBreakdown);
+  const cost = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(outing.costBreakdown);
   const activityPlan = outing.activityPlan;
   const reservation = outing.reservation;
 
