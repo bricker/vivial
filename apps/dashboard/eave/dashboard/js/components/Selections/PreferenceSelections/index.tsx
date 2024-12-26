@@ -93,9 +93,6 @@ const PreferenceSelections = ({
 
   const handleSelect = useCallback(
     (category: Category) => {
-      if (categoryGroupName === "Food types") {
-        console.log("handleSelect", category);
-      }
       const mapClone = { ...selectedCategoryMap };
       if (category.id in mapClone) {
         delete mapClone[category.id];
@@ -107,9 +104,6 @@ const PreferenceSelections = ({
         setSelectedCategories([...selectedCategories, category]);
       }
 
-      if (categoryGroupName === "Food types") {
-        console.log("setSelectedCategoryMap", mapClone);
-      }
       setSelectedCategoryMap(mapClone);
     },
     [selectedCategoryMap, removedCategories, selectedCategories],
@@ -126,9 +120,6 @@ const PreferenceSelections = ({
   }, [categories, selectedCategories]);
 
   useEffect(() => {
-    if (categoryGroupName === "Food types") {
-      console.log("useEffect of defaultCategories", defaultCategories);
-    }
     setSelectedCategories(defaultCategories);
     setSelectedCategoryMap(getCategoryMap(defaultCategories));
   }, [defaultCategories]);
@@ -136,10 +127,6 @@ const PreferenceSelections = ({
   useEffect(() => {
     setIsCollapsed(collapsed);
   }, [collapsed]);
-
-  if (categoryGroupName === "Food types") {
-    console.log("selectedCategoryMap", selectedCategoryMap);
-  }
 
   return (
     <RowContainer>

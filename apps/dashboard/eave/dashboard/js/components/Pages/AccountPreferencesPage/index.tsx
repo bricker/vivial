@@ -39,7 +39,7 @@ const AccountPreferencesPage = () => {
   const restaurantCategories = data?.restaurantCategories || [];
   const activityCategoryGroups = data?.activityCategoryGroups || [];
 
-  const handleCollapse = () => {
+  const handleCollapse = useCallback(() => {
     const newCollapsedGroups = new Map(collapsedGroups);
     let collapse = false;
     for (const id of newCollapsedGroups.keys()) {
@@ -55,7 +55,7 @@ const AccountPreferencesPage = () => {
     }
     newCollapsedGroups.set("default", true);
     setCollapsedGroups(newCollapsedGroups);
-  };
+  }, [collapsedGroups]);
 
   const handleSubmitRestaurants = useCallback(async (selectedCategories: Category[]) => {
     const restaurantCategoryIds = selectedCategories.map((c) => c.id);
