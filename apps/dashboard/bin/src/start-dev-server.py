@@ -15,7 +15,7 @@ os.environ["GAE_SERVICE"] = "dashboard"
 if __name__ == "__main__":
     uvicorn.run(
         app="eave.dashboard.app:app",
-        port=5000,
+        port=5101,
         reload=True,
         log_level="debug",
         reload_includes=[

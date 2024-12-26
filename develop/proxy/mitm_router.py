@@ -13,9 +13,9 @@ class PrivateEndpointAccessError(Exception):
 
 
 def request(flow: mitmproxy.http.HTTPFlow) -> None:
-    if re.search(r"\.eave\.(localhost|run)$", flow.request.host) is None:
-        # do nothing
-        return
+    if re.search(r"\.eave\.", flow.request.host) is None:
+        flow.kill()
+        raise NoUpstreamDefinedError(f"Unsupported domain: {flow.request.url}")
 
     is_internal = re.search(r"\.internal\.eave\.", flow.request.host)
     is_public = not is_internal
@@ -26,8 +26,8 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
     # tld = flow.request.host.split(".")[-1]
     port = None
 
-    if re.match(r"^(www)\.", flow.request.host):
-        port = 5000
+    if re.match(r"^www\.", flow.request.host):
+        port = 5101
 
     elif re.match(r"^(core-)?api\.", flow.request.host):
         # Simulate Ingress rules. This should match the Core API Kubernetes Ingress configuration.
@@ -56,6 +56,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         raise NoUpstreamDefinedError(f"No upstream defined for {flow.request.url}")
 
     original_url = flow.request.url
+    flow.request.host = "127.0.0.1"
     flow.request.scheme = "http"
     flow.request.port = port
     new_url = flow.request.url
