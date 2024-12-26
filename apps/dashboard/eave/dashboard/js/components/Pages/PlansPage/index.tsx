@@ -63,6 +63,7 @@ const DetailsPaper = styled(MuiPaper)(({ theme }) => ({
   borderRadius: "14.984px",
   background: `linear-gradient(180deg, ${theme.palette.background.paper} 75.85%, rgba(85, 88, 14, 0.10) 190.15%)`,
   boxShadow: `0px 4px 4px 0px rgba(0, 0, 0, 0.25)`,
+  cursor: "pointer",
 }));
 
 const DetailsTitle = styled(Typography)(({ theme }) => ({
