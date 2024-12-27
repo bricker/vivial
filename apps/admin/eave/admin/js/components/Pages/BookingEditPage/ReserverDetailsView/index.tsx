@@ -1,6 +1,6 @@
-import CopyableTextButton from "$eave-dashboard/js/components/Buttons/CopyableTextButton";
-import Paper from "$eave-dashboard/js/components/Paper";
-import { AdminBookingInfo } from "$eave-dashboard/js/graphql/generated/graphql";
+import CopyableTextButton from "$eave-admin/js/components/Buttons/CopyableTextButton";
+import Paper from "$eave-admin/js/components/Paper";
+import { AdminBookingInfo } from "$eave-admin/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
 

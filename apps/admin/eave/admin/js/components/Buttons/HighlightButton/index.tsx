@@ -1,4 +1,4 @@
-import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
+import { fontFamilies } from "$eave-admin/js/theme/fonts";
 import { styled } from "@mui/material";
 import BaseButton, { ButtonProps } from "@mui/material/Button";
 import Typography from "@mui/material/Typography";

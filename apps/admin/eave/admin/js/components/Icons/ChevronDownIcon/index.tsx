@@ -1,4 +1,4 @@
-import { colors } from "$eave-dashboard/js/theme/colors";
+import { colors } from "$eave-admin/js/theme/colors";
 import React from "react";
 import { IconProps } from "../types";
 

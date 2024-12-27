@@ -1,18 +1,18 @@
-import LoadingButton from "$eave-dashboard/js/components/Buttons/LoadingButton";
-import EnumDropdown from "$eave-dashboard/js/components/EnumDropdown";
-import EditIcon from "$eave-dashboard/js/components/Icons/EditIcon";
-import TrashIcon from "$eave-dashboard/js/components/Icons/TrashIcon";
-import Input from "$eave-dashboard/js/components/Inputs/Input";
-import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
-import Paper from "$eave-dashboard/js/components/Paper";
-import DateTimeSelections from "$eave-dashboard/js/components/Selections/DateTimeSelections";
+import LoadingButton from "$eave-admin/js/components/Buttons/LoadingButton";
+import EnumDropdown from "$eave-admin/js/components/EnumDropdown";
+import EditIcon from "$eave-admin/js/components/Icons/EditIcon";
+import TrashIcon from "$eave-admin/js/components/Icons/TrashIcon";
+import Input from "$eave-admin/js/components/Inputs/Input";
+import ExternalLink from "$eave-admin/js/components/Links/ExternalLink";
+import Paper from "$eave-admin/js/components/Paper";
+import DateTimeSelections from "$eave-admin/js/components/Selections/DateTimeSelections";
 import {
   AdminBookingInfo,
   AdminUpdateBookingFailureReason,
   Restaurant,
   RestaurantSource,
-} from "$eave-dashboard/js/graphql/generated/graphql";
-import { useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+} from "$eave-admin/js/graphql/generated/graphql";
+import { useUpdateBookingMutation } from "$eave-admin/js/store/slices/coreApiSlice";
 import { Button, CircularProgress } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
 import { enumKeyFromType, enumTypeFromValue, formatDate } from "../helper";

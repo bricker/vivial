@@ -1,5 +1,5 @@
-import Paper from "$eave-dashboard/js/components/Paper";
-import { Survey } from "$eave-dashboard/js/graphql/generated/graphql";
+import Paper from "$eave-admin/js/components/Paper";
+import { Survey } from "$eave-admin/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
 import { formatDate } from "../helper";

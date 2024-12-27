@@ -1,5 +1,5 @@
 const path = require("node:path");
-const { buildWebpackConfig } = require("@eave-fyi/develop/webpack.config.cjs");
+const buildWebpackConfig = require("@eave-fyi/develop/webpack.config.cjs");
 
 /**
  * @typedef {{ mode?: "none" | "development" | "production"; }} WebpackArgs

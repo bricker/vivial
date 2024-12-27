@@ -1,6 +1,6 @@
-import { AdminUpdateBookingFailureReason, BookingState } from "$eave-dashboard/js/graphql/generated/graphql";
-import { useGetBookingInfoQuery, useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { colors } from "$eave-dashboard/js/theme/colors";
+import { AdminUpdateBookingFailureReason, BookingState } from "$eave-admin/js/graphql/generated/graphql";
+import { useGetBookingInfoQuery, useUpdateBookingMutation } from "$eave-admin/js/store/slices/coreApiSlice";
+import { colors } from "$eave-admin/js/theme/colors";
 import { styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";

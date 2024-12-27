@@ -14,7 +14,7 @@ import {
   UpdateBookingDocument,
   UpdateBookingMutation,
   UpdateBookingMutationVariables,
-} from "$eave-dashboard/js/graphql/generated/graphql";
+} from "$eave-admin/js/graphql/generated/graphql";
 import type {} from "@reduxjs/toolkit/query";
 import { executeOperation } from "../../graphql/graphql-fetch";
 

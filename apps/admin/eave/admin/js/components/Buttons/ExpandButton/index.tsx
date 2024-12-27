@@ -1,4 +1,4 @@
-import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { rem } from "$eave-admin/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import Button, { ButtonProps } from "@mui/material/Button";
 import React from "react";

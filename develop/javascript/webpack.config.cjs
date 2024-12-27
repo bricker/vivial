@@ -18,7 +18,7 @@ const MODE_DEVELOPMENT = "development";
  *
  * @returns {import("webpack").Configuration}
  */
-export function buildWebpackConfig(env, argv, { entry, staticDirectory, alias }) {
+module.exports = function buildWebpackConfig(env, argv, { entry, staticDirectory, alias }) {
   const mode = argv.mode || MODE_DEVELOPMENT;
 
   return {

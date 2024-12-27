@@ -1,6 +1,6 @@
-import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
-import Paper from "$eave-dashboard/js/components/Paper";
-import { CostBreakdown } from "$eave-dashboard/js/graphql/generated/graphql";
+import ExternalLink from "$eave-admin/js/components/Links/ExternalLink";
+import Paper from "$eave-admin/js/components/Paper";
+import { CostBreakdown } from "$eave-admin/js/graphql/generated/graphql";
 import { Button, CircularProgress } from "@mui/material";
 import React from "react";
 

@@ -1,5 +1,5 @@
-import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
-import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { fontFamilies } from "$eave-admin/js/theme/fonts";
+import { rem } from "$eave-admin/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import Button, { ButtonProps } from "@mui/material/Button";
 import React from "react";

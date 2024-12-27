@@ -1,4 +1,4 @@
-import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { rem } from "$eave-admin/js/theme/helpers/rem";
 import { styled, type Theme } from "@mui/material";
 import Button, { ButtonProps } from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";

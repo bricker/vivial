@@ -1,5 +1,5 @@
-import { colors } from "$eave-dashboard/js/theme/colors";
-import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { colors } from "$eave-admin/js/theme/colors";
+import { rem } from "$eave-admin/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import BaseButton, { ButtonProps } from "@mui/material/Button";
 import React from "react";
