@@ -95,9 +95,9 @@
   "python.autoComplete.extraPaths": [
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/dashboard",
+    "${workspaceFolder}/apps/admin",
     "${workspaceFolder}/develop/python/src",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
-    "${workspaceFolder}/apps/admin"
   ],
   "ruff.lint.args": [
     "--config=${workspaceFolder}/develop/python/configs/ruff.toml",
@@ -139,8 +139,8 @@
   "python.analysis.extraPaths": [
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/dashboard",
+    "${workspaceFolder}/apps/admin",
     "${workspaceFolder}/develop/python/src",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
-    "${workspaceFolder}/apps/admin"
   ],
 }
