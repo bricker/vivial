@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	python-activate-venv
+	cd "${EAVE_HOME}/apps/core"
+	bin/export-admin-schema
+)
+
+(
+	export ADMIN_GRAPHQL_SCHEMA="${EAVE_HOME}/apps/core/.tmp/schema-admin.graphql"
+	node-activate-venv
+	cd "$(e.parentpath)"
+	./node_modules/.bin/graphql-codegen --config codegen.ts --overwrite "$@"
+)

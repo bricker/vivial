@@ -1,0 +1,101 @@
+query AdminBookingInfo($bookingId: UUID!) {
+  adminBooking(bookingId: $bookingId) {
+    id
+    accounts {
+      id
+      email
+    }
+    activityStartTime
+    activityName
+    activityBookingLink
+    activitySource
+    activitySourceId
+    restaurantArrivalTime
+    restaurantName
+    restaurantBookingLink
+    restaurantSource
+    restaurantSourceId
+    state
+    reserverDetails {
+      id
+      firstName
+      lastName
+      phoneNumber
+    }
+    stripePaymentId
+    survey {
+      id
+      headcount
+      budget
+      startTime
+      searchRegions {
+        id
+        name
+      }
+    }
+  }
+  adminBookingActivityDetail(bookingId: $bookingId) {
+    categoryGroup {
+      id
+      name
+      activityCategories {
+        id
+        name
+        isDefault
+      }
+    }
+    sourceId
+    source
+    isBookable
+    name
+    description
+    websiteUri
+    doorTips
+    insiderTips
+    parkingTips
+    ticketInfo {
+      name
+      notes
+      costBreakdown {
+        ...CostBreakdownFields
+      }
+    }
+    venue {
+      name
+      location {
+        ...LocationFields
+      }
+    }
+    photos {
+      coverPhoto {
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        ...PhotoFields
+      }
+    }
+  }
+  adminBookingRestaurantDetail(bookingId: $bookingId) {
+    sourceId
+    source
+    name
+    reservable
+    rating
+    primaryTypeName
+    websiteUri
+    description
+    parkingTips
+    customerFavorites
+    location {
+      ...LocationFields
+    }
+    photos {
+      coverPhoto {
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        ...PhotoFields
+      }
+    }
+  }
+}

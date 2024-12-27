@@ -86,7 +86,7 @@ async def create_account_mutation(
     set_new_auth_cookies(response=info.context["response"], account_id=new_account_orm.id)
 
     # TODO: Send in offline queue
-    send_welcome_email(to_email=new_account_orm.email)
+    send_welcome_email(to_emails=[new_account_orm.email])
     await _notify_slack(account=new_account_orm)
 
     account = Account.from_orm(new_account_orm)

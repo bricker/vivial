@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	python-activate-venv
+	cd "${EAVE_HOME}/apps/core"
+	bin/export-admin-schema
+)
+
+(
+	export ADMIN_GRAPHQL_SCHEMA="${EAVE_HOME}/apps/core/.tmp/schema-admin.graphql"
+	cd "$(e.parentpath)"
+	"${EAVE_HOME}"/develop/python/_lint_base
+	"${EAVE_HOME}"/develop/javascript/_lint_base
+	"${EAVE_HOME}"/develop/shared/lint-shell .
+	"${EAVE_HOME}"/develop/shared/lint-docker .
+)

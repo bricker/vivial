@@ -12,6 +12,7 @@ locals {
 
   www_public_domain_prefix = "www-preview"
   api_public_domain_prefix = "api"
+  admin_public_domain_prefix = "admin"
 
   authorized_networks = {
     "bryan-wifi" : {

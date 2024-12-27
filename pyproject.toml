@@ -7,10 +7,11 @@ exclude = [
   "**/build/*",
   "**/.*",
 ]
-venvPath=".venv"
-extraPaths=[
+venvPath = ".venv"
+extraPaths = [
   "./apps/core",
   "./apps/dashboard",
+  "./apps/admin",
   "./libs/eave-stdlib-py/src",
   "./develop/python/src",
 ]

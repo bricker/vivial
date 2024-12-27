@@ -1,0 +1,20 @@
+mutation UpdateBooking($input: AdminUpdateBookingInput!) {
+  adminUpdateBooking(input: $input) {
+    ... on AdminUpdateBookingSuccess {
+      __typename
+
+      booking {
+        ...BookingFields
+      }
+    }
+
+    ... on AdminUpdateBookingFailure {
+      __typename
+      failureReason
+
+      validationErrors {
+        field
+      }
+    }
+  }
+}

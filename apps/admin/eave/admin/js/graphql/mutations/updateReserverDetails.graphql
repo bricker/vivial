@@ -1,0 +1,19 @@
+mutation UpdateReserverDetails($input: AdminUpdateReserverDetailsInput!) {
+  adminUpdateReserverDetails(input: $input) {
+    __typename
+    ... on AdminUpdateReserverDetailsSuccess {
+      reserverDetails {
+        id
+        firstName
+        lastName
+        phoneNumber
+      }
+    }
+    ... on AdminUpdateReserverDetailsFailure {
+      failureReason
+      validationErrors {
+        field
+      }
+    }
+  }
+}

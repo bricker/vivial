@@ -188,7 +188,7 @@ class EventbriteUtility:
                     coordinates=coordinates,
                 ),
             ),
-            website_uri=event.get("vanity_url"),
+            website_uri=event.get("vanity_url") or event.get("url"),
             door_tips=None,
             insider_tips=None,
             parking_tips=None,

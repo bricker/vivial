@@ -119,7 +119,7 @@ async def resolve_restaurant_details(
     *,
     source: RestaurantSource,
     source_id: str,
-) -> Restaurant:
+) -> Restaurant | None:
     places = GooglePlacesUtility()
 
     match source:

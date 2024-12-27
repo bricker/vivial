@@ -47,11 +47,12 @@ async def _get_booking_details(
             source=reservation_orm.source,
         )
 
-        reservation = Reservation(
-            restaurant=restaurant,
-            arrival_time=reservation_orm.start_time_local,
-            headcount=reservation_orm.headcount,
-        )
+        if restaurant:
+            reservation = Reservation(
+                restaurant=restaurant,
+                arrival_time=reservation_orm.start_time_local,
+                headcount=reservation_orm.headcount,
+            )
 
     return BookingDetails(
         id=booking_orm.id,

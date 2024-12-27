@@ -49,6 +49,42 @@
       ],
       "console": "integratedTerminal"
     },
+    {
+      "name": "Admin (Server)",
+      "consoleTitle": "Admin (Server)",
+      "cwd": "${workspaceFolder}/apps/admin",
+      "type": "python",
+      "request": "launch",
+      "program": "bin/src/start-dev-server.py",
+      "jinja": true,
+      "justMyCode": false,
+    },
+    {
+      "name": "Admin (Webpack)",
+      "consoleTitle": "Admin (Webpack)",
+      "cwd": "${workspaceFolder}/apps/admin",
+      "type": "node",
+      "request": "launch",
+      "program": "./node_modules/.bin/webpack",
+      "args": [
+        "-w"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Admin (GraphQL Codegen)",
+      "consoleTitle": "Admin (GraphQL Codegen)",
+      "cwd": "${workspaceFolder}/apps/admin",
+      "type": "node",
+      "request": "launch",
+      "program": "./node_modules/.bin/graphql-codegen",
+      "args": [
+        "--config codegen.ts",
+        "--overwrite",
+        "--watch",
+      ],
+      "console": "integratedTerminal"
+    },
   ],
   "compounds": [
     {
@@ -67,6 +103,25 @@
         "Dashboard (Server)",
         "Dashboard (Webpack)",
         "Dashboard (GraphQL Codegen)",
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Admin",
+      "configurations": [
+        "Admin (Server)",
+        "Admin (Webpack)",
+        "Admin (GraphQL Codegen)",
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Core API + Admin",
+      "configurations": [
+        "Core API",
+        "Admin (Server)",
+        "Admin (Webpack)",
+        "Admin (GraphQL Codegen)",
       ],
       "stopAll": true
     },

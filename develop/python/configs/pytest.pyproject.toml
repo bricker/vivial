@@ -3,12 +3,7 @@ addopts = "--capture=no"
 pythonpath = [
   "../../../apps/core",
   "../../../apps/dashboard",
+  "../../../apps/admin",
   "../../../libs/eave-stdlib-py",
 ]
-norecursedirs = [
-  "vendor",
-  "node_modules",
-  "__pycache__",
-  "build",
-  ".*",
-]
+norecursedirs = ["vendor", "node_modules", "__pycache__", "build", ".*"]

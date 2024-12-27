@@ -22,6 +22,7 @@ from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 
+from .admin.graphql.schema import schema as internal_schema
 from .database import async_engine
 from .graphql.schema import schema
 
@@ -39,6 +40,13 @@ except Exception as e:
 
 graphql_app = GraphQL(
     schema=schema,
+    allow_queries_via_get=False,
+    graphql_ide="graphiql" if SHARED_CONFIG.is_development else None,  # Disable graphiql in production
+)
+
+
+internal_graphql_app = GraphQL(
+    schema=internal_schema,
     allow_queries_via_get=False,
     graphql_ide="graphiql" if SHARED_CONFIG.is_development else None,  # Disable graphiql in production
 )
@@ -104,6 +112,16 @@ app = starlette.applications.Starlette(
             endpoint=graphql_app,
         ),
         Route(
+            path="/internal/graphql",
+            methods=[
+                aiohttp.hdrs.METH_POST,
+                aiohttp.hdrs.METH_GET,  # Allows GraphiQL in development
+            ]
+            if SHARED_CONFIG.is_development
+            else [aiohttp.hdrs.METH_POST],
+            endpoint=internal_graphql_app,
+        ),
+        Route(
             path="/public/logout",
             endpoint=LogoutEndpoint,
             methods=[
@@ -125,6 +143,7 @@ app = starlette.applications.Starlette(
             CORSMiddleware,
             allow_origins=[
                 SHARED_CONFIG.eave_dashboard_base_url_public,
+                SHARED_CONFIG.eave_admin_base_url_public,
             ],
             allow_methods=[
                 aiohttp.hdrs.METH_GET,

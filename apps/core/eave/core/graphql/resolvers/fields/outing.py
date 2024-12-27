@@ -63,11 +63,12 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
             source_id=outing_reservation_orm.source_id,
         )
 
-        reservation = Reservation(
-            restaurant=restaurant,
-            arrival_time=outing_reservation_orm.start_time_local,
-            headcount=outing_reservation_orm.headcount,
-        )
+        if restaurant:
+            reservation = Reservation(
+                restaurant=restaurant,
+                arrival_time=outing_reservation_orm.start_time_local,
+                headcount=outing_reservation_orm.headcount,
+            )
 
     return Outing(
         id=outing_orm.id,
