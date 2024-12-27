@@ -71,8 +71,6 @@ const PreferenceSelections = ({
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
   const accentColor = getAccentColor(categoryGroupId);
 
-  console.log("removed from inside", removedCategories);
-
   const handleSubmit = useCallback(() => {
     onSubmit(selectedCategories, removedCategories);
     setRemovedCategories([]);
