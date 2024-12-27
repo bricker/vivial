@@ -38,7 +38,7 @@ def web_app_endpoint(request: Request) -> Response:
         "index.html.jinja",
         context={
             "asset_base": SHARED_CONFIG.asset_base,
-            "api_base": SHARED_CONFIG.eave_api_base_url_internal,
+            "api_base": SHARED_CONFIG.eave_api_base_url_public,
             "app_env": SHARED_CONFIG.eave_env,
             "app_version": SHARED_CONFIG.app_version,
         },

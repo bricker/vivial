@@ -7,6 +7,7 @@ module "app_secrets" {
       accessors = [
         module.core_api_app.service_account.member,
         module.dashboard_app.service_account.member,
+        module.admin_app.service_account.member,
       ],
     },
     SENDGRID_API_KEY = {
@@ -14,6 +15,7 @@ module "app_secrets" {
       accessors = [
         module.core_api_app.service_account.member,
         module.dashboard_app.service_account.member,
+        module.admin_app.service_account.member,
       ],
     },
     EVENTBRITE_API_KEY = {
