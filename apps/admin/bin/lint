@@ -7,11 +7,11 @@ source "${EAVE_HOME}"/develop/functions.bash
 (
 	python-activate-venv
 	cd "${EAVE_HOME}/apps/core"
-	bin/export-schema
+	bin/export-admin-schema
 )
 
 (
-	export GRAPHQL_SCHEMA="${EAVE_HOME}/apps/core/.tmp/schema.graphql"
+	export ADMIN_GRAPHQL_SCHEMA="${EAVE_HOME}/apps/core/.tmp/schema-admin.graphql"
 	cd "$(e.parentpath)"
 	"${EAVE_HOME}"/develop/python/_lint_base
 	"${EAVE_HOME}"/develop/javascript/_lint_base
