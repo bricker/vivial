@@ -6,7 +6,7 @@ const ScrollToTop = () => {
   useEffect(() => {
     /**
      * setTimeout is used to mitigate race conditions.
-     * window.scrollTo(0, 1) hides the search bar on Safari mobile when scrolling to top.
+     * window.scrollTo(0, 1) suppresses the search bar on Safari mobile when scrolling to top.
      */
     setTimeout(() => window.scrollTo(0, 1), 10);
   }, [pathname]);
