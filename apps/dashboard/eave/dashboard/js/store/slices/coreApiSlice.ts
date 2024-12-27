@@ -64,6 +64,7 @@ import type {} from "@reduxjs/toolkit/query";
 export const coreApiSlice = createApi({
   reducerPath: "coreApi",
   baseQuery: fetchBaseQuery({ baseUrl: CORE_API_BASE }),
+  tagTypes: ["preferences"],
   endpoints: (builder) => ({
     /**
      * Core API - GraphQL Queries
@@ -77,6 +78,7 @@ export const coreApiSlice = createApi({
         const data = await executeOperation({ query: OutingPreferencesDocument, variables });
         return { data };
       },
+      providesTags: ["preferences"],
     }),
 
     getSearchRegions: builder.query<SearchRegionsQuery, SearchRegionsQueryVariables>({
@@ -158,6 +160,7 @@ export const coreApiSlice = createApi({
         const data = await executeOperation({ query: UpdateOutingPreferencesDocument, variables });
         return { data };
       },
+      invalidatesTags: ["preferences"],
     }),
 
     login: builder.mutation<LoginMutation, LoginMutationVariables>({
