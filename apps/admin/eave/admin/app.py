@@ -63,23 +63,14 @@ async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
 
 app = Starlette(
     routes=[
-        Mount("/static", StaticFiles(directory="eave/dashboard/static")),
+        Mount("/static", StaticFiles(directory="eave/admin/static")),
         Route(
             path="/status",
             methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
-        # Route(
-        #     path="/.well-known/apple-developer-merchantid-domain-association",
-        #     methods=["GET"],
-        #     endpoint=apple_domain_verification_file,
-        # ),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
     lifespan=_app_lifespan,
 )
-
-
-def _python_bool_to_js(v: bool) -> str:  # noqa
-    return "true" if v else "false"
