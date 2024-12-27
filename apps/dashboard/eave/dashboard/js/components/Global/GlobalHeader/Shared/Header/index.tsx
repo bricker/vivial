@@ -12,6 +12,7 @@ const Header = styled("header")(({ theme }) => ({
   justifyContent: "space-between",
   padding: "0 24px",
   backgroundColor: theme.palette.background.paper,
+  opacity: 1,
   flex: `0 0 ${HeaderHeight.Mobile}px`,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     flex: `0 0 ${HeaderHeight.Desktop}px`,
