@@ -5,5 +5,5 @@ const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphq
 export default buildCodegenConfig({
   schema,
   documents: ["eave/dashboard/**/*.graphql"],
-  destination: "./eave/dashboard/js/graphql/generated/",
+  destination: "./eave/dashboard/js/graphql/generated/graphql.ts",
 });
