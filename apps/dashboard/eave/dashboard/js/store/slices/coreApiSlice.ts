@@ -69,6 +69,10 @@ export const coreApiSlice = createApi({
      * Core API - GraphQL Queries
      */
     getOutingPreferences: builder.query<OutingPreferencesQuery, OutingPreferencesQueryVariables>({
+      forceRefetch(_args) {
+        // Temporary hack; Outing Preferences aren't being handled in the cache correctly atm
+        return true;
+      },
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OutingPreferencesDocument, variables });
         return { data };
