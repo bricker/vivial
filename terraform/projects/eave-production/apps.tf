@@ -59,3 +59,24 @@ module "dashboard_app" {
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }
+
+module "admin_app" {
+  source = "../../apps/admin"
+
+  public_domain_prefix = local.admin_public_domain_prefix
+
+  google_dns_managed_zone                    = module.dns_zone_base_domain.google_dns_managed_zone
+  google_compute_ssl_policy                  = module.project_base.google_compute_ssl_policy
+  google_certificate_manager_certificate_map = module.project_base.google_certificate_manager_certificate_map
+  docker_repository_ref                      = module.project_base.docker_repository_ref
+  kube_namespace_name                        = module.shared_kubernetes_resources.eave_namespace_name
+  shared_config_map_name                     = module.shared_kubernetes_resources.shared_config_map_name
+
+  cdn_base_url    = module.cdn.url
+  LOG_LEVEL       = "DEBUG"
+  release_version = "latest"
+
+  iap_enabled                       = true
+  iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+}

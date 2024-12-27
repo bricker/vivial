@@ -5,33 +5,33 @@ module "app_secrets" {
     SLACK_SYSTEM_BOT_TOKEN = {
       data = var.SLACK_SYSTEM_BOT_TOKEN,
       accessors = [
-        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-        data.google_service_account.app_service_accounts[module.dashboard_app.service_account_id].member,
+        module.core_api_app.service_account.member,
+        module.dashboard_app.service_account.member,
       ],
     },
     SENDGRID_API_KEY = {
       data = var.SENDGRID_API_KEY
       accessors = [
-        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-        data.google_service_account.app_service_accounts[module.dashboard_app.service_account_id].member,
+        module.core_api_app.service_account.member,
+        module.dashboard_app.service_account.member,
       ],
     },
     EVENTBRITE_API_KEY = {
       data = var.EVENTBRITE_API_KEY
       accessors = [
-        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+        module.core_api_app.service_account.member,
       ],
     },
     STRIPE_SECRET_KEY = {
       data = var.STRIPE_SECRET_KEY
       accessors = [
-        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+        module.core_api_app.service_account.member,
       ],
     },
     GOOGLE_MAPS_API_KEY = {
       data = var.GOOGLE_MAPS_API_KEY
       accessors = [
-        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+        module.core_api_app.service_account.member,
       ],
     },
   }

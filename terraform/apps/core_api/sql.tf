@@ -14,7 +14,7 @@ resource "google_sql_user" "app" {
   }
 
   instance        = var.google_sql_database_instance.name
-  name            = trimsuffix(data.google_service_account.app_service_account.email, ".gserviceaccount.com")
+  name            = trimsuffix(module.service_accounts.google_service_account.email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
   password        = null # only IAM supported
   deletion_policy = "ABANDON"

@@ -8,9 +8,9 @@ module "service_accounts" {
 module "app_iam_role" {
   # Create a role for this app
   source      = "../../modules/custom_role"
-  role_id     = "eave.dashboardApp"
-  title       = "Eave Dashboard App"
-  description = "Project permissions needed by the Dashboard App"
+  role_id     = "eave.adminApp"
+  title       = "Eave Admin App"
+  description = "Project permissions needed by the Admin App"
   base_roles = [
     "roles/logging.logWriter",
   ]
