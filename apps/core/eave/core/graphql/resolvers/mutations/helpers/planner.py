@@ -216,9 +216,9 @@ class OutingPlanner:
         # CASE 1: Recommend an Eventbrite event.
         async with eave.core.database.async_session.begin() as db_session:
             eventbrite_events_query = EventbriteEventOrm.select(
-                # start_time=start_time_local,
-                # budget=self.survey.budget,
-                # within_areas=within_areas,
+                start_time=start_time_local,
+                budget=self.survey.budget,
+                within_areas=within_areas,
                 vivial_activity_category_ids=group_activity_category_preferences_ids,
             ).order_by(func.random())
 
