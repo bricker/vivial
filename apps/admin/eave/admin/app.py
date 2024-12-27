@@ -29,7 +29,7 @@ def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
 
 
-templates = Jinja2Templates(directory="eave/dashboard/templates")
+templates = Jinja2Templates(directory="eave/admin/templates")
 
 
 def web_app_endpoint(request: Request) -> Response:

@@ -51,13 +51,6 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
 
     elif re.match(r"^admin\.", flow.request.host):
         port = 5200
-        if is_public:
-            flow.response = mitmproxy.http.Response.make(
-                404,
-                b"Admin dash can't be accessed through public DNS. Use '.internal.eave.run' to simulate internal DNS.",
-                {"Content-Type": "text/plain"},
-            )
-            flow.kill()
 
     elif re.match(r"^cdn\.", flow.request.host):
         # This is the port for a webpack server.
