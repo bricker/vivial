@@ -11,12 +11,11 @@ from eave.core.graphql.types.booking import (
     Booking,
 )
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
-from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
+from eave.core.mail import send_booking_confirmation_email
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.config import SHARED_CONFIG
 
 
 @strawberry.input
@@ -79,7 +78,11 @@ async def admin_update_booking_mutation(
         and input.activity_source_id is not None
         and input.activity_source_id is not strawberry.UNSET
     ):
-        new_activity = await resolve_activity_details(source=input.activity_source, source_id=input.activity_source_id, survey=booking.outing.survey if booking.outing else None)
+        new_activity = await resolve_activity_details(
+            source=input.activity_source,
+            source_id=input.activity_source_id,
+            survey=booking.outing.survey if booking.outing else None,
+        )
         if new_activity is None:
             return AdminUpdateBookingFailure(failure_reason=AdminUpdateBookingFailureReason.ACTIVITY_SOURCE_NOT_FOUND)
     elif input.activity_source is None and input.activity_source_id is None:
@@ -90,7 +93,9 @@ async def admin_update_booking_mutation(
         and input.restaurant_source_id is not None
         and input.restaurant_source_id is not strawberry.UNSET
     ):
-        new_restaurant = await resolve_restaurant_details(source=input.restaurant_source, source_id=input.restaurant_source_id)
+        new_restaurant = await resolve_restaurant_details(
+            source=input.restaurant_source, source_id=input.restaurant_source_id
+        )
         if new_restaurant is None:
             return AdminUpdateBookingFailure(failure_reason=AdminUpdateBookingFailureReason.RESTAURANT_SOURCE_NOT_FOUND)
     elif input.restaurant_source is None and input.restaurant_source_id is None:

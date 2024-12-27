@@ -88,4 +88,4 @@ module.exports = function buildWebpackConfig(env, argv, { entry, staticDirectory
       },
     },
   };
-}
+};

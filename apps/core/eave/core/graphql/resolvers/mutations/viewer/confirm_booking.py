@@ -1,5 +1,4 @@
 import enum
-from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
@@ -18,7 +17,7 @@ from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.lib.google_places import GooglePlacesUtility
-from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
+from eave.core.mail import send_booking_confirmation_email
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState
@@ -26,7 +25,7 @@ from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.time import pretty_datetime
-from eave.stdlib.util import num_with_english_suffix, unwrap
+from eave.stdlib.util import unwrap
 
 
 @strawberry.input
