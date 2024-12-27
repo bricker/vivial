@@ -98,9 +98,11 @@ const PreferenceSelections = ({
 
   const toggleSelectAll = useCallback(() => {
     if (selectedCategories.length === categories.length) {
+      setRemovedCategories(categories);
       setSelectedCategories([]);
       setSelectedCategoryMap({});
     } else {
+      setRemovedCategories([]);
       setSelectedCategories(categories);
       setSelectedCategoryMap(getCategoryMap(categories));
     }
