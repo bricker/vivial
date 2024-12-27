@@ -71,7 +71,11 @@ const AccountPreferencesPage = () => {
 
   const handleSubmitActivities = useCallback(
     async (selectedCategories: Category[], removedCategories?: Category[]) => {
-      let activityCategoryIds = outingPreferences?.activityCategories?.map((c) => c.id) || [];
+      let activityCategoryIds = getDefaults({
+        preferredCategories: outingPreferences?.activityCategories || [],
+        allCategories: activityCategoryGroups.flatMap((g) => g.activityCategories),
+      }).map((c) => c.id);
+
       if (removedCategories) {
         const removedCategoryIds = removedCategories.map((c) => c.id);
         activityCategoryIds = activityCategoryIds.filter((id) => !removedCategoryIds.includes(id));

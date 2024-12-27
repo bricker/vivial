@@ -103,7 +103,6 @@ const PreferenceSelections = ({
         setRemovedCategories(removedCategories.filter((c) => c.id !== category.id));
         setSelectedCategories([...selectedCategories, category]);
       }
-
       setSelectedCategoryMap(mapClone);
     },
     [selectedCategoryMap, removedCategories, selectedCategories],
