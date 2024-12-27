@@ -49,7 +49,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
                 flow.kill()
         port = 5100
 
-    elif re.match(r"^(admin)\.", flow.request.host):
+    elif re.match(r"^admin\.", flow.request.host):
         port = 5200
         if is_public:
             flow.response = mitmproxy.http.Response.make(
