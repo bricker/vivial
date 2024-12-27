@@ -1,3 +1,4 @@
+import type React from "react";
 import { GraphQLExecutionError } from "../types/network";
 import { ADMIN_GRAPHQL_API_BASE } from "../util/http";
 import { type TypedDocumentString } from "./generated/graphql";
@@ -18,24 +19,6 @@ type GraphqlOperationMetadata = {
   operationType?: GraphQLOperationType;
   operationName?: string;
 };
-
-// function isViewerOperation(data: any): data is { viewer: ViewerMutations | ViewerQueries } {
-//   return !!data && "viewer" in data;
-// }
-
-// async function refreshTokens() {
-//   const response = await fetch(`${CORE_API_BASE}/public/refresh_tokens`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" }, // this endpoint doesn't actually accept any input, but no harm in setting this header.
-//     credentials: "include", // This is required so that the cookies are sent to the subdomain (api.)
-//   });
-
-//   if (response.ok) {
-//     return;
-//   } else {
-//     throw Error(`Refresh tokens failed (${response.status})`);
-//   }
-// }
 
 export async function executeOperation<TResult, TVariables>({
   query,
@@ -82,58 +65,6 @@ export async function executeOperation<TResult, TVariables>({
   }
 
   const result = data as TResult;
-
-  // if (isViewerOperation(result) && result.viewer.__typename === "UnauthenticatedViewer") {
-  //   if (result.viewer.authFailureReason) {
-  //     switch (result.viewer.authFailureReason) {
-  //       case AuthenticationFailureReason.AccessTokenExpired: {
-  //         if (allowTokenRefresh) {
-  //           await refreshTokens();
-  //           return executeOperation({ query, variables, allowTokenRefresh: false });
-  //         } else {
-  //           // In this case, we throw an error because we don't want the UI to see `ACCESS_TOKEN_EXPIRED` and think
-  //           // it needs to do something about that. If we already tried refreshing the token and the request failed again,
-  //           // then it should be treated as an error.
-  //           throw Error("Tokens already refreshed.");
-  //         }
-  //       }
-  //       case AuthenticationFailureReason.AccessTokenInvalid: {
-  //         // Do nothing (return the data as-is); this case is here just for reference.
-  //         // The caller should handle this case, usually by calling dispatch(loggedOut())
-  //         break;
-  //       }
-  //       default: {
-  //         // It's unsafe to do anything here, because if an enum case is added to the GraphQL schema, we can't assume
-  //         // what we should do. So we'll just return the data as-is and let the UI handle it.
-  //       }
-  //     }
-  //   } else if (result.viewer.authAction) {
-  //     // THIS IS FOR BACKWARD COMPATIBILITY AND CAN BE REMOVED AFTER `authFailureReason` IS DEPLOYED.
-  //     switch (result.viewer.authAction) {
-  //       case ViewerAuthenticationAction.RefreshAccessToken: {
-  //         if (allowTokenRefresh) {
-  //           await refreshTokens();
-  //           return executeOperation({ query, variables, allowTokenRefresh: false });
-  //         } else {
-  //           // In this case, we throw an error because we don't want the UI to see `ACCESS_TOKEN_EXPIRED` and think
-  //           // it needs to do something about that. If we already tried refreshing the token and the request failed again,
-  //           // then it should be treated as an error.
-  //           throw Error("Tokens already refreshed.");
-  //         }
-  //       }
-  //       case ViewerAuthenticationAction.ForceLogout: {
-  //         // Do nothing (return the data as-is); this case is here just for reference.
-  //         // The caller should handle this case, usually by calling dispatch(loggedOut())
-  //         break;
-  //       }
-  //       default: {
-  //         // It's unsafe to do anything here, because if an enum case is added to the GraphQL schema, we can't assume
-  //         // what we should do. So we'll just return the data as-is and let the UI handle it.
-  //       }
-  //     }
-  //   }
-  // }
-
   return result;
 }
 
