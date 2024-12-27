@@ -5,7 +5,7 @@
     "outDir": ".tmp", // This is necessary to silence some tsconfig warnings.
     "lib": ["ES2021", "DOM"],
     "paths": {
-      "$eave-dashboard/*": ["./eave/dashboard/*"]
+      "$eave-admin/*": ["./eave/admin/*"]
     }
   }
 }
