@@ -71,6 +71,8 @@ const PreferenceSelections = ({
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
   const accentColor = getAccentColor(categoryGroupId);
 
+  console.log("removed from inside", removedCategories);
+
   const handleSubmit = useCallback(() => {
     onSubmit(selectedCategories, removedCategories);
     setRemovedCategories([]);
@@ -98,9 +100,11 @@ const PreferenceSelections = ({
 
   const toggleSelectAll = useCallback(() => {
     if (selectedCategories.length === categories.length) {
+      setRemovedCategories(categories);
       setSelectedCategories([]);
       setSelectedCategoryMap({});
     } else {
+      setRemovedCategories([]);
       setSelectedCategories(categories);
       setSelectedCategoryMap(getCategoryMap(categories));
     }
