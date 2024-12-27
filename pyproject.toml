@@ -11,9 +11,9 @@ venvPath = ".venv"
 extraPaths = [
   "./apps/core",
   "./apps/dashboard",
+  "./apps/admin",
   "./libs/eave-stdlib-py/src",
   "./develop/python/src",
-  "./apps/admin",
 ]
 typeCheckingMode = "standard"
 # deprecateTypingAliases = true # Currently `Union` is necessary when deferred types are involved
