@@ -7,7 +7,7 @@ import {
   useGetOutingPreferencesQuery,
   useUpdateOutingPreferencesMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { getDefaults, initCollapsedGroups } from "../../Selections/PreferenceSelections/helpers";
+import { getDefaults } from "../../Selections/PreferenceSelections/helpers";
 
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
@@ -35,27 +35,8 @@ const AccountPreferencesPage = () => {
   const { data, isLoading } = useGetOutingPreferencesQuery({});
   const [updatePreferences] = useUpdateOutingPreferencesMutation();
   const [outingPreferences, setOutingPreferences] = useState<OutingPreferencesFieldsFragment | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Map<string, boolean>>(new Map());
   const restaurantCategories = data?.restaurantCategories || [];
   const activityCategoryGroups = data?.activityCategoryGroups || [];
-
-  const handleCollapse = useCallback(() => {
-    const newCollapsedGroups = new Map(collapsedGroups);
-    let collapse = false;
-    for (const id of newCollapsedGroups.keys()) {
-      if (collapse) {
-        newCollapsedGroups.set(id, true);
-        setCollapsedGroups(newCollapsedGroups);
-        return;
-      }
-      if (newCollapsedGroups.get(id)) {
-        newCollapsedGroups.set(id, false);
-        collapse = true;
-      }
-    }
-    newCollapsedGroups.set("default", true);
-    setCollapsedGroups(newCollapsedGroups);
-  }, [collapsedGroups]);
 
   const handleSubmitRestaurants = useCallback(async (selectedCategories: Category[]) => {
     const restaurantCategoryIds = selectedCategories.map((c) => c.id);
@@ -75,7 +56,6 @@ const AccountPreferencesPage = () => {
         preferredCategories: outingPreferences?.activityCategories || [],
         allCategories: activityCategoryGroups.flatMap((g) => g.activityCategories),
       }).map((c) => c.id);
-
       if (removedCategories) {
         const removedCategoryIds = removedCategories.map((c) => c.id);
         activityCategoryIds = activityCategoryIds.filter((id) => !removedCategoryIds.includes(id));
@@ -102,9 +82,6 @@ const AccountPreferencesPage = () => {
     if (viewer?.__typename === "AuthenticatedViewerQueries") {
       setOutingPreferences(viewer.outingPreferences);
     }
-    if (data?.activityCategoryGroups) {
-      setCollapsedGroups(initCollapsedGroups(data.activityCategoryGroups));
-    }
   }, [data]);
 
   if (isLoading || outingPreferences === null) {
@@ -128,8 +105,6 @@ const AccountPreferencesPage = () => {
           allCategories: restaurantCategories,
         })}
         onSubmit={handleSubmitRestaurants}
-        onCollapse={handleCollapse}
-        collapsed={collapsedGroups.get("default")}
         collapsable
       />
       {activityCategoryGroups?.map((group) => (
@@ -143,8 +118,7 @@ const AccountPreferencesPage = () => {
             allCategories: group.activityCategories,
           })}
           onSubmit={handleSubmitActivities}
-          onCollapse={handleCollapse}
-          collapsed={collapsedGroups.get(group.id)}
+          collapsed={false}
           collapsable
         />
       ))}

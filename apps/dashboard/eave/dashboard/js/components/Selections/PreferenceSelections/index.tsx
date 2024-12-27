@@ -1,6 +1,6 @@
 import { type Category } from "$eave-dashboard/js/types/category";
 import { styled } from "@mui/material";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import Typography from "@mui/material/Typography";
 import DropdownButton from "../../Buttons/DropdownButton";
@@ -49,7 +49,6 @@ interface PreferenceSelectionsProps {
   categories: Category[];
   defaultCategories: Category[];
   onSubmit: (selectedCategories: Category[], removedCategories?: Category[]) => void;
-  onCollapse?: () => void;
   categoryGroupId?: string;
   collapsable?: boolean;
   collapsed?: boolean;
@@ -62,7 +61,6 @@ const PreferenceSelections = ({
   categories,
   defaultCategories,
   onSubmit,
-  onCollapse,
   collapsable = false,
   collapsed = true,
   cta = "Save",
@@ -70,7 +68,6 @@ const PreferenceSelections = ({
   const [selectedCategories, setSelectedCategories] = useState(defaultCategories);
   const [selectedCategoryMap, setSelectedCategoryMap] = useState(getCategoryMap(defaultCategories));
   const [removedCategories, setRemovedCategories] = useState<Category[]>([]);
-  const [onCollapseEnabled, setOnCollapseEnabled] = useState(!!onCollapse);
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
   const accentColor = getAccentColor(categoryGroupId);
 
@@ -78,18 +75,9 @@ const PreferenceSelections = ({
     onSubmit(selectedCategories, removedCategories);
     setRemovedCategories([]);
     if (collapsable) {
-      if (onCollapseEnabled && onCollapse) {
-        onCollapse();
-      } else {
-        setIsCollapsed(false);
-      }
+      setIsCollapsed(false);
     }
   }, [selectedCategories, removedCategories]);
-
-  const handleForceCollapse = useCallback(() => {
-    setIsCollapsed(!isCollapsed);
-    setOnCollapseEnabled(false);
-  }, [isCollapsed]);
 
   const handleSelect = useCallback(
     (category: Category) => {
@@ -118,18 +106,13 @@ const PreferenceSelections = ({
     }
   }, [categories, selectedCategories]);
 
-  useEffect(() => {
-    setSelectedCategories(defaultCategories);
-    setSelectedCategoryMap(getCategoryMap(defaultCategories));
-  }, [defaultCategories]);
-
-  useEffect(() => {
-    setIsCollapsed(collapsed);
-  }, [collapsed]);
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(!isCollapsed);
+  }, [isCollapsed]);
 
   return (
     <RowContainer>
-      {collapsable && <CollapseButton onClick={handleForceCollapse} open={isCollapsed} large />}
+      {collapsable && <CollapseButton onClick={toggleCollapse} open={isCollapsed} large />}
       <Typography variant="h5">{categoryGroupName}</Typography>
       {isCollapsed && (
         <RowContentContainer>

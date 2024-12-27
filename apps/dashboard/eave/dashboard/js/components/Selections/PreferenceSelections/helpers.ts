@@ -1,4 +1,3 @@
-import { type ActivityCategoryGroup } from "$eave-dashboard/js/graphql/generated/graphql";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { type Category } from "$eave-dashboard/js/types/category";
 import { CATEGORY_ACCENT_COLOR_MAP } from "./constants";
@@ -29,15 +28,9 @@ export function getDefaults({
   allCategories: Category[];
 }): Category[] {
   if (preferredCategories.length) {
-    return preferredCategories;
+    const preferredCategoryMap = getCategoryMap(preferredCategories);
+    return allCategories.filter((c) => c.id in preferredCategoryMap);
   } else {
-    return allCategories.filter((category) => category.isDefault);
+    return allCategories.filter((c) => c.isDefault);
   }
-}
-
-export function initCollapsedGroups(groups: ActivityCategoryGroup[]): Map<string, boolean> {
-  const map: Map<string, boolean> = new Map();
-  map.set("default", true);
-  groups.forEach((group) => map.set(group.id, false));
-  return map;
 }
