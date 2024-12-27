@@ -289,23 +289,34 @@ class GooglePlacesUtility:
     async def get_google_place(
         self,
         place_id: str,
-    ) -> Place:
-        return await self.client.get_place(
-            request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
-        )
+    ) -> Place | None:
+        try:
+            place = await self.client.get_place(
+                request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
+            )
+            return place
+        except Exception as e:
+            LOGGER.error(e)
+            return None
 
     async def get_google_places_activity(self, *, event_id: str) -> Activity | None:
         place = await self.get_google_place(
             place_id=event_id,
         )
 
+        if not place:
+            return None
+
         activity = await self.activity_from_google_place(place)
         return activity
 
-    async def get_google_places_restaurant(self, *, restaurant_id: str) -> Restaurant:
+    async def get_google_places_restaurant(self, *, restaurant_id: str) -> Restaurant | None:
         place = await self.get_google_place(
             place_id=restaurant_id,
         )
+
+        if not place:
+            return None
 
         restaurant = await self.restaurant_from_google_place(place)
         return restaurant
@@ -391,7 +402,7 @@ class GooglePlacesUtility:
             for result in geocode_results:
                 if place_id := result.get("place_id"):
                     place = await self.get_google_place(place_id)
-                    if place.google_maps_uri:
+                    if place and place.google_maps_uri:
                         return place.google_maps_uri
         except Exception as e:
             if SHARED_CONFIG.is_local:

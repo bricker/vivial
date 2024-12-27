@@ -151,30 +151,31 @@ async def initiate_booking_mutation(
                     source_id=reservation_orm.source_id,
                 )
 
-                booking_reservation_orm = BookingReservationTemplateOrm(
-                    db_session,
-                    booking=booking_orm,
-                    source=reservation_orm.source,
-                    source_id=reservation_orm.source_id,
-                    name=restaurant.name,
-                    start_time_utc=reservation_orm.start_time_utc,
-                    timezone=reservation_orm.timezone,
-                    headcount=reservation_orm.headcount,
-                    external_booking_link=restaurant.website_uri,
-                    address=restaurant.location.address.to_address(),
-                    coordinates=restaurant.location.coordinates,
-                    photo_uri=restaurant.photos.cover_photo.src if restaurant.photos.cover_photo else None,
-                )
+                if restaurant:
+                    booking_reservation_orm = BookingReservationTemplateOrm(
+                        db_session,
+                        booking=booking_orm,
+                        source=reservation_orm.source,
+                        source_id=reservation_orm.source_id,
+                        name=restaurant.name,
+                        start_time_utc=reservation_orm.start_time_utc,
+                        timezone=reservation_orm.timezone,
+                        headcount=reservation_orm.headcount,
+                        external_booking_link=restaurant.website_uri,
+                        address=restaurant.location.address.to_address(),
+                        coordinates=restaurant.location.coordinates,
+                        photo_uri=restaurant.photos.cover_photo.src if restaurant.photos.cover_photo else None,
+                    )
 
-                booking_orm.reservations = [booking_reservation_orm]
+                    booking_orm.reservations = [booking_reservation_orm]
 
-                reservation = Reservation(
-                    arrival_time=booking_reservation_orm.start_time_local,
-                    headcount=booking_reservation_orm.headcount,
-                    restaurant=restaurant,
-                )
+                    reservation = Reservation(
+                        arrival_time=booking_reservation_orm.start_time_local,
+                        headcount=booking_reservation_orm.headcount,
+                        restaurant=restaurant,
+                    )
 
-                total_cost_breakdown += reservation.calculate_cost_breakdown()
+                    total_cost_breakdown += reservation.calculate_cost_breakdown()
 
         booking_total_cost_cents = total_cost_breakdown.calculate_total_cost_cents()
 

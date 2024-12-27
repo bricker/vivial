@@ -1,0 +1,11 @@
+query ListBookedOutings($accountId: UUID!) {
+  adminBookings(accountId: $accountId) {
+    id
+    activityStartTime
+    restaurantArrivalTime
+    activityName
+    restaurantName
+    photoUri
+    state
+  }
+}

@@ -41,11 +41,16 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
             ]:
                 # The first path component is not whitelisted as a public endpoint.
                 # In the real world, this would return something like a 404.
-                flow.kill()
-                raise PrivateEndpointAccessError(
-                    "Private endpoints can't be accessed through public DNS. Use '.internal.eave.run' to simulate internal DNS."
+                flow.response = mitmproxy.http.Response.make(
+                    404,
+                    b"Private endpoints can't be accessed through public DNS. Use '.internal.eave.run' to simulate internal DNS.",
+                    {"Content-Type": "text/plain"},
                 )
+                flow.kill()
         port = 5100
+
+    elif re.match(r"^admin\.", flow.request.host):
+        port = 5200
 
     elif re.match(r"^cdn\.", flow.request.host):
         # This is the port for a webpack server.

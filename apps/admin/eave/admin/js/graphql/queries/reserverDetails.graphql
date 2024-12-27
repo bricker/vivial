@@ -1,0 +1,8 @@
+query ReserverDetails($reserverDetailsId: UUID!) {
+  adminReserverDetails(reserverDetailsId: $reserverDetailsId) {
+    id
+    firstName
+    lastName
+    phoneNumber
+  }
+}

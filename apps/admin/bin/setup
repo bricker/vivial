@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+cd "$(e.parentpath)"
+
+"${EAVE_HOME}"/develop/python/_setup_base
+"${EAVE_HOME}"/develop/javascript/_setup_base

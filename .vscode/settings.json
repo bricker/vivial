@@ -95,6 +95,7 @@
   "python.autoComplete.extraPaths": [
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/dashboard",
+    "${workspaceFolder}/apps/admin",
     "${workspaceFolder}/develop/python/src",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
   ],
@@ -138,7 +139,8 @@
   "python.analysis.extraPaths": [
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/dashboard",
+    "${workspaceFolder}/apps/admin",
     "${workspaceFolder}/develop/python/src",
-    "${workspaceFolder}/libs/eave-stdlib-py/src"
+    "${workspaceFolder}/libs/eave-stdlib-py/src",
   ],
 }

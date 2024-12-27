@@ -84,7 +84,7 @@ class Event(TypedDict, total=False):
     url: str
     """The URL to the event page for this event on Eventbrite"""
 
-    vanity_url: str
+    vanity_url: str | None
     """The vanity URL to the event page for this event on Eventbrite"""
 
     created: Required[str]

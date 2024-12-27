@@ -1,0 +1,6 @@
+fragment PhotoFields on Photo {
+  id
+  src
+  alt
+  attributions
+}

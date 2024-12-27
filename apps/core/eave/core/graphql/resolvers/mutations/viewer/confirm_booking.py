@@ -1,5 +1,4 @@
 import enum
-from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
@@ -18,14 +17,15 @@ from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.lib.google_places import GooglePlacesUtility
-from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
+from eave.core.mail import send_booking_confirmation_email
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
-from eave.stdlib.util import num_with_english_suffix, unwrap
+from eave.stdlib.time import pretty_datetime
+from eave.stdlib.util import unwrap
 
 
 @strawberry.input
@@ -194,7 +194,7 @@ async def _notify_slack_booking_confirmed(
     if len(booking_orm.reservations) > 0:
         places = GooglePlacesUtility()
         rez = await places.get_google_place(place_id=booking_orm.reservations[0].source_id)
-        if rez.reservable:
+        if rez and rez.reservable:
             elements.append("Restaurant Reservation Required")
 
     if len(booking_orm.activities) > 0:
@@ -223,6 +223,8 @@ async def _notify_slack_booking_confirmed(
                 thread_ts=slack_response.get("ts"),
                 link_names=True,
                 text=dedent(f"""
+                    Dashboard link: {SHARED_CONFIG.eave_admin_base_url_public}/booking/edit/{booking_orm.id}
+
                     *Account Info*
 
                     - *Account ID*: `{account_orm.id}`
@@ -244,7 +246,7 @@ async def _notify_slack_booking_confirmed(
 
                     - *Source*: {reservation.source}
                     - *Name*: {reservation.name}
-                    - *Start Time*: {_pretty_datetime(reservation.start_time_local)}
+                    - *Start Time*: {pretty_datetime(reservation.start_time_local)}
                     - *Attendees*: {reservation.headcount}
                     - *Booking URL*: {reservation.external_booking_link}
                     """
@@ -256,7 +258,7 @@ async def _notify_slack_booking_confirmed(
 
                     - *Source*: {activity.source}
                     - *Name*: {activity.name}
-                    - *Start Time*: {_pretty_datetime(activity.start_time_local)}
+                    - *Start Time*: {pretty_datetime(activity.start_time_local)}
                     - *Attendees*: {activity.headcount}
                     - *Booking URL*: {activity.external_booking_link}
                     """
@@ -275,37 +277,5 @@ async def _notify_slack_booking_confirmed(
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
     send_booking_confirmation_email(
-        to_email=account_orm.email,
-        data=BookingConfirmationData(
-            booking_date=_pretty_datetime(booking_orm.start_time_local),
-            booking_details_url=f"{SHARED_CONFIG.eave_dashboard_base_url_public}/plans/{booking_orm.id}?utm_source=booking-confirmation-email",
-            activities=[
-                EventItem(
-                    name=a.name,
-                    time=_pretty_time(a.start_time_local),
-                )
-                for a in booking_orm.activities
-            ],
-            restaurants=[
-                EventItem(
-                    name=r.name,
-                    time=_pretty_time(r.start_time_local),
-                )
-                for r in booking_orm.reservations
-            ],
-        ),
+        booking_orm=booking_orm,
     )
-
-
-def _pretty_time(dt: datetime) -> str:
-    return dt.strftime("%I:%M%p")
-
-
-def _pretty_datetime(dt: datetime) -> str:
-    suffixed_day = num_with_english_suffix(dt.day)
-
-    minutefmt = ":%M"
-    if dt.minute == 0:
-        minutefmt = ""
-
-    return dt.strftime(f"%A, %B {suffixed_day} at %-I{minutefmt}%p %Z")

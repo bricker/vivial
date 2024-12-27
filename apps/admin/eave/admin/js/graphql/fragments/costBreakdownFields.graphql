@@ -1,0 +1,6 @@
+fragment CostBreakdownFields on CostBreakdown {
+  baseCostCents
+  feeCents
+  taxCents
+  totalCostCents
+}

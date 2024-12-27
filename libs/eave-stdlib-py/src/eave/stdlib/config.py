@@ -177,6 +177,12 @@ class _EaveConfig(ConfigBase):
         )  # Use "or" to cover empty string
 
     @property
+    def eave_admin_base_url_public(self) -> str:
+        return os.getenv("EAVE_ADMIN_BASE_URL_PUBLIC") or _prefix_hostname(
+            url=self.eave_base_url_public, prefix="admin."
+        )  # Use "or" to cover empty string
+
+    @property
     def jws_signing_key_version_path(self) -> str:
         return os.getenv(
             "JWS_SIGNING_KEY_VERSION_PATH",

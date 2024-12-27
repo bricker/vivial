@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function main() (
+	export EAVE_DEPLOY_TARGET
+	EAVE_DEPLOY_TARGET="$(e.gcloudproject)"
+
+	cd "$(e.parentpath)"
+	bin/lint
+
+	_live_version=$(curl -s https://admin.vivialapp.com/status | jq -r .version)
+
+	statusmsg -a "Diff since last deployment:"
+	git log --oneline "$_live_version"..HEAD
+
+	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
+
+	if e.confirm; then
+		"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s admin
+	fi
+)
+
+main "$@"
