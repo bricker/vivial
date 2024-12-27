@@ -72,8 +72,15 @@ const CostBreakdown = styled("div")(() => ({
 const CostItem = styled(Typography, {
   shouldForwardProp: (prop) => prop !== "bold",
 })<{ bold?: boolean }>(({ bold }) => ({
-  textAlign: "right",
+  display: "flex",
+  justifyContent: "flex-end",
+  alignItems: "flex-end",
   fontWeight: bold ? 700 : 400,
+}));
+
+const CostDescription = styled("span")(() => ({
+  marginRight: 5,
+  textAlign: "right",
 }));
 
 const OneClickBooking = styled("div")(() => ({
@@ -384,21 +391,29 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       <CostBreakdown>
         {reservation && reservation.restaurant.reservable && (
           <>
-            <CostItem>{reservation.restaurant.name} Reservations ...</CostItem>
+            <CostItem>
+              <CostDescription>{reservation.restaurant.name} Reservations</CostDescription> ...
+            </CostItem>
             <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
           </>
         )}
         {activityPlan && isPaidOuting(outing) && (
           <>
-            <CostItem>{activityPlan.activity.name} Tickets ...</CostItem>
+            <CostItem>
+              <CostDescription>
+                {activityPlan.activity.name} Tickets ({outing.headcount})
+              </CostDescription>{" "}
+              ...
+            </CostItem>
             <CostItem>{formatBaseCost(activityPlan.costBreakdown)}</CostItem>
-
             {activityPlan.costBreakdown.taxCents + activityPlan.costBreakdown.feeCents > 0 && (
               <>
                 <CostItem>
-                  {activityPlan.activity.source === ActivitySource.Eventbrite
-                    ? "Service Fees & Taxes via Eventbrite"
-                    : "Service Feeds & Taxes"}{" "}
+                  <CostDescription>
+                    {activityPlan.activity.source === ActivitySource.Eventbrite
+                      ? "Service Fees & Taxes via Eventbrite"
+                      : "Service Feeds & Taxes"}{" "}
+                  </CostDescription>{" "}
                   ...
                 </CostItem>
                 <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
@@ -406,14 +421,14 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
             )}
           </>
         )}
-        <CostItem>Service Fees via Vivial ...</CostItem>
+        <CostItem>
+          <CostDescription>Service Fees via Vivial</CostDescription> ...
+        </CostItem>
         <CostItem bold>FREE</CostItem>
       </CostBreakdown>
-
       {!viewOnly && (
         <>
           {oneClickUI}
-
           <ActionButtons>
             <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
             <BookButton onClick={handleBookClick} fullWidth loading={bookButtonLoading}>
@@ -424,13 +439,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       )}
       {errorMessage && <Error>{errorMessage}</Error>}
       {bookingOpen && (
-        <Modal
-          title="Booking Info"
-          onClose={toggleBookingOpen}
-          open={bookingOpen}
-          // badge={<StripeBadge />} // Avoid a double stripe badge
-          padChildren={false}
-        >
+        <Modal title="Booking Info" onClose={toggleBookingOpen} open={bookingOpen} padChildren={false}>
           <CheckoutFormStripeElementsProvider outingId={outing.id} />
         </Modal>
       )}
