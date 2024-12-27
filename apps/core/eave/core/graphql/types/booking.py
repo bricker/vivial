@@ -3,7 +3,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.outing import Outing
+from eave.core.graphql.types.itinerary import Itinerary
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import BookingState
@@ -25,7 +25,7 @@ class Booking:
 
 
 @strawberry.type
-class BookingDetailPeek:
+class BookingDetailsPeek:
     id: UUID
     activity_start_time: datetime | None
     activity_name: str | None
@@ -36,5 +36,5 @@ class BookingDetailPeek:
 
 
 @strawberry.type
-class BookingDetails(Outing):
+class BookingDetails(Itinerary):
     state: BookingState

@@ -5,10 +5,10 @@ from typing import Annotated
 import strawberry
 
 import eave.core.database
-from eave.core.analytics import ANALYTICS
 from eave.core.auth_cookies import set_new_auth_cookies
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account
+from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.mail import send_welcome_email
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
@@ -86,7 +86,7 @@ async def create_account_mutation(
     set_new_auth_cookies(response=info.context["response"], account_id=new_account_orm.id)
 
     # TODO: Send in offline queue
-    send_welcome_email(to_emails=[new_account_orm.email])
+    send_welcome_email(to_email=new_account_orm.email)
     await _notify_slack(account=new_account_orm)
 
     account = Account.from_orm(new_account_orm)

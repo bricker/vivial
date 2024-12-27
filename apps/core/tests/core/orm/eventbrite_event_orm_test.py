@@ -3,15 +3,35 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
+from eave.core.shared.enums import OutingBudget
 from eave.core.shared.geo import Distance, GeoArea, GeoPoint
-from eave.stdlib.time import ONE_DAY_IN_SECONDS
 
 from ..base import BaseTestCase
 
 
 class TestEventbriteEventOrm(BaseTestCase):
+    def make_eventbrite_event_orm(self, session: AsyncSession) -> EventbriteEventOrm:
+        return EventbriteEventOrm(
+            session,
+            eventbrite_event_id=self.anystr("eventbrite_event_id"),
+            eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
+            title=self.anystr(),
+            google_place_id=self.anystr(),
+            vivial_activity_category_id=self.anyuuid(),
+            vivial_activity_format_id=self.anyuuid(),
+            start_time=self.anydatetime("start_time", past=True),
+            end_time=self.anydatetime("end_time", future=True),
+            timezone=self.anytimezone(),
+            min_cost_cents=self.anyint("min_cost", min=0, max=999),
+            max_cost_cents=self.anyint("max_cost", min=1000, max=9999),
+            lat=self.anylatitude("lat"),
+            lon=self.anylongitude("lon"),
+        )
+
     async def test_eventbrite_event_new_event_record(self) -> None:
         async with self.db_session.begin() as session:
             obj = EventbriteEventOrm(
@@ -19,6 +39,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 eventbrite_event_id=self.anystr("eventbrite_event_id"),
                 eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
                 title=self.anystr(),
+                google_place_id=None,
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
@@ -46,91 +67,123 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert obj.max_cost_cents == self.getint("max_cost")
             assert obj.timezone == self.gettimezone("timezone")
 
-    async def test_eventbrite_event_query_max_cost(self) -> None:
+    async def test_eventbrite_event_query_budget_1(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(
-                session,
-                eventbrite_event_id=self.anystr("eventbrite_event_id"),
-                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
-                title=self.anystr(),
-                vivial_activity_category_id=self.anyuuid(),
-                vivial_activity_format_id=self.anyuuid(),
-                start_time=self.anydatetime("start_time", past=True),
-                end_time=self.anydatetime("end_time", future=True),
-                timezone=self.anytimezone(),
-                min_cost_cents=self.anyint("min_cost", min=0, max=1999),
-                max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
-                lat=self.anylatitude("lat"),
-                lon=self.anylongitude("lon"),
-            )
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents  # Matches upper limit exactly
+            obj.min_cost_cents = 0
 
         async with self.db_session.begin() as session:
             results = (
                 await session.scalars(
-                    EventbriteEventOrm.select(
-                        up_to_cost_cents=self.getint("max_cost"),  # the event's max_cost is equal to the query limit
-                    )
+                    EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE),
                 )
             ).all()
 
-            assert len(results) == 1, "query expected to find a result, but found none"
+            assert len(results) == 1
 
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        up_to_cost_cents=self.getint("max_cost")
-                        - 1,  # the event's max_cost is 1 higher than the query limit
-                    )
-                )
-            ).all()
-
-            assert len(results) == 0, "query expected to fail, but found a result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        up_to_cost_cents=self.getint("max_cost")
-                        + 1,  # the event's max_cost is 1 lower than the query limit
-                    )
-                )
-            ).all()
-
-            assert len(results) == 1, "query failed, but a result was expected"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        up_to_cost_cents=0,
-                    )
-                )
-            ).all()
-
-            assert len(results) == 0, "query expected to fail, but found a result"
+    async def test_eventbrite_event_query_budget_2(self) -> None:
+        assert OutingBudget.EXPENSIVE.upper_limit_cents is not None  # for typechecker
 
         async with self.db_session.begin() as session:
-            obj = await EventbriteEventOrm.get_one(session, obj.id)
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents + 100  # max cost above the budget
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_3(self) -> None:
+        assert OutingBudget.EXPENSIVE.upper_limit_cents is not None  # for typechecker
+
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents - 100  # max cost below the budget
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_3_1(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.MODERATE.upper_limit_cents  # max cost below the budget
+            obj.min_cost_cents = 0
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_4(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.VERY_EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.MODERATE.upper_limit_cents  # Min cost below budget max
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_5(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.MODERATE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.INEXPENSIVE.upper_limit_cents
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_6(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.VERY_EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents  # Exact budget match
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.EXPENSIVE))).all()
+
+            assert len(results) == 1
+
+    async def test_eventbrite_event_query_budget_7(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.VERY_EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents  # above budget
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.MODERATE))).all()
+
+            assert len(results) == 0
+
+    async def test_eventbrite_event_query_budget_8(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
             obj.max_cost_cents = 0
+            obj.min_cost_cents = 0
 
         async with self.db_session.begin() as session:
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        up_to_cost_cents=self.anyint(min=100),
-                    )
-                )
-            ).all()
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.MODERATE))).all()
 
-            assert len(results) == 1, "query expected to find a result, but found none"
+            assert len(results) == 1
 
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        up_to_cost_cents=0,
-                    )
-                )
-            ).all()
+    async def test_eventbrite_event_query_budget_9(self) -> None:
+        async with self.db_session.begin() as session:
+            obj = self.make_eventbrite_event_orm(session)
+            obj.max_cost_cents = OutingBudget.EXPENSIVE.upper_limit_cents
+            obj.min_cost_cents = OutingBudget.MODERATE.upper_limit_cents
 
-            assert len(results) == 1, "query expected to find a result, but found none"
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EventbriteEventOrm.select(budget=OutingBudget.FREE))).all()
+
+            assert len(results) == 0
 
     async def _setup_results(self, start_time: datetime, delta: timedelta) -> Sequence[EventbriteEventOrm]:
         async with self.db_session.begin() as session:
@@ -139,10 +192,11 @@ class TestEventbriteEventOrm(BaseTestCase):
                 eventbrite_event_id=self.anystr(),
                 eventbrite_organizer_id=self.anystr(),
                 title=self.anystr(),
+                google_place_id=None,
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=start_time,
-                end_time=self.anydatetime(offset=ONE_DAY_IN_SECONDS),
+                end_time=start_time + timedelta(minutes=self.anyint(min=15, max=120)),
                 timezone=self.anytimezone(),
                 min_cost_cents=self.anyint(min=0, max=1999),
                 max_cost_cents=self.anyint(min=2000, max=9999),
@@ -163,27 +217,25 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_eventbrite_event_query_start_time_20(self) -> None:
         results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS),
+            self.anydatetime("start_time", future=True),
             timedelta(minutes=-120),
         )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_21(self) -> None:
-        results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=120)
-        )
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=120))
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_22(self) -> None:
-        results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=15)
-        )
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=0))
+        assert len(results) == 1
+
+    async def test_eventbrite_event_query_start_time_22_5(self) -> None:
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=16))
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_23(self) -> None:
-        results = await self._setup_results(
-            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=-16)
-        )
+        results = await self._setup_results(self.anydatetime("start_time", future=True), timedelta(minutes=-16))
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_1(self) -> None:
@@ -241,6 +293,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 eventbrite_event_id=self.anystr("eventbrite_event_id"),
                 eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
                 title=self.anystr(),
+                google_place_id=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime(past=True),
@@ -289,6 +342,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 eventbrite_event_id=self.anystr("eventbrite_event_id"),
                 eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
                 title=self.anystr(),
+                google_place_id=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
@@ -311,6 +365,7 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             qobj.update(
                 title=self.anystr("new title"),
+                google_place_id=None,
                 vivial_activity_category_id=self.anyuuid("new vivial_activity_category_id"),
                 vivial_activity_format_id=self.anyuuid("new vivial_activity_format_id"),
                 start_time=self.anydatetime("new start_time", past=True),
@@ -352,6 +407,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 eventbrite_event_id=self.anystr(),
                 eventbrite_organizer_id=self.anystr(),
                 title=self.anystr(),
+                google_place_id=None,
                 vivial_activity_category_id=activity_category_id,
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime(past=True),

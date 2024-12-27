@@ -62,7 +62,7 @@ const ConfirmationsContainer = styled("div")(() => ({
   paddingTop: 8,
   backgroundImage: `url("${imageUrl("background-line.png")}")`,
   backgroundRepeat: "no-repeat",
-  backgroundPosition: "20% 0%",
+  backgroundPosition: "70px 0px",
   backgroundSize: "contain",
 }));
 

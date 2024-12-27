@@ -1,9 +1,7 @@
+import math
 import uuid
 
-from google.maps.places import PlacesAsyncClient
-
 from eave.core import database
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
@@ -12,22 +10,20 @@ from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
-from eave.core.lib.eventbrite import get_eventbrite_activity
-from eave.core.lib.google_places import (
-    get_google_places_activity,
-    get_google_places_restaurant,
-    google_maps_directions_url,
-)
-from eave.core.orm.activity import ActivityOrm
+from eave.core.lib.eventbrite import EventbriteUtility
+from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm, EvergreenActivityTicketTypeOrm
+from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 
 
-async def get_internal_activity(*, event_id: str) -> Activity | None:
+async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> Activity | None:
+    places = GooglePlacesUtility()
+
     async with database.async_session.begin() as db_session:
-        activity_orm = await ActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
+        activity_orm = await EvergreenActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
         images = activity_orm.images
 
     category_group = None
@@ -37,9 +33,37 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             activity_category_group_id=category.activity_category_group_id
         )
 
+    directions_uri = await places.google_maps_directions_url(format_address(activity_orm.address, singleline=True))
+
+    # Start with a price with all 0's
+    most_expensive_eligible_price = CostBreakdown()
+    most_expensive_eligible_ticket_type: EvergreenActivityTicketTypeOrm | None = None
+
+    for ticket_type in activity_orm.ticket_types:
+        cost_breakdown = CostBreakdown(
+            base_cost_cents=ticket_type.base_cost_cents,
+            fee_cents=ticket_type.service_fee_cents,
+            tax_cents=0,  # We'll calculate this below
+        )
+
+        cost_breakdown.tax_cents = math.floor(cost_breakdown.calculate_total_cost_cents() * ticket_type.tax_percentage)
+
+        total_cost_cents = cost_breakdown.calculate_total_cost_cents()
+        max_budget = survey.budget if survey else OutingBudget.default()
+
+        # If The total cost is <= the upper bound of the user's selected budget, then it is eligible.
+        cost_is_lte_max_budget = (
+            max_budget.upper_limit_cents is None or total_cost_cents <= max_budget.upper_limit_cents
+        )
+
+        if cost_is_lte_max_budget and total_cost_cents > most_expensive_eligible_price.calculate_total_cost_cents():
+            most_expensive_eligible_price = cost_breakdown
+            most_expensive_eligible_ticket_type = ticket_type
+
     return Activity(
         source_id=event_id,
         source=ActivitySource.INTERNAL,
+        is_bookable=activity_orm.is_bookable,
         name=activity_orm.title,
         description=activity_orm.description,
         venue=ActivityVenue(
@@ -47,7 +71,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             location=Location(
                 coordinates=activity_orm.coordinates_to_geopoint(),
                 address=GraphQLAddress.from_address(activity_orm.address),
-                directions_uri=google_maps_directions_url(format_address(activity_orm.address, singleline=True)),
+                directions_uri=directions_uri,
             ),
         ),
         photos=Photos(
@@ -55,10 +79,12 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             supplemental_photos=[Photo.from_orm(image) for image in images[1:]],
         ),
         ticket_info=TicketInfo(
-            name="FIXME",
-            notes="FIXME",
-            cost_breakdown=CostBreakdown(),  # FIXME
-        ),
+            name=most_expensive_eligible_ticket_type.title,
+            notes=None,
+            cost_breakdown=most_expensive_eligible_price,
+        )
+        if most_expensive_eligible_ticket_type
+        else None,
         website_uri=activity_orm.booking_url,
         door_tips=None,
         insider_tips=None,
@@ -68,35 +94,35 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
     )
 
 
-async def get_activity(
+async def resolve_activity_details(
     *,
     source: ActivitySource,
     source_id: str,
+    survey: SurveyOrm | None,
 ) -> Activity | None:
-    places_client = PlacesAsyncClient()
-    eventbrite_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
-
     match source:
         case ActivitySource.INTERNAL:
-            activity = await get_internal_activity(event_id=source_id)
+            activity = await get_internal_activity(event_id=source_id, survey=survey)
 
         case ActivitySource.GOOGLE_PLACES:
-            activity = await get_google_places_activity(places_client=places_client, event_id=source_id)
+            places = GooglePlacesUtility()
+            activity = await places.get_google_places_activity(event_id=source_id)
 
         case ActivitySource.EVENTBRITE:
-            activity = await get_eventbrite_activity(eventbrite_client=eventbrite_client, event_id=source_id)
+            eventbrite = EventbriteUtility()
+            activity = await eventbrite.get_eventbrite_activity(event_id=source_id, survey=survey)
 
     return activity
 
 
-async def get_restaurant(
+async def resolve_restaurant_details(
     *,
     source: RestaurantSource,
     source_id: str,
 ) -> Restaurant | None:
-    places_client = PlacesAsyncClient()
+    places = GooglePlacesUtility()
 
     match source:
         case RestaurantSource.GOOGLE_PLACES:
-            restaurant = await get_google_places_restaurant(places_client=places_client, restaurant_id=source_id)
+            restaurant = await places.get_google_places_restaurant(restaurant_id=source_id)
             return restaurant

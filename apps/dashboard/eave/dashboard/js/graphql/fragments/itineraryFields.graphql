@@ -1,28 +1,31 @@
-fragment OutingFields on Outing {
+fragment ItineraryFields on Itinerary {
   id
   startTime
   headcount
+
+  survey {
+    ...SurveyFields
+  }
+
   searchRegions {
     ...SearchRegionFields
   }
-  survey {
-    id
-    budget
-    headcount
-    searchRegions {
-      ...SearchRegionFields
-    }
-    startTime
-  }
-  drivingTimeMinutes
+
   costBreakdown {
     ...CostBreakdownFields
   }
+
   activityPlan {
     ...ActivityPlanFields
   }
 
   reservation {
     ...ReservationFields
+  }
+}
+
+fragment TravelFields on Itinerary {
+  travel {
+    durationMinutes
   }
 }

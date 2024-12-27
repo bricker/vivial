@@ -1,5 +1,4 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
-import { myWindow } from "$eave-dashboard/js/types/window";
 import { styled } from "@mui/material";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,12 +23,15 @@ const AccountPage = () => {
   const handlePrefsClick = useCallback(() => {
     navigate(AppRoute.accountPreferences);
   }, [navigate]);
+
   const handleBillingClick = useCallback(() => {
-    navigate(myWindow.app.stripeCustomerPortalUrl);
+    navigate(AppRoute.billing);
   }, [navigate]);
+
   const handlePasswordResetClick = useCallback(() => {
     navigate(AppRoute.passwordReset);
   }, [navigate]);
+
   return (
     <PageContainer>
       <EditableContainer />

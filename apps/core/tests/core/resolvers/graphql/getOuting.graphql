@@ -140,6 +140,8 @@ query Outing($input: OutingInput!) {
       }
     }
 
-    drivingTimeMinutes
+    travel {
+      durationMinutes
+    }
   }
 }

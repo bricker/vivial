@@ -33,10 +33,11 @@ const DateItineraryPage = () => {
   const params = useParams();
   const outingId = params["outingId"] || "";
   const outing = useSelector((state: RootState) => state.outing.details);
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const [skipQueries, setSkipQueries] = useState(true);
   const { data: preferencesData, isLoading: preferencesLoading } = useGetOutingPreferencesQuery(
     {},
-    { skip: skipQueries },
+    { skip: !isLoggedIn || skipQueries },
   );
   const { data: outingData, isLoading: outingDataLoading } = useGetOutingQuery(
     { input: { id: outingId } },

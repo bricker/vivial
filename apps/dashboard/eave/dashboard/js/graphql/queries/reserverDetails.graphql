@@ -1,0 +1,15 @@
+query ReserverDetails {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      reserverDetails {
+        ...ReserverDetailsFields
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

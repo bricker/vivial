@@ -1,4 +1,4 @@
-import { Outing, type BookingDetails } from "$eave-dashboard/js/graphql/generated/graphql";
+import { ActivitySource, type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React, { Fragment } from "react";
@@ -54,34 +54,37 @@ type Breakdown = { key: string; costName: string; costValue: string };
 
 /**
  * Build an array of cost breakdowns.
- * @param outing
+ * @param itinerary
  * @returns list of objects with named sources of a cost, and the cost as a USD currency string (or "FREE")
  */
-function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
+function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
-  if (outing.reservation) {
+  if (itinerary.reservation) {
     breakdown.push({
       key: "reservation",
-      costName: outing.reservation.restaurant.name,
-      costValue: formatBaseCost(outing.reservation.costBreakdown),
+      costName: itinerary.reservation.restaurant.name,
+      costValue: formatBaseCost(itinerary.reservation.costBreakdown),
     });
   }
 
-  if (outing.activityPlan) {
+  if (itinerary.activityPlan) {
     breakdown.push({
       key: "activity",
-      costName: outing.activityPlan.activity.name,
-      costValue: formatBaseCost(outing.activityPlan.costBreakdown),
+      costName: itinerary.activityPlan.activity.name,
+      costValue: formatBaseCost(itinerary.activityPlan.costBreakdown),
     });
   }
 
-  const feesAndTaxesCents = outing.costBreakdown.feeCents + outing.costBreakdown.taxCents;
+  const feesAndTaxesCents = itinerary.costBreakdown.feeCents + itinerary.costBreakdown.taxCents;
   if (feesAndTaxesCents > 0) {
     breakdown.push({
       key: "taxesAndFees",
-      costName: "3rd party Service Fees & Taxes",
-      costValue: formatFeesAndTaxes(outing.costBreakdown),
+      costName:
+        itinerary.activityPlan?.activity.source === ActivitySource.Eventbrite
+          ? "Service Fees & Taxes via Eventbrite"
+          : "Service Fees & Taxes",
+      costValue: formatFeesAndTaxes(itinerary.costBreakdown),
     });
   }
 
@@ -94,9 +97,9 @@ function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
   return breakdown;
 }
 
-const CostBreakdown = ({ outing }: { outing: Outing | BookingDetails }) => {
-  const totalCostFormatted = formatTotalCost(outing.costBreakdown);
-  const breakdown = buildBreakdowns(outing);
+const CostBreakdown = ({ itinerary }: { itinerary: ItineraryFieldsFragment }) => {
+  const totalCostFormatted = formatTotalCost(itinerary.costBreakdown);
+  const breakdown = buildBreakdowns(itinerary);
 
   return (
     <>

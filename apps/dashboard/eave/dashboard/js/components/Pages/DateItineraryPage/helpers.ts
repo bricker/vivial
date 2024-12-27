@@ -1,4 +1,9 @@
-import { ActivitySource, type Activity, type Outing, type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  ActivitySource,
+  type ActivityFieldsFragment,
+  type ItineraryFieldsFragment,
+  type PhotosFieldsFragment,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
 
 export function getTimeLabel(startTime: Date): string {
@@ -9,7 +14,7 @@ export function getTimeLabel(startTime: Date): string {
   return `${weekday}, ${month} ${date} @${time}`;
 }
 
-export function getImgUrls(photos: Photos): string[] {
+export function getImgUrls(photos: PhotosFieldsFragment): string[] {
   let imgUrls: string[] = [];
   if (!photos) {
     return imgUrls;
@@ -21,14 +26,14 @@ export function getImgUrls(photos: Photos): string[] {
   return imgUrls;
 }
 
-export function getTicketInfo(outing: Outing): string {
-  const activity = outing.activityPlan?.activity;
+export function getTicketInfo(itinerary: ItineraryFieldsFragment): string {
+  const activity = itinerary.activityPlan?.activity;
   if (activity) {
     if (activity.source === ActivitySource.Eventbrite) {
-      if (outing.headcount === 1) {
-        return `${outing.headcount} Ticket`;
+      if (itinerary.headcount === 1) {
+        return `${itinerary.headcount} Ticket`;
       }
-      return `${outing.headcount} Tickets`;
+      return `${itinerary.headcount} Tickets`;
     }
     if (activity.source === ActivitySource.GooglePlaces) {
       const primaryTypeName = activity.primaryTypeName?.toLocaleLowerCase();
@@ -43,7 +48,7 @@ export function getTicketInfo(outing: Outing): string {
   return "Activity";
 }
 
-export function getActivityCategoryInfo(activity: Activity): string {
+export function getActivityCategoryInfo(activity: ActivityFieldsFragment): string {
   if (activity.primaryTypeName) {
     return activity.primaryTypeName;
   }
@@ -53,7 +58,7 @@ export function getActivityCategoryInfo(activity: Activity): string {
   return "";
 }
 
-export function getActivityVenueName(activity: Activity): string {
+export function getActivityVenueName(activity: ActivityFieldsFragment): string {
   if (activity.source !== ActivitySource.GooglePlaces) {
     return activity.venue.name;
   }

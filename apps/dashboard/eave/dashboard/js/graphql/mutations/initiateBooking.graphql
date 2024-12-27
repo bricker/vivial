@@ -9,16 +9,15 @@ mutation InitiateBooking($input: InitiateBookingInput!) {
           __typename
 
           booking {
-            ...BookingDetailsFields
+            ...ItineraryFields
           }
 
           paymentIntent {
-            id
-            clientSecret
+            ...PaymentIntentFields
           }
 
           customerSession {
-            clientSecret
+            ...CustomerSessionFields
           }
         }
 

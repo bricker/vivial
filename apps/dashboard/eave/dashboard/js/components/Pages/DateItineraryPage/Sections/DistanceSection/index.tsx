@@ -25,17 +25,16 @@ const DrivingTime = styled(Typography)(() => ({
 
 const DistanceSection = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const drivingTimeMinutes = outing?.drivingTimeMinutes;
+  const drivingDurationMinutes = outing?.travel?.durationMinutes;
 
-  if (!outing || drivingTimeMinutes === null) {
-    // Use null comparison so that `0 minutes` is still rendered
+  if (!outing || !drivingDurationMinutes) {
     return null;
   }
 
   return (
     <Section>
       <DistanceBadge />
-      <DrivingTime>{drivingTimeMinutes} min drive</DrivingTime>
+      <DrivingTime>{drivingDurationMinutes} min drive</DrivingTime>
     </Section>
   );
 };

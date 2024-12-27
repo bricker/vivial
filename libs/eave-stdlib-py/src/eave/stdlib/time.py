@@ -30,6 +30,12 @@ def set_utc() -> None:
 
 
 def datetime_window(dt: datetime, *, minutes: int) -> tuple[datetime, datetime]:
+    """
+    Returns a window of size `minutes` around the given datetime, with the bounds quantized to the nearest `minutes`-minute interval below and above the given datetime.
+    For example, if 30 minutes is given, the window will always be a 30-minute window starting and ending at either :30 or :00,
+    regardless of where the given datetime falls within that window.
+    """
+
     dt = dt.replace(second=0, microsecond=0)
     one_second = timedelta(seconds=1)
 

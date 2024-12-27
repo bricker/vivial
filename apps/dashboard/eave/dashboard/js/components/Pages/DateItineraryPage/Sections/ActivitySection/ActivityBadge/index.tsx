@@ -1,5 +1,5 @@
 import Circle from "$eave-dashboard/js/components/Shapes/Circle";
-import { type Activity } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type ActivityFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import React from "react";
@@ -33,7 +33,7 @@ const Connector = styled("div")(() => ({
 }));
 
 interface ActivityBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  activity: Activity;
+  activity: ActivityFieldsFragment;
 }
 
 const emojiMap: { [key: string]: string } = {
@@ -46,7 +46,7 @@ const emojiMap: { [key: string]: string } = {
   [FITNESS_GROUP_ID]: "️⛰",
 };
 
-function getEmoji(activity: Activity): string {
+function getEmoji(activity: ActivityFieldsFragment): string {
   const primaryTypeName = activity.primaryTypeName?.toLocaleLowerCase();
   if (primaryTypeName) {
     if (primaryTypeName.includes("bar")) {

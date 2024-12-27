@@ -1,4 +1,4 @@
-import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
+import type { BookingDetailsPeekFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
@@ -63,6 +63,7 @@ const DetailsPaper = styled(MuiPaper)(({ theme }) => ({
   borderRadius: "14.984px",
   background: `linear-gradient(180deg, ${theme.palette.background.paper} 75.85%, rgba(85, 88, 14, 0.10) 190.15%)`,
   boxShadow: `0px 4px 4px 0px rgba(0, 0, 0, 0.25)`,
+  cursor: "pointer",
 }));
 
 const DetailsTitle = styled(Typography)(({ theme }) => ({
@@ -95,14 +96,14 @@ const NewDateCta = () => {
   return (
     <CtaContainer>
       <CenteredText variant="subtitle2">😢 No upcoming plans. Let's fix that</CenteredText>
-      <PrimaryButton onClick={() => navigate("/")} fullWidth>
+      <PrimaryButton onClick={() => navigate(AppRoute.root)} fullWidth>
         🎲 New date
       </PrimaryButton>
     </CtaContainer>
   );
 };
 
-const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
+const BookingDetails = ({ booking }: { booking: BookingDetailsPeekFieldsFragment }) => {
   const navigate = useNavigate();
   const imgUri = booking.photoUri;
   const dateDayString = booking.activityStartTime || booking.restaurantArrivalTime;
@@ -147,8 +148,8 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
 const PlansPage = () => {
   const { data, isLoading, isError } = useListBookedOutingsQuery({});
   const dispatch = useDispatch();
-  const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailPeek[]>(() => []);
-  const [pastBookings, setPastBookings] = useState<BookingDetailPeek[]>(() => []);
+  const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailsPeekFieldsFragment[]>(() => []);
+  const [pastBookings, setPastBookings] = useState<BookingDetailsPeekFieldsFragment[]>(() => []);
 
   useEffect(() => {
     switch (data?.viewer.__typename) {

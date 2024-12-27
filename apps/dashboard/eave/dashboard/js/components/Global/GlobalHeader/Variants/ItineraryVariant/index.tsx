@@ -1,7 +1,7 @@
 import VivialLogo from "$eave-dashboard/js/components/Logo";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { formatTotalCost } from "$eave-dashboard/js/util/currency";
+import { ZERO_DOLLARS_FORMATTED, formatTotalCost, hasUnbookableCost } from "$eave-dashboard/js/util/currency";
 import { styled } from "@mui/material";
 
 import React, { useCallback } from "react";
@@ -36,11 +36,15 @@ const ItineraryVariant = () => {
     return null;
   }
 
+  const isUnbookable = hasUnbookableCost(outing);
+  const costHeader = isUnbookable ? "Due Today" : "Total";
+  const cost = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(outing.costBreakdown);
+
   return (
     <Header>
       <VivialLogo hideText />
       <Typography variant="subtitle1">
-        Total: <Cost>{formatTotalCost(outing.costBreakdown)}</Cost>
+        {costHeader}: <Cost>{cost}</Cost>
       </Typography>
       <BookButton onClick={handleBook}>Book</BookButton>
     </Header>

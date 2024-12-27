@@ -1,0 +1,13 @@
+query BillingPortalUrl {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      billingPortalUrl
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

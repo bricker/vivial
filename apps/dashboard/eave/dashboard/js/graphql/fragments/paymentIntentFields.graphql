@@ -1,0 +1,4 @@
+fragment PaymentIntentFields on PaymentIntent {
+  id
+  clientSecret
+}

@@ -34,16 +34,19 @@ export enum AppRoute {
   privacy = "/privacy",
   accountPreferences = "/account/preferences",
   passwordReset = "/account/password",
+  billing = "/account/billing",
   checkoutComplete = "/checkout/complete/:bookingId",
   checkoutReserve = "/checkout/reserve/:outingId",
   itinerary = `${ITINERARY_PREFIX}/:outingId`,
 }
 
-export function routePath(route: AppRoute, pathParams: { [key: string]: string }): string {
+export function routePath(route: AppRoute, pathParams?: { [key: string]: string }): string {
   let filledRoute = route.toString();
 
-  for (const [paramName, paramValue] of Object.entries(pathParams)) {
-    filledRoute = filledRoute.replaceAll(new RegExp(`/:${paramName}/?$`, "g"), `/${paramValue}`);
+  if (pathParams) {
+    for (const [paramName, paramValue] of Object.entries(pathParams)) {
+      filledRoute = filledRoute.replaceAll(new RegExp(`/:${paramName}/?$`, "g"), `/${paramValue}`);
+    }
   }
 
   return filledRoute;

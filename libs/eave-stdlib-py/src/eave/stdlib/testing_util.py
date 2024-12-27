@@ -12,7 +12,7 @@ import zoneinfo
 from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, tzinfo
 from math import floor
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, TypeVar, override
 from zoneinfo import ZoneInfo
 
 from google.cloud.kms import (
@@ -36,7 +36,7 @@ from eave.stdlib.eventbrite.models.ticket_availability import TicketAvailability
 from eave.stdlib.eventbrite.models.ticket_class import TicketClass
 from eave.stdlib.eventbrite.models.venue import Venue
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import NOT_SET, JsonObject
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -50,8 +50,8 @@ _ALPHAS = "abcdefghijklmnopqrstuvwxyz" * 100
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]
     active_mocks: dict[str, unittest.mock.Mock]
-    _active_patches: dict[str, unittest.mock._patch]
-    _active_patched_dicts: dict[str, unittest.mock._patch_dict]
+    _active_patches: dict[str, unittest.mock._patch]  # pyright: ignore [reportPrivateUsage, reportMissingTypeArgument]
+    _active_patched_dicts: dict[str, unittest.mock._patch_dict]  # pyright: ignore [reportPrivateUsage]
 
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
@@ -63,6 +63,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         self.addAsyncCleanup(self.cleanup)
 
+    @override
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -74,6 +75,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self._add_sendgrid_client_mocks()
         self._add_segment_client_mocks()
 
+    @override
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
@@ -116,15 +118,18 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         offset: int | None = None,
         future: Literal[True] | None = None,
         past: Literal[True] | None = None,
-        tz: tzinfo | None = ZoneInfo("UTC"),
+        tz: tzinfo | None = NOT_SET,
         resolution: Literal["seconds", "microseconds"] = "microseconds",
     ) -> datetime:
         """
         - offset, future, and past arguments are mutually exclusive. Passing more than one is undefined behavior.
-        - offset specified in positive or negative seconds.
+        - offset specified in positive or negative seconds, and applied to the current time, effectively giving a known value.
         - if future or past are given, the datetime will be a random number of seconds in that direction, within a year of the current date.
         - if no arguments are given, the datetime will be a random number of seconds in a random direction, within a year of the current date.
         """
+        if tz is NOT_SET:
+            tz = ZoneInfo("UTC")
+
         name = self._make_testdata_name(name)
 
         if not offset:
@@ -309,7 +314,22 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getlongitude(self, name: str) -> float:
         return self.getfloat(name)
 
-    def anyint(self, name: str | None = None, *, min: int = 0, max: int = 9999) -> int:
+    def anyint(self, name: str | None = None, *, min: int | None = None, max: int | None = None) -> int:
+        if max is None and min is None:
+            min = 0
+            max = 10**6
+
+        elif min is not None and max is None:
+            max = min + 10**6
+
+        elif max is not None and min is None:
+            if max > 0:
+                min = 0
+            else:
+                min = max - 10**6
+
+        assert min is not None and max is not None  # This is for the typechecker, it is an impossible case
+
         name = self._make_testdata_name(name)
 
         data = random.randint(min, max)
@@ -319,7 +339,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getint(self, name: str) -> int:
         return self._get_testdata_value(name)
 
-    def anyfloat(self, name: str | None = None, *, mag: int = 0, decimals: int | None = None) -> float:
+    def anyfloat(self, name: str | None = None, *, mag: int = 0, decimals: int | None = 5) -> float:
         name = self._make_testdata_name(name)
 
         data = round(random.random() * (10**mag), decimals)
@@ -377,7 +397,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         data = f"{name}+{uuid.uuid4().hex}@gmail.com"
         self.testdata[name] = data
-        return data
+        return self.getemail(name)
 
     def getemail(self, name: str) -> str:
         return self.getstr(name)
@@ -387,7 +407,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         data = f"({self.anydigits(length=3)})-{self.anydigits(length=3)}-{self.anydigits(length=4)}"
         self.testdata[name] = data
-        return data
+        return self.getphonenumber(name)
 
     def getphonenumber(self, name: str) -> str:
         return self.getstr(name)
@@ -449,7 +469,10 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def _add_google_secret_manager_mocks(self) -> None:
         def _access_secret_version(
-            request: AccessSecretVersionRequest | dict | None = None, *, name: str | None = None, **kwargs: Any
+            request: AccessSecretVersionRequest | dict[str, str] | None = None,
+            *,
+            name: str | None = None,
+            **kwargs: Any,
         ) -> AccessSecretVersionResponse:
             if isinstance(request, AccessSecretVersionRequest):
                 resolved_name = request.name
@@ -532,26 +555,59 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def _add_segment_client_mocks(self) -> None:
-        def _mocked_sendgrid_track(*args: Any, **kwargs: Any) -> Any:
+        def _mocked_segment_track(*args: Any, **kwargs: Any) -> Any:
             pass
 
         self.patch(
             name="segment.analytics.track",
             patch=unittest.mock.patch("segment.analytics.track"),
-            side_effect=_mocked_sendgrid_track,
+            side_effect=_mocked_segment_track,
         )
 
-        def _mocked_sendgrid_identify(*args: Any, **kwargs: Any) -> Any:
+        def _mocked_segment_identify(*args: Any, **kwargs: Any) -> Any:
             pass
 
         self.patch(
             name="segment.analytics.identify",
             patch=unittest.mock.patch("segment.analytics.identify"),
-            side_effect=_mocked_sendgrid_identify,
+            side_effect=_mocked_segment_identify,
         )
 
-    mock_eventbrite_event: Event
-    mock_eventbrite_ticket_class_batch: list[TicketClass]
+    mock_eventbrite_event: Event  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_eventbrite_ticket_class_batch: list[TicketClass]  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def set_mock_eventbrite_ticket_class_batch(
+        self, *, max_cost_cents: int | None = None, min_cost_cents: int | None = None
+    ) -> None:
+        if max_cost_cents is not None and min_cost_cents is None:
+            if max_cost_cents == 0:
+                min_cost_cents = 0
+            else:
+                min_cost_cents = 1
+
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits(),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint(min=min_cost_cents, max=max_cost_cents),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=0,
+                ),
+            )
+        ]
 
     def get_mock_eventbrite_ticket_class_batch_cost(self) -> int:
         # These checks are just for the typechecker
@@ -679,7 +735,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def patch(
         self,
-        patch: unittest.mock._patch,
+        patch: unittest.mock._patch,  # pyright: ignore [reportPrivateUsage, reportMissingTypeArgument]
         name: str | None = None,
         return_value: Any | None = None,
         side_effect: Any | None = None,
@@ -721,7 +777,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", newenv, clear=True))
         return m
 
-    def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:
+    def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:  # pyright: ignore [reportPrivateUsage]
         name = name or str(patch.in_dict)
         mock = patch.start()
         self._active_patched_dicts[name] = patch
@@ -732,11 +788,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.active_mocks, f"{name} is not patched!"
         return self.active_mocks[name]
 
-    def get_patch(self, name: str) -> unittest.mock._patch:
+    def get_patch(self, name: str) -> unittest.mock._patch:  # pyright: ignore [reportPrivateUsage, reportMissingTypeArgument]
         assert name in self._active_patches, f"{name} is not patched!"
         return self._active_patches[name]
 
-    def get_patched_dict(self, name: str) -> unittest.mock._patch_dict:
+    def get_patched_dict(self, name: str) -> unittest.mock._patch_dict:  # pyright: ignore [reportPrivateUsage]
         assert name in self._active_patched_dicts, f"{name} is not patched!"
         return self._active_patched_dicts[name]
 

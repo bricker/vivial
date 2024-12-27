@@ -3,7 +3,7 @@ import random
 import unittest.mock
 from datetime import timedelta
 from http import HTTPStatus
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar, override
 from uuid import UUID
 
 import sqlalchemy
@@ -12,6 +12,8 @@ import sqlalchemy.sql.functions as safunc
 import stripe
 from google.maps.places import PhotoMedia
 from google.maps.places_v1.types import Place
+from google.maps.routing import ComputeRoutesResponse, Route
+from google.protobuf.duration_pb2 import Duration
 from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +28,7 @@ from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
 from eave.core.lib.address import Address
+from eave.core.lib.google_places import GeocodeGeometry, GeocodeLocation, GeocodeResult
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
@@ -50,9 +53,7 @@ class AnyStandardOrm(Protocol):
 T = TypeVar("T")
 J = TypeVar("J", bound=AnyStandardOrm)
 
-# eave.core.internal.database.async_engine.echo = False  # shhh
-
-_DB_SETUP: bool = False
+_db_setup: bool = False
 
 
 class MockPlacesResponse:
@@ -62,12 +63,18 @@ class MockPlacesResponse:
         self.places = places
 
 
+# eave.core.database.async_engine.echo = True
+
+
 class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
+    _gql_cache: dict[str, str]  # pyright: ignore [reportUninitializedInstanceVariable]
+
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
 
+    @override
     async def asyncSetUp(self) -> None:
-        global _DB_SETUP
+        global _db_setup
 
         # Attempt to prevent running destructive database operations against non-test database
         assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
@@ -75,35 +82,38 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             eave.core.database.async_engine.url.database == "eave-test"
         ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test")'
 
-        if not _DB_SETUP:
+        if not _db_setup:
             print("Running one-time DB setup...")
             await init_database()
-            _DB_SETUP = True
+            _db_setup = True
 
         CORE_API_APP_CONFIG.reset_cached_properties()
 
         await super().asyncSetUp()
         self._add_google_places_client_mocks()
         self._add_stripe_client_mocks()
+        self._add_google_routes_client_mocks()
+        self._add_google_maps_client_mocks()
 
         engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
-        self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
-        # self.db_session = eave.core.internal.database.async_session
+        self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)  # pyright: ignore [reportUninitializedInstanceVariable]
 
         transport = ASGITransport(
-            app=eave.core.app.app,  # type:ignore
+            app=eave.core.app.app,
             raise_app_exceptions=True,
         )
-        self.httpclient = AsyncClient(
+        self.httpclient = AsyncClient(  # pyright: ignore [reportUninitializedInstanceVariable]
             base_url=SHARED_CONFIG.eave_api_base_url_public,
             transport=transport,
         )
 
         self._gql_cache = {}
 
+    @override
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
+    @override
     async def cleanup(self) -> None:
         await super().cleanup()
 
@@ -137,6 +147,38 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         if count is None:
             count = 0
         return count
+
+    def anyaddress(self, name: str | None = None) -> Address:
+        name = self._make_testdata_name(name)
+
+        data = Address(
+            address1=self.anystr(),
+            address2=self.anystr(),
+            city=self.anystr(),
+            country=self.anystr(),
+            state=self.anyusstate(),
+            zip_code=self.anydigits(length=5),
+        )
+
+        self.testdata[name] = data
+        return self.getaddress(name)
+
+    def getaddress(self, name: str) -> Address:
+        return self.testdata[name]
+
+    def anycoordinates(self, name: str | None = None) -> GeoPoint:
+        name = self._make_testdata_name(name)
+
+        data = GeoPoint(
+            lat=self.anylatitude(),
+            lon=self.anylongitude(),
+        )
+
+        self.testdata[name] = data
+        return self.getcoordinates(name)
+
+    def getcoordinates(self, name: str) -> GeoPoint:
+        return self.testdata[name]
 
     def parse_graphql_response(self, response: Response) -> ExecutionResult:
         j = response.json()
@@ -199,9 +241,9 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         survey = SurveyOrm(
             session,
             account=account,
-            budget=random.choice(list(OutingBudget)),
+            budget=self.random_outing_budget(),
             headcount=self.anyint(min=1, max=2),
-            search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
+            search_area_ids=[s.id for s in self.random_search_areas(k=3)],
             start_time_utc=self.anydatetime(
                 offset=self.anyint(min=ONE_DAY_IN_SECONDS * 2, max=ONE_DAY_IN_SECONDS * 14),
             ),
@@ -332,8 +374,11 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         return booking
 
-    mock_stripe_payment_intent: stripe.PaymentIntent
-    mock_stripe_customer: stripe.Customer
+    mock_stripe_payment_intent: stripe.PaymentIntent  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer: stripe.Customer  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer_session: stripe.CustomerSession  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_customer_payment_methods: list[stripe.PaymentMethod]  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_stripe_billing_session: stripe.billing_portal.Session  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_stripe_client_mocks(self) -> None:
         mock_stripe_payment_intent = stripe.PaymentIntent(
@@ -374,6 +419,32 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             side_effect=_mock_customer_create_async,
         )
 
+        self.mock_stripe_customer_payment_methods = [
+            stripe.PaymentMethod(
+                id=self.anystr(),
+            ),
+        ]
+
+        setattr(
+            self.mock_stripe_customer_payment_methods[0],
+            "card",
+            stripe.Card(
+                brand="visa",
+                last4=self.anydigits(length=4),
+                exp_month=self.anyint(min=1, max=12),
+                exp_year=self.anyint(min=2020, max=2100),
+            ),
+        )
+
+        async def _mock_customer_list_payment_methods(*args: Any, **kwargs: Any) -> list[stripe.PaymentMethod]:
+            return self.mock_stripe_customer_payment_methods
+
+        self.patch(
+            name="stripe.Customer.list_payment_methods_async",
+            patch=unittest.mock.patch("stripe.Customer.list_payment_methods_async"),
+            side_effect=_mock_customer_list_payment_methods,
+        )
+
         self.mock_stripe_customer_session = stripe.CustomerSession()
         self.mock_stripe_customer_session.client_secret = self.anystr("stripe.CustomerSession.client_secret")
 
@@ -386,8 +457,20 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             side_effect=_mock_customer_session_create_async,
         )
 
-    mock_google_place: Place
-    mock_google_places_photo_media: PhotoMedia
+        self.mock_stripe_billing_session = stripe.billing_portal.Session()
+        self.mock_stripe_billing_session.url = self.anyurl()
+
+        async def _mock_billing_session_create_async(**kwargs: Any) -> stripe.billing_portal.Session:
+            return self.mock_stripe_billing_session
+
+        self.patch(
+            name="stripe.billing_portal.Session.create_async",
+            patch=unittest.mock.patch("stripe.billing_portal.Session.create_async"),
+            side_effect=_mock_billing_session_create_async,
+        )
+
+    mock_google_place: Place  # pyright: ignore [reportUninitializedInstanceVariable]
+    mock_google_places_photo_media: PhotoMedia  # pyright: ignore [reportUninitializedInstanceVariable]
 
     def _add_google_places_client_mocks(self) -> None:
         self.mock_google_place = Place(
@@ -419,7 +502,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             photo_uri=self.anyurl("PhotoMedia.photo_uri"),
         )
 
-        async def _mock_google_places_get_photo_media(*args, **kwargs) -> PhotoMedia:
+        async def _mock_google_places_get_photo_media(*args: Any, **kwargs: Any) -> PhotoMedia:
             return self.mock_google_places_photo_media
 
         self.patch(
@@ -428,6 +511,52 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_photo_media"
             ),
             side_effect=_mock_google_places_get_photo_media,
+        )
+
+    mock_compute_routes_response: ComputeRoutesResponse  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def _add_google_routes_client_mocks(self) -> None:
+        self.mock_compute_routes_response = ComputeRoutesResponse(
+            routes=[
+                Route(
+                    duration=Duration(
+                        seconds=self.anyint(),
+                    ),
+                ),
+            ],
+        )
+
+        async def _mock_google_routes_compute_routes(*args, **kwargs) -> ComputeRoutesResponse:
+            return self.mock_compute_routes_response
+
+        self.patch(
+            name="google routes compute_routes",
+            patch=unittest.mock.patch("google.maps.routing.RoutesAsyncClient.compute_routes"),
+            side_effect=_mock_google_routes_compute_routes,
+        )
+
+    mock_maps_geocoding_response: list[GeocodeResult]  # pyright: ignore [reportUninitializedInstanceVariable]
+
+    def _add_google_maps_client_mocks(self) -> None:
+        self.mock_maps_geocoding_response = [
+            GeocodeResult(
+                place_id=self.anystr(),
+                geometry=GeocodeGeometry(
+                    location=GeocodeLocation(
+                        lat=self.anylatitude(),
+                        lng=self.anylongitude(),
+                    ),
+                ),
+            ),
+        ]
+
+        def _mock_google_maps_geocode(*args, **kwargs) -> list[GeocodeResult]:
+            return self.mock_maps_geocoding_response
+
+        self.patch(
+            name="google maps geocode",
+            patch=unittest.mock.patch("googlemaps.geocoding.geocode"),
+            side_effect=_mock_google_maps_geocode,
         )
 
     def random_search_areas(self, k: int = 3) -> list[SearchRegionOrm]:

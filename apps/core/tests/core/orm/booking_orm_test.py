@@ -519,6 +519,27 @@ class TestBookingOrms(BaseTestCase):
                 country="US",
             )
 
+    async def test_booking_survey(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            booking = self.make_booking(session, account, outing)
+
+        assert booking.survey is not None
+        assert booking.survey.id == survey.id
+
+    async def test_booking_survey_none(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            booking = self.make_booking(session, account, outing)
+
+            outing.survey = None
+
+        assert booking.survey is None
+
     async def test_booking_reservation_template_orm_initialization(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)

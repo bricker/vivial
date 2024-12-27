@@ -3,7 +3,7 @@ import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/passwo
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as EmailValidator from "email-validator";
-import React, { FormEvent, useCallback, useState } from "react";
+import React, { FormEvent, useCallback, useEffect, useState } from "react";
 
 import { AppRoute } from "$eave-dashboard/js/routes";
 import LoadingButton from "../../Buttons/LoadingButton";
@@ -78,12 +78,14 @@ interface AuthFormProps {
   validatePassword?: boolean;
   showForgotPassword?: boolean;
   showLegal?: boolean;
+  purpose?: "login" | "signup";
 }
 
 const AuthForm = ({
   title,
   cta,
   onSubmit,
+  purpose,
   subtitle = "",
   externalError = "",
   isLoading = false,
@@ -102,14 +104,13 @@ const AuthForm = ({
     hasLetter: false,
     hasDigit: false,
   });
-  const [internalError, setInternalError] = useState("");
-  const error = externalError || internalError;
+  const [error, setError] = useState("");
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (validateEmail && !EmailValidator.validate(email)) {
-        setInternalError("Invalid email address.");
+        setError("Invalid email address.");
         setShowPasswordInfo(false);
         setIsDisabled(true);
         return;
@@ -120,7 +121,7 @@ const AuthForm = ({
   );
 
   const checkInputs = ({ currentEmail, currentPassword }: { currentEmail: string; currentPassword: string }) => {
-    setInternalError("");
+    setError("");
     if (validatePassword && currentPassword) {
       const newPasswordInfo = getPasswordInfo(currentPassword);
       setPasswordInfo(newPasswordInfo);
@@ -149,6 +150,30 @@ const AuthForm = ({
     checkInputs({ currentPassword: newPassword, currentEmail: email });
   };
 
+  useEffect(() => {
+    if (externalError) {
+      setError(externalError);
+      setShowPasswordInfo(false);
+      setIsDisabled(true);
+    }
+  }, [externalError]);
+
+  let passwordAutoComplete: string | undefined;
+
+  switch (purpose) {
+    case "login": {
+      passwordAutoComplete = "current-password";
+      break;
+    }
+    case "signup": {
+      passwordAutoComplete = "new-password";
+      break;
+    }
+    default: {
+      passwordAutoComplete = undefined;
+    }
+  }
+
   return (
     <FormContainer onSubmit={handleSubmit}>
       <FormContent>
@@ -156,8 +181,8 @@ const AuthForm = ({
           <Typography variant="h2">{title}</Typography>
           {subtitle && <Subtitle variant="subtitle2">{subtitle}</Subtitle>}
         </TitleContainer>
-        <EmailInput placeholder="Email" onChange={handleEmailChange} />
-        <SensitiveInput placeholder="Password" onChange={handlePasswordChange} />
+        <EmailInput placeholder="Email" onChange={handleEmailChange} autoComplete="email" />
+        <SensitiveInput placeholder="Password" onChange={handlePasswordChange} autoComplete={passwordAutoComplete} />
       </FormContent>
       {error && (
         <InputErrorContainer>

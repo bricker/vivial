@@ -83,7 +83,7 @@ def b64decode(data: str | bytes, *, urlsafe: bool = False) -> str:
         return base64.b64decode(b, validate=True).decode()
 
 
-def ensure_bytes(data: str | bytes | dict) -> bytes:
+def ensure_bytes(data: str | bytes | dict[str, Any]) -> bytes:
     """
     Use to reconcile some data into bytes.
     """
@@ -124,7 +124,7 @@ def ensure_str_or_none(data: str | bytes | int | uuid.UUID | None) -> str | None
         return str(data)
 
 
-def ensure_str(data: str | bytes | int | uuid.UUID | dict) -> str:
+def ensure_str(data: str | bytes | int | uuid.UUID | dict[str, Any]) -> str:
     if isinstance(data, str):
         return data
     elif isinstance(data, dict):
@@ -271,3 +271,22 @@ def istr_eq(a: str, b: str) -> bool:
     Case-insensitive comparison of two strings
     """
     return a.lower() == b.lower()
+
+
+def num_with_english_suffix(num: int) -> str:
+    strnum = str(num)
+    if strnum.endswith(("11", "12", "13")):
+        return f"{num}th"
+
+    lastnum = strnum[-1]
+    match lastnum:
+        case "1":
+            return f"{num}st"
+        case "2":
+            return f"{num}nd"
+        case "3":
+            return f"{num}rd"
+        case "4" | "5" | "6" | "7" | "8" | "9" | "0":
+            return f"{num}th"
+        case _:
+            return f"{num}"

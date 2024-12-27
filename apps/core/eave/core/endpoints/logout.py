@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import override
 
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
@@ -10,6 +11,7 @@ from eave.stdlib.http_endpoint import HTTPEndpoint
 
 
 class LogoutEndpoint(HTTPEndpoint):
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         response = RedirectResponse(
             status_code=HTTPStatus.TEMPORARY_REDIRECT,

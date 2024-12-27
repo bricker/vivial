@@ -46,8 +46,8 @@ const CollapseButton = styled(DropdownButton)(() => ({
 
 interface PreferenceSelectionsProps {
   categoryGroupName: string;
-  categories: Category[] | [];
-  defaultCategories: Category[] | [];
+  categories: Category[];
+  defaultCategories: Category[];
   onSubmit: (selectedCategories: Category[], removedCategories?: Category[]) => void;
   onCollapse?: () => void;
   categoryGroupId?: string;
@@ -74,7 +74,7 @@ const PreferenceSelections = ({
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
   const accentColor = getAccentColor(categoryGroupId);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     onSubmit(selectedCategories, removedCategories);
     setRemovedCategories([]);
     if (collapsable) {
@@ -84,12 +84,12 @@ const PreferenceSelections = ({
         setIsCollapsed(false);
       }
     }
-  };
+  }, [selectedCategories, removedCategories]);
 
-  const handleForceCollapse = () => {
+  const handleForceCollapse = useCallback(() => {
     setIsCollapsed(!isCollapsed);
     setOnCollapseEnabled(false);
-  };
+  }, [isCollapsed]);
 
   const handleSelect = useCallback(
     (category: Category) => {
@@ -105,7 +105,7 @@ const PreferenceSelections = ({
       }
       setSelectedCategoryMap(mapClone);
     },
-    [selectedCategories, selectedCategoryMap],
+    [selectedCategoryMap, removedCategories, selectedCategories],
   );
 
   const toggleSelectAll = useCallback(() => {
@@ -116,7 +116,12 @@ const PreferenceSelections = ({
       setSelectedCategories(categories);
       setSelectedCategoryMap(getCategoryMap(categories));
     }
-  }, [selectedCategories]);
+  }, [categories, selectedCategories]);
+
+  useEffect(() => {
+    setSelectedCategories(defaultCategories);
+    setSelectedCategoryMap(getCategoryMap(defaultCategories));
+  }, [defaultCategories]);
 
   useEffect(() => {
     setIsCollapsed(collapsed);

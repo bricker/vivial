@@ -1,7 +1,7 @@
 import {
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
-  type BookingDetails,
+  type ItineraryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -98,7 +98,7 @@ const ErrorText = styled(Typography)(({ theme }) => ({
   textAlign: "center",
 }));
 
-function isPaidOuting(bookingDetails?: BookingDetails): boolean {
+function isPaidOuting(bookingDetails?: ItineraryFieldsFragment): boolean {
   if (!bookingDetails) {
     return false;
   }
@@ -119,7 +119,7 @@ const CheckoutForm = ({
   const stripeElements = useElements();
 
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
-  const localBookingDetails = useSelector((state: RootState) => state.booking.bookingDetails);
+  const bookingDetails = useSelector((state: RootState) => state.booking.bookingDetails);
   const account = useSelector((state: RootState) => state.auth.account);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
@@ -134,8 +134,6 @@ const CheckoutForm = ({
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
 
-  const [bookingDetails] = useState<BookingDetails | undefined>(localBookingDetails);
-
   const [submissionIsLoading, setSubmissionIsLoading] = useState(false);
 
   useEffect(() => {
@@ -143,22 +141,15 @@ const CheckoutForm = ({
   }, [updateDetailsIsLoading, submitDetailsIsLoading, confirmBookingIsLoading]);
 
   // only prevent submit on internalError since that can be fixed w/o another submit
-  const submitButtonDisabled = !!(submissionIsLoading || listDetailsIsLoading);
+  const submitButtonDisabled = !!(
+    submissionIsLoading ||
+    listDetailsIsLoading ||
+    !reserverDetails.firstName ||
+    !reserverDetails.lastName ||
+    !reserverDetails.phoneNumber
+  );
   const reserverDetailError = internalReserverDetailError || externalReserverDetailError;
   const error = [paymentError].filter((e) => e).join("\n");
-
-  function checkReserverDetailsInputs(details: ReserverFormFields) {
-    if (details.firstName.length === 0) {
-      setInternalReserverDetailError("First name required");
-    } else if (details.lastName.length === 0) {
-      setInternalReserverDetailError("Last name required");
-    } else if (details.phoneNumber.length === 0) {
-      setInternalReserverDetailError("Phone number required");
-    } else {
-      // all good
-      setInternalReserverDetailError(undefined);
-    }
-  }
 
   // set existing reservation details in form once we get them
   useEffect(() => {
@@ -193,7 +184,7 @@ const CheckoutForm = ({
         [key]: value,
       };
       setReserverDetails(newDetails);
-      checkReserverDetailsInputs(newDetails);
+      setInternalReserverDetailError(undefined);
     },
     [reserverDetails],
   );
@@ -208,6 +199,8 @@ const CheckoutForm = ({
       }
       setInternalReserverDetailError(undefined);
       setSubmissionIsLoading(true);
+
+      const isPaidActivity = isPaidOuting(bookingDetails);
 
       try {
         if (bookingDetails?.reservation) {
@@ -318,10 +311,10 @@ const CheckoutForm = ({
           }
         }
 
-        const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: localBookingDetails!.id });
+        const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: bookingDetails!.id });
 
         // execute the payment
-        if (isPaidOuting(localBookingDetails)) {
+        if (isPaidActivity) {
           const { error: confirmPaymentError } = await stripeClient.confirmPayment({
             elements: stripeElements,
             redirect: "if_required",
@@ -342,7 +335,7 @@ const CheckoutForm = ({
 
         const { data: confirmBookingData, error: confirmBookingError } = await confirmBooking({
           input: {
-            bookingId: localBookingDetails!.id,
+            bookingId: bookingDetails!.id,
           },
         });
 
@@ -394,10 +387,10 @@ const CheckoutForm = ({
         setInternalReserverDetailError("Unable to book your outing. Please try again later.");
       }
     },
-    [reserverDetails, stripeClient, stripeElements, localBookingDetails],
+    [reserverDetails, stripeClient, stripeElements, bookingDetails],
   );
 
-  const requiresPayment = isPaidOuting(localBookingDetails);
+  const requiresPayment = isPaidOuting(bookingDetails);
   // when outing has been completely loaded into state & doesnt cost anything, use diff UI
   const usingAltUI = !requiresPayment;
   const Wrapper = usingAltUI ? FormPaper : PlainDiv;
@@ -405,7 +398,7 @@ const CheckoutForm = ({
 
   return (
     <PageContainer>
-      {showCostBreakdown && requiresPayment && <CostBreakdown outing={localBookingDetails!} />}
+      {showCostBreakdown && requiresPayment && <CostBreakdown itinerary={bookingDetails!} />}
 
       <Wrapper>
         {usingAltUI && (

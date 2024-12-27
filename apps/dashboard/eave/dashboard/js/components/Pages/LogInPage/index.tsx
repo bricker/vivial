@@ -66,6 +66,7 @@ const LogInPage = () => {
         isLoading={isLoading}
         externalError={error}
         showForgotPassword
+        purpose="login"
       />
       <SignUp>
         Don't have an account?{" "}

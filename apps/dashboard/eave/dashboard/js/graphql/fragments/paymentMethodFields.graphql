@@ -1,0 +1,9 @@
+fragment PaymentMethodFields on PaymentMethod {
+  id
+  card {
+    brand
+    last4
+    expMonth
+    expYear
+  }
+}

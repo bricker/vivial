@@ -16,9 +16,9 @@ class ImageOrm(Base, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     src: Mapped[str] = mapped_column()
-    alt: Mapped[str] = mapped_column()
+    alt: Mapped[str | None] = mapped_column()
 
-    def __init__(self, session: AsyncSession | None, *, src: str, alt: str) -> None:
+    def __init__(self, session: AsyncSession | None, *, src: str, alt: str | None) -> None:
         self.src = src
         self.alt = alt
 

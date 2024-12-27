@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_PATCH, METH_POST, METH_PUT
 from asgiref.typing import HTTPScope
@@ -16,7 +17,7 @@ class _Config:
 
 
 class DummyEndpoint(HTTPEndpoint):
-    config: _Config
+    pass
 
 
 class EchoGetEndpoint(DummyEndpoint):
@@ -26,6 +27,7 @@ class EchoGetEndpoint(DummyEndpoint):
         is_public=True,
     )
 
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         body = await request.body()
         assert len(body) == 0
@@ -41,6 +43,7 @@ class EchoPostEndpoint(DummyEndpoint):
         is_public=True,
     )
 
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         body = await request.body()
         return Response(content=body)
@@ -53,6 +56,7 @@ class EchoPutEndpoint(DummyEndpoint):
         is_public=True,
     )
 
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         body = await request.body()
         return Response(content=body)
@@ -65,6 +69,7 @@ class EchoPatchEndpoint(DummyEndpoint):
         is_public=True,
     )
 
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         body = await request.body()
         return Response(content=body)
@@ -77,6 +82,7 @@ class DummyDeleteEndpoint(DummyEndpoint):
         is_public=True,
     )
 
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         body = await request.body()
         assert len(body) == 0
@@ -90,5 +96,6 @@ class DummyInternalEndpoint(DummyEndpoint):
         is_public=False,
     )
 
+    @override
     async def handle(self, request: Request, scope: HTTPScope) -> Response:
         return Response()

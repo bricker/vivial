@@ -1,12 +1,9 @@
-query ListReserverDetails {
+query BillingPortalUrl {
   viewer {
-    __typename
     ... on AuthenticatedViewerQueries {
-      __typename
-      reserverDetails {
-        ...ReserverDetailsFields
-      }
+      billingPortalUrl
     }
+
     ... on UnauthenticatedViewer {
       __typename
       authFailureReason

@@ -66,6 +66,7 @@ class Activity:
     parking_tips: str | None
     primary_type_name: str | None
     category_group: ActivityCategoryGroup | None
+    is_bookable: bool
 
 
 @strawberry.type

@@ -5,3 +5,13 @@ fragment BookingFields on Booking {
     ...ReserverDetailsFields
   }
 }
+
+fragment BookingDetailsPeekFields on BookingDetailsPeek {
+  id
+  activityStartTime
+  restaurantArrivalTime
+  activityName
+  restaurantName
+  photoUri
+  state
+}

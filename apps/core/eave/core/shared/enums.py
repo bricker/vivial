@@ -26,6 +26,10 @@ class OutingBudget(enum.IntEnum):
     EXPENSIVE = 4
     VERY_EXPENSIVE = 5
 
+    @classmethod
+    def default(cls) -> "OutingBudget":
+        return OutingBudget.EXPENSIVE
+
     @property
     def upper_limit_cents(self) -> int | None:
         match self:
