@@ -5,7 +5,15 @@ import { type TypeScriptTypedDocumentNodesConfig } from "@graphql-codegen/typed-
 import { type TypeScriptPluginConfig } from "@graphql-codegen/typescript";
 import { type TypeScriptDocumentsPluginConfig } from "@graphql-codegen/typescript-operations";
 
-export function buildCodegenConfig({ schema, documents, destination}: { schema: string; documents: string[], destination: string; }): CodegenConfig {
+export function buildCodegenConfig({
+  schema,
+  documents,
+  destination,
+}: {
+  schema: string;
+  documents: string[];
+  destination: string;
+}): CodegenConfig {
   return {
     schema,
     ignoreNoDocuments: true,
@@ -64,4 +72,4 @@ export function buildCodegenConfig({ schema, documents, destination}: { schema: 
       },
     },
   };
-};
+}
