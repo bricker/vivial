@@ -1,4 +1,4 @@
-import { buildCodegenConfig } from "@eave-fyi/develop/codegen";
+import { buildCodegenConfig } from "../../develop/javascript/codegen-shared";
 
 const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphql";
 

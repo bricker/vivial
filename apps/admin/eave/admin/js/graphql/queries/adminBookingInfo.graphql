@@ -46,6 +46,7 @@ query AdminBookingInfo($bookingId: UUID!) {
     }
     sourceId
     source
+    isBookable
     name
     description
     websiteUri

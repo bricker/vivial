@@ -511,6 +511,7 @@ export type AdminBookingInfoQuery = {
     __typename: 'Activity',
     sourceId: string,
     source: ActivitySource,
+    isBookable: boolean,
     name: string,
     description?: string | null,
     websiteUri?: string | null,
@@ -886,6 +887,7 @@ export const AdminBookingInfoDocument = new TypedDocumentString(`
     }
     sourceId
     source
+    isBookable
     name
     description
     websiteUri
