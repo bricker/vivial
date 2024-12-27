@@ -7,11 +7,11 @@ from eave.core import database
 from eave.core.admin.graphql.context import AdminGraphQLContext
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.activity import Activity
-from eave.core.graphql.types.booking import BookingDetailPeek
+from eave.core.graphql.types.booking import BookingDetailsPeek
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
@@ -21,7 +21,7 @@ async def admin_list_bookings_query(
     *,
     info: strawberry.Info[AdminGraphQLContext],
     account_id: UUID,
-) -> list[BookingDetailPeek]:
+) -> list[BookingDetailsPeek]:
     async with database.async_session.begin() as db_session:
         account = await AccountOrm.get_one(db_session, account_id)
 
@@ -46,7 +46,7 @@ async def admin_list_bookings_query(
             photo_uri = activity.photo_uri
 
         booking_details.append(
-            BookingDetailPeek(
+            BookingDetailsPeek(
                 id=booking.id,
                 activity_start_time=activity.start_time_local if activity else None,
                 activity_name=activity.name if activity else None,
@@ -139,9 +139,10 @@ async def admin_get_booking_activity_query(
     activity = None
     if len(booking.activities) > 0:
         activity_orm = booking.activities[0]
-        activity = await get_activity(
+        activity = await resolve_activity_details(
             source_id=activity_orm.source_id,
             source=activity_orm.source,
+            survey=booking.outing.survey if booking.outing else None,
         )
 
     return activity
@@ -158,7 +159,7 @@ async def admin_get_booking_restaurant_query(
     restaurant = None
     if len(booking.reservations) > 0:
         reservation_orm = booking.reservations[0]
-        restaurant = await get_restaurant(
+        restaurant = await resolve_restaurant_details(
             source_id=reservation_orm.source_id,
             source=reservation_orm.source,
         )

@@ -25,6 +25,7 @@ from eave.core.shared.enums import ActivitySource, BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.time import pretty_datetime
 from eave.stdlib.util import num_with_english_suffix, unwrap
 
 
@@ -246,7 +247,7 @@ async def _notify_slack_booking_confirmed(
 
                     - *Source*: {reservation.source}
                     - *Name*: {reservation.name}
-                    - *Start Time*: {_pretty_datetime(reservation.start_time_local)}
+                    - *Start Time*: {pretty_datetime(reservation.start_time_local)}
                     - *Attendees*: {reservation.headcount}
                     - *Booking URL*: {reservation.external_booking_link}
                     """
@@ -258,7 +259,7 @@ async def _notify_slack_booking_confirmed(
 
                     - *Source*: {activity.source}
                     - *Name*: {activity.name}
-                    - *Start Time*: {_pretty_datetime(activity.start_time_local)}
+                    - *Start Time*: {pretty_datetime(activity.start_time_local)}
                     - *Attendees*: {activity.headcount}
                     - *Booking URL*: {activity.external_booking_link}
                     """
@@ -277,37 +278,5 @@ async def _notify_slack_booking_confirmed(
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
     send_booking_confirmation_email(
-        to_email=account_orm.email,
-        data=BookingConfirmationData(
-            booking_date=_pretty_datetime(booking_orm.start_time_local),
-            booking_details_url=f"{SHARED_CONFIG.eave_dashboard_base_url_public}/plans/{booking_orm.id}?utm_source=booking-confirmation-email",
-            activities=[
-                EventItem(
-                    name=a.name,
-                    time=_pretty_time(a.start_time_local),
-                )
-                for a in booking_orm.activities
-            ],
-            restaurants=[
-                EventItem(
-                    name=r.name,
-                    time=_pretty_time(r.start_time_local),
-                )
-                for r in booking_orm.reservations
-            ],
-        ),
+        booking_orm=booking_orm,
     )
-
-
-def _pretty_time(dt: datetime) -> str:
-    return dt.strftime("%I:%M%p")
-
-
-def _pretty_datetime(dt: datetime) -> str:
-    suffixed_day = num_with_english_suffix(dt.day)
-
-    minutefmt = ":%M"
-    if dt.minute == 0:
-        minutefmt = ""
-
-    return dt.strftime(f"%A, %B {suffixed_day} at %-I{minutefmt}%p %Z")

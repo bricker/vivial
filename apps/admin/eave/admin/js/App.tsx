@@ -23,7 +23,7 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route index element={<RootPage />} />
-          <Route path={`${AppRoute.bookingEdit}/:bookingId`} element={<BookingEditPage />} />
+          <Route path={AppRoute.bookingEdit} element={<BookingEditPage />} />
 
           <Route path="*" element={<Navigate to={AppRoute.root} />} />
         </Routes>

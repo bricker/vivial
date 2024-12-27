@@ -3,6 +3,8 @@ import time
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from eave.stdlib.util import num_with_english_suffix
+
 ONE_SECOND_IN_MS = 1000
 ONE_MINUTE_IN_MS = ONE_SECOND_IN_MS * 60
 ONE_HOUR_IN_MS = ONE_MINUTE_IN_MS * 60
@@ -48,3 +50,15 @@ def datetime_window(dt: datetime, *, minutes: int) -> tuple[datetime, datetime]:
     upper = upper - one_second
 
     return (lower, upper)
+
+def pretty_datetime(dt: datetime) -> str:
+    suffixed_day = num_with_english_suffix(dt.day)
+
+    minutefmt = ":%M"
+    if dt.minute == 0:
+        minutefmt = ""
+
+    return dt.strftime(f"%A, %B {suffixed_day} at %-I{minutefmt}%p %Z")
+
+def pretty_time(dt: datetime) -> str:
+    return dt.strftime("%I:%M%p")
