@@ -86,20 +86,51 @@ resource "kubernetes_manifest" "app_httproute" {
                     value = "1"
                   },
                   {
-                    name  = "eave-lb-geo-region"
-                    value = "{client_region}"
+                    name  = "eave-lb-client-ip"
+                    value = "{client_ip_address}"
                   },
+                ]
+              }
+            },
+            {
+              type = "ResponseHeaderModifier"
+              responseHeaderModifier = {
+                set = [
                   {
-                    name  = "eave-lb-geo-subdivision"
-                    value = "{client_region_subdivision}"
-                  },
+                    name  = "server"
+                    value = "n/a"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          # Anything matching these rules go through the IAP-enabled service
+          matches = [
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/iap"
+              }
+            },
+          ]
+
+          backendRefs = [
+            {
+              name = module.iap_app_kubernetes_service.name
+              port = module.kubernetes_service.port.number
+            }
+          ]
+
+          filters = [
+            {
+              type = "RequestHeaderModifier"
+              requestHeaderModifier = {
+                set = [
                   {
-                    name  = "eave-lb-geo-city"
-                    value = "{client_city}"
-                  },
-                  {
-                    name  = "eave-lb-geo-coordinates"
-                    value = "{client_city_lat_long}"
+                    name  = "eave-lb"
+                    value = "1"
                   },
                   {
                     name  = "eave-lb-client-ip"
