@@ -109,7 +109,6 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
       onSubmit(selections);
       onClose();
     } else {
-      console.log("about to animate to stepNumber", stepNumber);
       setCurrentStep(stepNumber);
       animateSelectionsContainer();
     }
