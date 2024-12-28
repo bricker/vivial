@@ -73,8 +73,3 @@ variable "iap_oauth_client_kube_secret_name" {
   nullable = true
   default  = null
 }
-
-variable "iap_enabled" {
-  type    = bool
-  default = false
-}
