@@ -88,7 +88,7 @@ app = Starlette(
         Mount("/static", StaticFiles(directory="eave/dashboard/static")),
         Route(
             path="/status",
-            methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+            methods=["GET"],
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),

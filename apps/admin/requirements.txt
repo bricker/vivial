@@ -2,3 +2,5 @@ uvicorn[standard]
 gunicorn
 starlette
 jinja2
+joserfc
+aiohttp

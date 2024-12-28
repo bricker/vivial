@@ -10,5 +10,6 @@ resource "kubernetes_config_map" "app" {
 
   data = {
     LOG_LEVEL = var.LOG_LEVEL
+    EAVE_ADMIN_IAP_JWT_AUD = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.admin_gw.id}"
   }
 }

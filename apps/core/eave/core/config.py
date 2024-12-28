@@ -1,13 +1,17 @@
 import os
 from functools import cached_property
 
-from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment, get_secret
+from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment, get_required_env, get_secret
 
 JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
 
 
 class _AppConfig(ConfigBase):
+    @property
+    def iap_jwt_aud(self) -> str:
+        return get_required_env("EAVE_API_IAP_JWT_AUD")
+
     @cached_property
     def db_host(self) -> str | None:
         key = "EAVE_DB_HOST"
