@@ -71,13 +71,13 @@ const PreferenceSelections = ({
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
   const accentColor = getAccentColor(categoryGroupId);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = () => {
     onSubmit(selectedCategories, removedCategories);
     setRemovedCategories([]);
     if (collapsable) {
       setIsCollapsed(false);
     }
-  }, [selectedCategories, removedCategories]);
+  };
 
   const handleSelect = useCallback(
     (category: Category) => {

@@ -116,7 +116,6 @@ const DateSurveyPage = () => {
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const [searchParams, _] = useSearchParams();
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
-
   const [updatePreferences] = useUpdateOutingPreferencesMutation();
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [headcount, setHeadcount] = useState(2);
