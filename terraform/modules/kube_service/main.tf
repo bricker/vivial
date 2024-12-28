@@ -6,15 +6,11 @@ resource "kubernetes_service" "default" {
   metadata {
     name      = var.service_name
     namespace = var.namespace
-
-    labels = {
-      app = var.service_name
-    }
   }
 
   spec {
     selector = {
-      app = var.service_name
+      app = var.app_name
     }
 
     type = "NodePort"
