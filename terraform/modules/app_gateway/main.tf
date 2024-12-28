@@ -10,7 +10,6 @@ resource "kubernetes_manifest" "gateway" {
     metadata = {
       name      = var.service_name
       namespace = var.namespace
-      labels    = var.labels
 
       annotations = {
         "networking.gke.io/certmap" : var.google_certificate_manager_certificate_map.name
@@ -67,7 +66,6 @@ resource "kubernetes_manifest" "gateway_policy" {
     metadata = {
       name      = var.service_name
       namespace = var.namespace
-      labels    = var.labels
     }
 
     spec = {

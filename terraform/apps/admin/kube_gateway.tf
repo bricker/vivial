@@ -2,9 +2,6 @@ module "app_gateway" {
   depends_on   = [google_compute_global_address.a_addrs]
   source       = "../../modules/app_gateway"
   service_name = module.kubernetes_service.name
-  labels = {
-    app = local.app_name
-  }
   namespace                                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   google_compute_ssl_policy                  = var.google_compute_ssl_policy
@@ -36,10 +33,6 @@ resource "kubernetes_manifest" "app_httproute" {
     metadata = {
       name      = local.app_name
       namespace = var.kube_namespace_name
-
-      labels = {
-        app = local.app_name
-      }
     }
 
     spec = {

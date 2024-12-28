@@ -39,10 +39,6 @@ resource "kubernetes_manifest" "healthcheck_policy" {
     metadata = {
       name      = var.service_name
       namespace = var.namespace
-
-      labels = {
-        app = var.service_name
-      }
     }
 
     spec = {
