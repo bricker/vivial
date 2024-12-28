@@ -57,7 +57,7 @@ resource "kubernetes_manifest" "app_httproute" {
             },
             {
               path = {
-                type  = "PathPrefix"
+                type  = "Exact"
                 value = "/graphql"
               }
             },
