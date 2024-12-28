@@ -12,7 +12,7 @@ module "iap_service_backend_policy" {
 
   name      = local.iap_service_name
   namespace = var.kube_namespace_name
-  service_name                      = module.kubernetes_service_iap.name
+  service_name                      = module.iap_app_kubernetes_service.name
   iap_oauth_client_kube_secret_name = var.iap_oauth_client_kube_secret_name
   iap_oauth_client_id               = var.iap_oauth_client_id
   iap_enabled                       = true # always enabled for this service
