@@ -1,6 +1,6 @@
 export enum AppRoute {
   root = "/",
-  bookingEdit = "/bookings/edit/:bookingId",
+  bookingEdit = "/bookings/:bookingId/edit",
 }
 
 export function routePath(route: AppRoute, pathParams?: { [key: string]: string }): string {

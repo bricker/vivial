@@ -139,8 +139,8 @@ const PasswordResetForm = () => {
 
       <PasswordRequirements passwordInfo={getPasswordInfo(newPassword)} verticalLayout />
 
-      <SensitiveInput placeholder="New password" onChange={(e) => setNewPassword(e.target.value)} />
-      <SensitiveInput placeholder="Retype new password" onChange={(e) => setRetypedPassword(e.target.value)} />
+      <SensitiveInput placeholder="New password" onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password"/>
+      <SensitiveInput placeholder="Retype new password" onChange={(e) => setRetypedPassword(e.target.value)} autoComplete="new-password"/>
 
       {error && (
         <InputErrorContainer>

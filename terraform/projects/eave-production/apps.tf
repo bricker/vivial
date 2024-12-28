@@ -37,6 +37,10 @@ module "core_api_app" {
   LOG_LEVEL                    = "DEBUG"
   release_version              = "latest"
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
+
+  iap_enabled                       = false
+  iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }
 
 module "dashboard_app" {

@@ -223,7 +223,7 @@ async def _notify_slack_booking_confirmed(
                 thread_ts=slack_response.get("ts"),
                 link_names=True,
                 text=dedent(f"""
-                    Dashboard link: {SHARED_CONFIG.eave_admin_base_url_public}/booking/edit/{booking_orm.id}
+                    Dashboard link: {SHARED_CONFIG.eave_admin_base_url_public}/bookings/{booking_orm.id}/edit
 
                     *Account Info*
 
