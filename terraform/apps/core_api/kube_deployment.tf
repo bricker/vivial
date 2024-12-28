@@ -19,6 +19,7 @@ resource "kubernetes_deployment" "app" {
   spec {
     selector {
       match_labels = {
+        app_group = local.app_name
         app       = local.app_name
       }
     }
@@ -35,6 +36,7 @@ resource "kubernetes_deployment" "app" {
       metadata {
         name = local.app_name
         labels = {
+          app_group = local.app_name
           app       = local.app_name
         }
       }
