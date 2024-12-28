@@ -2,7 +2,6 @@ import contextlib
 from collections.abc import AsyncGenerator
 from http import HTTPStatus
 
-import aiohttp
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.requests import Request
@@ -69,11 +68,11 @@ app = Starlette(
         Mount("/static", StaticFiles(directory="eave/admin/static")),
         Route(
             path="/status",
-            methods=[aiohttp.hdrs.METH_GET],
+            methods=["GET"],
             endpoint=status_endpoint,
         ),
-        Route(path="/healthz", methods=[aiohttp.hdrs.METH_GET], endpoint=health_endpoint),
-        Route(path="/{rest:path}", methods=[aiohttp.hdrs.METH_GET], endpoint=web_app_endpoint),
+        Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
+        Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
     lifespan=_app_lifespan,
     middleware=[
