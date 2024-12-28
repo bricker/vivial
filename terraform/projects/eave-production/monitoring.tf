@@ -29,6 +29,16 @@ module "monitoring" {
       authenticated = false
     },
     {
+      service         = "www-squarespace"
+      name            = "Website (Squarespace) uptime check"
+      enabled         = true
+      severity        = "CRITICAL"
+      host            = "www.${local.dns_domain}" # domain prefix is hardcoded on purpose
+      path            = "/"
+      contains_string = "Eave"
+      authenticated = false
+    },
+    {
       service  = "cdn"
       name     = "CDN uptime check"
       enabled  = true
