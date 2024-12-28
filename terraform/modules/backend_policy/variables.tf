@@ -23,8 +23,3 @@ variable "iap_oauth_client_id" {
   type     = string
   nullable = true
 }
-
-variable "labels" {
-  type    = map(string)
-  default = {}
-}
