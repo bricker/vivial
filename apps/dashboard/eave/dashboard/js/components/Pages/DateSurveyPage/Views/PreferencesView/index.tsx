@@ -77,7 +77,7 @@ interface PreferencesViewProps {
 
 const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose }: PreferencesViewProps) => {
   const { data, isLoading } = useGetOutingPreferencesQuery({});
-  const [stepsCompleted, setStepsCompleted] = useState(0);
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedResaturantCategories, setSelectedResaturantCategories] = useState<RestaurantCategoryFieldsFragment[]>(
     [],
   );
@@ -87,7 +87,7 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
   const preferredRestaurants = outingPreferences?.restaurantCategories || [];
   const preferredActivities = outingPreferences?.activityCategories || [];
   const totalSteps = 8;
-  const progress = (stepsCompleted / totalSteps) * 100;
+  const progress = ((currentStep - 1) / totalSteps) * 100;
 
   const animateSelectionsContainer = () => {
     const selectionsContainer = document.getElementById("selections-container");
@@ -105,11 +105,12 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
   };
 
   const handleStep = (stepNumber: number, selections: OutingPreferencesSelections) => {
-    setStepsCompleted(stepNumber);
-    if (stepNumber === totalSteps) {
+    if (stepNumber > totalSteps) {
       onSubmit(selections);
       onClose();
     } else {
+      console.log("about to animate to stepNumber", stepNumber);
+      setCurrentStep(stepNumber);
       animateSelectionsContainer();
     }
   };
@@ -117,7 +118,7 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
   const handleSubmitRestaurants = (categories: Category[]) => {
     const restaurantSelections = selectedResaturantCategories.concat(categories as RestaurantCategoryFieldsFragment[]);
     setSelectedResaturantCategories(restaurantSelections);
-    handleStep(stepsCompleted + 1, {
+    handleStep(currentStep + 1, {
       restaurantCategories: restaurantSelections,
       activityCategories: selectedActivityCategories,
     });
@@ -126,7 +127,7 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
   const handleSubmitActivities = (categories: Category[]) => {
     const activitySelections = selectedActivityCategories.concat(categories as ActivityCategoryFieldsFragment[]);
     setSelectedActivityCategories(activitySelections);
-    handleStep(stepsCompleted + 1, {
+    handleStep(currentStep + 1, {
       restaurantCategories: selectedResaturantCategories,
       activityCategories: activitySelections,
     });
@@ -143,7 +144,7 @@ const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose
         <Title variant="h3">{title}</Title>
         <Typography variant="subtitle1">{subtitle}</Typography>
         <ProgressBar variant="determinate" value={progress} />
-        <PreferenceCount>{stepsCompleted}/8 preferences</PreferenceCount>
+        <PreferenceCount>{currentStep}/8 preferences</PreferenceCount>
       </Paper>
       <SelectionsContainer id="selections-container">
         <PreferenceSelections
