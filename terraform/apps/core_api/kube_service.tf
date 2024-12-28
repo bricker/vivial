@@ -1,8 +1,3 @@
-moved {
-  from = module.kubernetes_service["core-api"]
-  to   = module.kubernetes_service
-}
-
 module "kubernetes_service" {
   source       = "../../modules/kube_service"
   namespace    = var.kube_namespace_name

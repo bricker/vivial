@@ -1,8 +1,3 @@
-moved {
-  from = kubernetes_deployment.app["core-api"]
-  to   = kubernetes_deployment.app
-}
-
 resource "kubernetes_deployment" "app" {
   lifecycle {
     prevent_destroy = true
