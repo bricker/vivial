@@ -43,7 +43,7 @@ resource "google_monitoring_uptime_check_config" "uptime_checks" {
     dynamic "service_agent_authentication" {
       # If this is an authenticated healthcheck, then use OIDC token for the server agent.
       # Otherwise don't include this block.
-      for_each = each.value.authenticated ? {" _": true} : {}
+      for_each = each.value.authenticated ? { " _" : true } : {}
 
       content {
         type = "OIDC_TOKEN"

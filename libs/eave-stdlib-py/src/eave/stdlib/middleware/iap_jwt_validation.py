@@ -1,13 +1,9 @@
-from functools import cache
-from typing import Any, cast
-import aiohttp
-from joserfc import jwt, jwk
-from google.oauth2 import id_token
-from google.auth.transport import Request
+from typing import cast
+
 import asgiref.typing
 import requests
+from google.oauth2 import id_token
 from starlette.types import ASGIApp, Receive, Scope, Send
-from starlette.requests import Request as StarletteRequest
 
 from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.config import SHARED_CONFIG
@@ -16,10 +12,12 @@ from eave.stdlib.logging import LOGGER
 
 IAP_JWT_HEADER = "x-goog-iap-jwt-assertion"
 
+
 class IAPJWTValidationMiddleware:
     """
     https://cloud.google.com/iap/docs/signed-headers-howto
     """
+
     app: asgiref.typing.ASGI3Application
     aud: str
 

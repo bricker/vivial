@@ -1,7 +1,7 @@
 locals {
-  app_name = "core-api"
+  app_name         = "core-api"
   iap_service_name = "core-api-iap"
-  domain   = trimsuffix(google_dns_record_set.default.name, ".")
+  domain           = trimsuffix(google_dns_record_set.default.name, ".")
 
   preset_production = var.environment == "PROD"
 

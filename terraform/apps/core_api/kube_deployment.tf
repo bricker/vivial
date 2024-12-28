@@ -12,7 +12,7 @@ resource "kubernetes_deployment" "app" {
     name      = local.app_name
     namespace = var.kube_namespace_name
     labels = {
-      app       = local.app_name
+      app = local.app_name
     }
   }
 

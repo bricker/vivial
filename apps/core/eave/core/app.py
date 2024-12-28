@@ -10,7 +10,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Mount, Route
 from strawberry.asgi import GraphQL
 
-from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 import eave.stdlib.time
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.endpoints.health import HealthEndpoint
@@ -22,6 +21,7 @@ from eave.core.starlette_exception_handlers import starlette_exception_handlers
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 
 from .admin.graphql.schema import schema as internal_schema
 from .database import async_engine
@@ -124,9 +124,7 @@ app = starlette.applications.Starlette(
             # This path prefix matches configuration in Kubernetes and shouldn't be changed.
             # It is configured to send everything on this path through the IAP
             "/iap",
-            middleware=[
-                Middleware(IAPJWTValidationMiddleware, aud=CORE_API_APP_CONFIG.iap_jwt_aud)
-            ],
+            middleware=[Middleware(IAPJWTValidationMiddleware, aud=CORE_API_APP_CONFIG.iap_jwt_aud)],
             routes=[
                 Route(
                     path="/graphql",
