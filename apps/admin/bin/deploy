@@ -11,10 +11,11 @@ function main() (
 	cd "$(e.parentpath)"
 	bin/lint
 
-	_live_version=$(curl -s https://admin.vivialapp.com/status | jq -r .version)
+	# TODO: Admin is behind IAP, need to either make status endpoint public or get an oauth token here.
+	# _live_version=$(curl -s https://admin.vivialapp.com/status | jq -r .version)
 
-	statusmsg -a "Diff since last deployment:"
-	git log --oneline "$_live_version"..HEAD
+	# statusmsg -a "Diff since last deployment:"
+	# git log --oneline "$_live_version"..HEAD
 
 	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
 

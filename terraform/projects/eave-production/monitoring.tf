@@ -13,6 +13,7 @@ module "monitoring" {
         content   = "OK"
         json_path = "$.status"
       }
+      authenticated = false
     },
     {
       service         = "www"
@@ -20,8 +21,12 @@ module "monitoring" {
       enabled         = true
       severity        = "CRITICAL"
       host            = "www.${local.dns_domain}" # domain prefix is hardcoded on purpose
-      path            = "/"
-      contains_string = "Eave" // :shrug: probably not great
+      path            = "/status"
+      matches_json_path = {
+        content   = "OK"
+        json_path = "$.status"
+      }
+      authenticated = false
     },
     {
       service  = "cdn"
@@ -34,6 +39,20 @@ module "monitoring" {
         content   = "OK"
         json_path = "$.status"
       }
+      authenticated = false
+    },
+    {
+      service  = "admin"
+      name     = "Admin uptime check"
+      enabled  = true
+      severity = "CRITICAL"
+      host     = "admin.${local.dns_domain}" # domain prefix is hardcoded on purpose
+      path     = "/status"
+      matches_json_path = {
+        content   = "OK"
+        json_path = "$.status"
+      }
+      authenticated = true
     },
   ]
 }

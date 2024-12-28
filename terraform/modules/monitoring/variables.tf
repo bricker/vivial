@@ -21,5 +21,6 @@ variable "uptime_checks" {
       content   = string
       json_path = string
     }))
+    authenticated = bool
   }))
 }

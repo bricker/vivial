@@ -1,6 +1,6 @@
 import { buildCodegenConfig } from "../../develop/javascript/codegen-shared";
 
-const schema = process.env["ADMIN_GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/internal/graphql";
+const schema = process.env["ADMIN_GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/iap/graphql";
 
 export default buildCodegenConfig({
   schema,
