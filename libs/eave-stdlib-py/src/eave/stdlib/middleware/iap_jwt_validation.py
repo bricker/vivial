@@ -1,7 +1,7 @@
 from typing import cast
 
 import asgiref.typing
-import requests
+from google.auth.transport import requests
 from google.oauth2 import id_token
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -41,6 +41,7 @@ class IAPJWTValidationMiddleware:
         if scope["path"] == "/healthz" or scope["path"] == "/status":
             # Healthcheck endpoints always allowed
             await self.app(scope, receive, send)
+            return
 
         if not SHARED_CONFIG.is_local:
             jwt_assertion_header = get_header_value_or_exception(scope=scope, name=IAP_JWT_HEADER)
