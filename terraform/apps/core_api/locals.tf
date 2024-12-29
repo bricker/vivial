@@ -1,6 +1,6 @@
 locals {
-  app_name         = "core-api"
-  domain           = trimsuffix(google_dns_record_set.default.name, ".")
+  app_name = "core-api"
+  domain   = trimsuffix(google_dns_record_set.default.name, ".")
 
   preset_production = var.environment == "PROD"
 

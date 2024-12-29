@@ -13,7 +13,6 @@ module "monitoring" {
         content   = "OK"
         json_path = "$.status"
       }
-      authenticated = false
     },
     {
       service  = "www"
@@ -26,7 +25,6 @@ module "monitoring" {
         content   = "OK"
         json_path = "$.status"
       }
-      authenticated = false
     },
     {
       service         = "www-squarespace"
@@ -36,7 +34,6 @@ module "monitoring" {
       host            = "www.${local.dns_domain}" # domain prefix is hardcoded on purpose
       path            = "/"
       contains_string = "Eave"
-      authenticated   = false
     },
     {
       service  = "cdn"
@@ -49,7 +46,6 @@ module "monitoring" {
         content   = "OK"
         json_path = "$.status"
       }
-      authenticated = false
     },
     {
       service  = "admin"
