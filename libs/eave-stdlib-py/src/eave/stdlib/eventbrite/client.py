@@ -345,6 +345,14 @@ class EventbriteClient:
             query["continuation"] = continuation
 
         async def _req(session: aiohttp.ClientSession) -> aiohttp.ClientResponse:
+            LOGGER.debug("Eventbrite API Request", {
+                "method": method,
+                "path": path,
+                "body": body,
+                "query": query,
+                "api_key_idx": self._current_api_key_idx,
+            })
+
             response = await session.request(
                 method=method,
                 url=f"{self.base_url}{path}",
@@ -369,7 +377,9 @@ class EventbriteClient:
                 response = await _req(session)
 
             response.raise_for_status()
-            return response
+            await response.read() # Read the response body while the session is still open
+
+        return response
 
     def _increment_api_key_idx(self) -> None:
         self._current_api_key_idx = (self._current_api_key_idx + 1) % len(self._api_keys)
