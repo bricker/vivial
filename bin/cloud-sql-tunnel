@@ -16,7 +16,7 @@ function main() (
 	while test $_tries -lt 5; do
 		_tries=$((_tries + 1))
 		_status=$(gcloud --project="$_gcloudproject" --format=json compute instances describe core-api-bastion | jq -r ".status")
-		if test "$_status" -eq "RUNNING"; then
+		if test "$_status" = "RUNNING"; then
 			break
 		fi
 		sleep 3
@@ -30,7 +30,7 @@ function main() (
 		if test $? == 0; then
 			break
 		fi
-		sleep 3
+		sleep $((_tries * 3))
 	done
 
 	set -e
