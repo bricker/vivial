@@ -1,4 +1,5 @@
 import dataclasses
+import random
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
@@ -10,6 +11,7 @@ import aiohttp
 
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.pagination import Pagination
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import NOT_SET
 
 from .models.category import Category, Subcategory
@@ -193,10 +195,16 @@ def paginated[T, **P](
 
 class EventbriteClient:
     base_url = "https://www.eventbrite.com"
-    api_key: str
 
-    def __init__(self, api_key: str) -> None:
-        self.api_key = api_key
+    _api_keys: list[str]
+    _current_api_key_idx: int
+
+    def __init__(self, *, api_keys: list[str]) -> None:
+        if len(api_keys) == 0:
+            raise ValueError("At least one Eventbrite API key must be provided")
+
+        self._api_keys = api_keys
+        self._current_api_key_idx = random.randrange(len(api_keys))  # noqa: S311
 
     async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
@@ -336,7 +344,7 @@ class EventbriteClient:
         if continuation:
             query["continuation"] = continuation
 
-        async with aiohttp.ClientSession(raise_for_status=True) as session:
+        async def _req(session: aiohttp.ClientSession) -> aiohttp.ClientResponse:
             response = await session.request(
                 method=method,
                 url=f"{self.base_url}{path}",
@@ -345,7 +353,31 @@ class EventbriteClient:
                 json=body,
             )
 
-            # Consume the body while the session is still open
-            await response.read()
+            return response
 
-        return response
+        async with aiohttp.ClientSession(raise_for_status=False) as session:
+            response = await _req(session)
+
+            try_num = 0
+            while response.status == 429 and try_num < len(self._api_keys):
+                LOGGER.warning(
+                    f"429 from Eventbrite; attempting key rotation ({self._current_api_key_idx + 1}/{len(self._api_keys)}"
+                )
+                # Rate limited. Switch to next API key and try again.
+                try_num += 1
+                self._increment_api_key_idx()
+                response = await _req(session)
+
+            response.raise_for_status()
+            return response
+
+    def _increment_api_key_idx(self) -> None:
+        self._current_api_key_idx = (self._current_api_key_idx + 1) % len(self._api_keys)
+
+    @property
+    def api_key(self) -> str:
+        try:
+            return self._api_keys[self._current_api_key_idx]
+        except KeyError:
+            # This is a failsafe in case the key index math is wrong or something
+            return self._api_keys[0]

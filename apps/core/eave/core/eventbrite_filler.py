@@ -1,15 +1,8 @@
 # isort: off
 
 import sys
-import time
-
-from eave.stdlib.config import SHARED_CONFIG
 
 sys.path.append(".")
-
-from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
-
-load_standard_dotenv_files()
 
 # isort: on
 
@@ -17,6 +10,7 @@ load_standard_dotenv_files()
 
 import asyncio
 import random
+import time
 from datetime import UTC, datetime, timedelta
 from pprint import pprint
 from typing import Any
@@ -30,6 +24,7 @@ from eave.core.lib.google_places import GoogleMapsUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eventbrite.client import ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
@@ -232,16 +227,16 @@ _EVENTBRITE_ORGANIZER_IDS = {
     "86612512073",
 }
 
-organizer_stats: dict[str, dict[str, float]] = {}
+_organizer_stats: dict[str, dict[str, float]] = {}
 
-run_stats: dict[str, Any] = {
+_run_stats: dict[str, Any] = {
     "events_processed": 0,
     "events_imported": 0,
     "runtime_seconds": 0,
 }
 
 
-async def get_eventbrite_events() -> None:
+async def _get_eventbrite_events() -> None:
     LOGGER.info(f"GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
 
     eventbrite = EventbriteUtility()
@@ -265,7 +260,7 @@ async def get_eventbrite_events() -> None:
             "runtime_seconds": 0,
         }
 
-        organizer_stats[organizer_id] = org_stats
+        _organizer_stats[organizer_id] = org_stats
 
         paginator = eventbrite.client.list_events_for_organizer(
             organizer_id=organizer_id,
@@ -295,7 +290,7 @@ async def get_eventbrite_events() -> None:
                 for event in batch:
                     # FIXME: This will ignore events that may have previously been added into the database, if their settings were changed to become excluded.
 
-                    run_stats["events_processed"] += 1
+                    _run_stats["events_processed"] += 1
                     org_stats["events_processed"] += 1
                     evnum += 1
 
@@ -501,7 +496,7 @@ async def get_eventbrite_events() -> None:
                         )
 
                     org_stats["events_imported"] += 1
-                    run_stats["events_imported"] += 1
+                    _run_stats["events_imported"] += 1
 
                 if stop_paginating:
                     break
@@ -519,17 +514,17 @@ async def get_eventbrite_events() -> None:
 
 
 if __name__ == "__main__":
-    perf_start = time.perf_counter()
-    run_stats["start_time"] = datetime.now().isoformat()
+    _perf_start = time.perf_counter()
+    _run_stats["start_time"] = datetime.now().isoformat()
 
     try:
-        asyncio.run(get_eventbrite_events())
+        asyncio.run(_get_eventbrite_events())
     except KeyboardInterrupt:
         pass
     except Exception as e:
         LOGGER.error(e)
     finally:
-        run_stats["end_time"] = datetime.now().isoformat()
-        run_stats["runtime_minutes"] = int((time.perf_counter() - perf_start) / 60)
-        pprint(organizer_stats)
-        pprint(run_stats)
+        _run_stats["end_time"] = datetime.now().isoformat()
+        _run_stats["runtime_minutes"] = int((time.perf_counter() - _perf_start) / 60)
+        pprint(_organizer_stats)
+        pprint(_run_stats)
