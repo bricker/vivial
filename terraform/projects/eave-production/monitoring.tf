@@ -62,7 +62,6 @@ module "monitoring" {
         content   = "OK"
         json_path = "$.status"
       }
-      authenticated = true
     },
   ]
 }

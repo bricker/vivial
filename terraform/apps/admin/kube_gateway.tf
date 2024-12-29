@@ -37,6 +37,53 @@ resource "kubernetes_manifest" "app_httproute" {
           # No path matching is specified, so all traffic is routed to this backend.
           backendRefs = [
             {
+              name = module.healthchecks_kubernetes_service.name
+              port = module.healthchecks_kubernetes_service.port.number
+            }
+          ]
+          matches = [
+            {
+              path = {
+                type  = "Exact"
+                value = "/status"
+              }
+            },
+            {
+              path = {
+                type  = "Exact"
+                value = "/healthz"
+              }
+            },
+          ]
+          filters = [
+            {
+              type = "RequestHeaderModifier"
+              requestHeaderModifier = {
+                set = [
+                  {
+                    name  = "eave-lb"
+                    value = "1"
+                  }
+                ]
+              }
+            },
+            {
+              type = "ResponseHeaderModifier"
+              responseHeaderModifier = {
+                set = [
+                  {
+                    name  = "server"
+                    value = "n/a"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          # No path matching is specified, so all traffic is routed to this backend.
+          backendRefs = [
+            {
               name = module.kubernetes_service.name
               port = module.kubernetes_service.port.number
             }

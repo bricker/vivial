@@ -119,7 +119,7 @@ resource "kubernetes_manifest" "app_httproute" {
           backendRefs = [
             {
               name = module.iap_app_kubernetes_service.name
-              port = module.kubernetes_service.port.number
+              port = module.iap_app_kubernetes_service.port.number
             }
           ]
 

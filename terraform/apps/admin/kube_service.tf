@@ -7,11 +7,6 @@ module "kubernetes_service" {
   app_port     = local.app_port
 }
 
-moved {
-  from = module.gateway_backend_policy
-  to   = module.service_backend_policy
-}
-
 module "service_backend_policy" {
   source = "../../modules/backend_policy"
 
