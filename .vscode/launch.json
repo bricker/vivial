@@ -12,6 +12,10 @@
       "request": "launch",
       "program": "bin/src/start-dev-server.py",
       "justMyCode": false,
+      "presentation": {
+        "group": "00-Apps",
+        "order": 1
+      }
     },
     {
       "name": "Dashboard (Server)",
@@ -22,6 +26,9 @@
       "program": "bin/src/start-dev-server.py",
       "jinja": true,
       "justMyCode": false,
+      "presentation": {
+        "group": "20-Dashboard",
+      }
     },
     {
       "name": "Dashboard (Webpack)",
@@ -33,7 +40,10 @@
       "args": [
         "-w"
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "20-Dashboard",
+      }
     },
     {
       "name": "Dashboard (GraphQL Codegen)",
@@ -47,7 +57,10 @@
         "--overwrite",
         "--watch",
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "20-Dashboard",
+      }
     },
     {
       "name": "Admin (Server)",
@@ -58,6 +71,9 @@
       "program": "bin/src/start-dev-server.py",
       "jinja": true,
       "justMyCode": false,
+      "presentation": {
+        "group": "30-Admin",
+      }
     },
     {
       "name": "Admin (Webpack)",
@@ -69,7 +85,10 @@
       "args": [
         "-w"
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "30-Admin",
+      }
     },
     {
       "name": "Admin (GraphQL Codegen)",
@@ -83,7 +102,10 @@
         "--overwrite",
         "--watch",
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "30-Admin",
+      }
     },
   ],
   "compounds": [
@@ -94,7 +116,24 @@
         "Dashboard (Webpack)",
         "Dashboard (GraphQL Codegen)",
       ],
-      "stopAll": true
+      "stopAll": true,
+      "presentation": {
+        "group": "00-Apps",
+        "order": 2
+      }
+    },
+    {
+      "name": "Admin",
+      "configurations": [
+        "Admin (Server)",
+        "Admin (Webpack)",
+        "Admin (GraphQL Codegen)",
+      ],
+      "stopAll": true,
+      "presentation": {
+        "group": "00-Apps",
+        "order": 3
+      }
     },
     {
       "name": "Core API + Dashboard",
@@ -104,16 +143,10 @@
         "Dashboard (Webpack)",
         "Dashboard (GraphQL Codegen)",
       ],
-      "stopAll": true
-    },
-    {
-      "name": "Admin",
-      "configurations": [
-        "Admin (Server)",
-        "Admin (Webpack)",
-        "Admin (GraphQL Codegen)",
-      ],
-      "stopAll": true
+      "stopAll": true,
+      "presentation": {
+        "group": "10-Pairs",
+      }
     },
     {
       "name": "Core API + Admin",
@@ -123,7 +156,11 @@
         "Admin (Webpack)",
         "Admin (GraphQL Codegen)",
       ],
-      "stopAll": true
+      "stopAll": true,
+      "presentation": {
+        "hidden": false,
+        "group": "10-Pairs",
+      }
     },
   ]
 }
