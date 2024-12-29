@@ -14,8 +14,8 @@ import eave.stdlib.time
 from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import MIME_TYPE_BINARY, MIME_TYPE_JSON
-from eave.stdlib.status import status_payload
 from eave.stdlib.starlette import exception_handlers
+from eave.stdlib.status import status_payload
 
 eave.stdlib.time.set_utc()
 

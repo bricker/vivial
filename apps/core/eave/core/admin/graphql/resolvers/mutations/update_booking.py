@@ -11,7 +11,7 @@ from eave.core.graphql.types.booking import (
     Booking,
 )
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
-from eave.core.mail import send_booking_confirmation_email
+from eave.core.mail import send_booking_status_email
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
@@ -70,7 +70,8 @@ async def admin_update_booking_mutation(
     new_restaurant = strawberry.UNSET
 
     async with database.async_session.begin() as db_session:
-        booking = await BookingOrm.get_one(db_session, input.booking_id)
+        original_booking = await BookingOrm.get_one(db_session, input.booking_id)
+        updated_booking = await BookingOrm.get_one(db_session, input.booking_id)
 
     if (
         input.activity_source is not None
@@ -81,7 +82,7 @@ async def admin_update_booking_mutation(
         new_activity = await resolve_activity_details(
             source=input.activity_source,
             source_id=input.activity_source_id,
-            survey=booking.outing.survey if booking.outing else None,
+            survey=updated_booking.outing.survey if updated_booking.outing else None,
         )
         if new_activity is None:
             return AdminUpdateBookingFailure(failure_reason=AdminUpdateBookingFailureReason.ACTIVITY_SOURCE_NOT_FOUND)
@@ -103,71 +104,65 @@ async def admin_update_booking_mutation(
 
     try:
         async with database.async_session.begin() as db_session:
-            db_session.add(booking)
+            db_session.add(updated_booking)
 
             if input.state is not None and input.state is not strawberry.UNSET:
-                booking.state = input.state
+                updated_booking.state = input.state
 
             # NOTE: only updating the first entry since we currently only create 1 event of each type per outing
-            if booking.activities:
+            if updated_booking.activities:
                 if input.activity_start_time_utc is not None and input.activity_start_time_utc is not strawberry.UNSET:
-                    booking.activities[0].start_time_utc = input.activity_start_time_utc
+                    updated_booking.activities[0].start_time_utc = input.activity_start_time_utc
                 if input.activity_headcount is not None and input.activity_headcount is not strawberry.UNSET:
-                    booking.activities[0].headcount = input.activity_headcount
+                    updated_booking.activities[0].headcount = input.activity_headcount
                 if new_activity is not None and new_activity is not strawberry.UNSET:
-                    booking.activities[0].source = new_activity.source
-                    booking.activities[0].source_id = new_activity.source_id
-                    booking.activities[0].name = new_activity.name
-                    booking.activities[0].external_booking_link = new_activity.website_uri
-                    booking.activities[0].address = new_activity.venue.location.address.to_address()
-                    booking.activities[0].coordinates = new_activity.venue.location.coordinates.geoalchemy_shape()
-                    booking.activities[0].photo_uri = (
+                    updated_booking.activities[0].source = new_activity.source
+                    updated_booking.activities[0].source_id = new_activity.source_id
+                    updated_booking.activities[0].name = new_activity.name
+                    updated_booking.activities[0].external_booking_link = new_activity.website_uri
+                    updated_booking.activities[0].address = new_activity.venue.location.address.to_address()
+                    updated_booking.activities[
+                        0
+                    ].coordinates = new_activity.venue.location.coordinates.geoalchemy_shape()
+                    updated_booking.activities[0].photo_uri = (
                         new_activity.photos.cover_photo.src if new_activity.photos.cover_photo else None
                     )
                 # delete event from booking if None was explicitly passed as input
                 if new_activity is None:
-                    await db_session.delete(booking.activities[0])
+                    await db_session.delete(updated_booking.activities[0])
 
-            if booking.reservations:
+            if updated_booking.reservations:
                 if (
                     input.restaurant_start_time_utc is not None
                     and input.restaurant_start_time_utc is not strawberry.UNSET
                 ):
-                    booking.reservations[0].start_time_utc = input.restaurant_start_time_utc
+                    updated_booking.reservations[0].start_time_utc = input.restaurant_start_time_utc
                 if input.restaurant_headcount is not None and input.restaurant_headcount is not strawberry.UNSET:
-                    booking.reservations[0].headcount = input.restaurant_headcount
+                    updated_booking.reservations[0].headcount = input.restaurant_headcount
                 if new_restaurant is not None and new_restaurant is not strawberry.UNSET:
-                    booking.reservations[0].source = new_restaurant.source
-                    booking.reservations[0].source_id = new_restaurant.source_id
-                    booking.reservations[0].name = new_restaurant.name
-                    booking.reservations[0].external_booking_link = new_restaurant.website_uri
-                    booking.reservations[0].address = new_restaurant.location.address.to_address()
-                    booking.reservations[0].coordinates = new_restaurant.location.coordinates.geoalchemy_shape()
-                    booking.reservations[0].photo_uri = (
+                    updated_booking.reservations[0].source = new_restaurant.source
+                    updated_booking.reservations[0].source_id = new_restaurant.source_id
+                    updated_booking.reservations[0].name = new_restaurant.name
+                    updated_booking.reservations[0].external_booking_link = new_restaurant.website_uri
+                    updated_booking.reservations[0].address = new_restaurant.location.address.to_address()
+                    updated_booking.reservations[0].coordinates = new_restaurant.location.coordinates.geoalchemy_shape()
+                    updated_booking.reservations[0].photo_uri = (
                         new_restaurant.photos.cover_photo.src if new_restaurant.photos.cover_photo else None
                     )
                 # delete event from booking if None was explicitly passed as input
                 if new_restaurant is None:
-                    await db_session.delete(booking.reservations[0])
+                    await db_session.delete(updated_booking.reservations[0])
     except InvalidRecordError as e:
         return AdminUpdateBookingFailure(
             failure_reason=AdminUpdateBookingFailureReason.VALIDATION_ERRORS,
             validation_errors=e.validation_errors,
         )
 
-    if input.state == BookingState.BOOKED:
-        booking_date = booking.outing.survey.start_time_local if booking.outing and booking.outing.survey else None
-        if not booking_date:
-            date_options = [r.start_time_local for r in booking.reservations] + [
-                a.start_time_local for a in booking.activities
-            ]
-            if len(date_options) > 0:
-                booking_date = date_options[0]
-        if booking_date:
-            send_booking_confirmation_email(
-                booking_orm=booking,
-            )
+    if original_booking.state != BookingState.BOOKED and updated_booking.state == BookingState.BOOKED:
+        send_booking_status_email(
+            booking_orm=updated_booking,
+        )
 
     return AdminUpdateBookingSuccess(
-        booking=Booking.from_orm(booking),
+        booking=Booking.from_orm(updated_booking),
     )

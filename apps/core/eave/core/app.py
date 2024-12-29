@@ -17,11 +17,11 @@ from eave.core.endpoints.logout import LogoutEndpoint
 from eave.core.endpoints.noop import NoopEndpoint
 from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
-from eave.stdlib.starlette import exception_handlers
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
+from eave.stdlib.starlette import exception_handlers
 
 from .admin.graphql.schema import schema as internal_schema
 from .database import async_engine

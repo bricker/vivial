@@ -1,6 +1,6 @@
 moved {
   from = google_monitoring_notification_channel.slack
-  to = google_monitoring_notification_channel.slack_uptime
+  to   = google_monitoring_notification_channel.slack_uptime
 }
 
 resource "google_monitoring_notification_channel" "slack_uptime" {

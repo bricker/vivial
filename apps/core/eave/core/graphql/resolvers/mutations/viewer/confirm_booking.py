@@ -17,7 +17,7 @@ from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.lib.google_places import GooglePlacesUtility
-from eave.core.mail import send_booking_confirmation_email
+from eave.core.mail import send_booking_status_email
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState
@@ -187,8 +187,9 @@ async def _notify_slack_booking_confirmed(
 ) -> None:
     total_cost_formatted = f"${"{:.2f}".format(total_cost_cents / 100)}"
     reserver_details = booking_orm.reserver_details
+    dashboard_url = f"{SHARED_CONFIG.eave_admin_base_url_public}/bookings/{booking_orm.id}/edit"
 
-    msg = f"Outing Booked for {total_cost_formatted} - "
+    msg = f"<{dashboard_url}|Outing Booked for {total_cost_formatted}> - "
     elements: list[str] = []
 
     if len(booking_orm.reservations) > 0:
@@ -215,6 +216,8 @@ async def _notify_slack_booking_confirmed(
                 channel=channel_id,
                 link_names=True,
                 text=msg,
+                unfurl_links=False,
+                unfurl_media=False,
             )
 
             # TODO: distinguish whether any action on our part is needed for one or both options?
@@ -223,7 +226,7 @@ async def _notify_slack_booking_confirmed(
                 thread_ts=slack_response.get("ts"),
                 link_names=True,
                 text=dedent(f"""
-                    Dashboard link: {SHARED_CONFIG.eave_admin_base_url_public}/bookings/{booking_orm.id}/edit
+                    Dashboard link: {dashboard_url}
 
                     *Account Info*
 
@@ -276,6 +279,6 @@ async def _notify_slack_booking_confirmed(
 
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
-    send_booking_confirmation_email(
+    send_booking_status_email(
         booking_orm=booking_orm,
     )
