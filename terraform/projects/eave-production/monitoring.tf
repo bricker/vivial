@@ -60,4 +60,8 @@ module "monitoring" {
       }
     },
   ]
+  addl_notification_channels = [
+    # Bryan's phone. This type of channel can only be created in the GCP console.
+    "projects/eave-production/notificationChannels/18048082649449908319"
+  ]
 }
