@@ -1,6 +1,7 @@
-resource "kubernetes_cron_job" "eventbrite_filler" {
+resource "kubernetes_cron_job_v1" "eventbrite_filler" {
   metadata {
     name = local.eventbrite_filler_job_name
+    namespace = var.kube_namespace_name
   }
 
   spec {

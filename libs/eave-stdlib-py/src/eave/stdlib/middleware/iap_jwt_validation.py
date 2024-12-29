@@ -38,7 +38,8 @@ class IAPJWTValidationMiddleware:
         if scope["type"] != "http":
             raise Exception(f"only HTTP requests are allowed ({scope["type"]})")
 
-        if scope["path"] == "/healthz":
+        if scope["path"] == "/healthz" or scope["path"] == "/status":
+            # Healthcheck endpoints always allowed
             await self.app(scope, receive, send)
 
         if not SHARED_CONFIG.is_local:

@@ -16,6 +16,10 @@ variable "secrets" {
       data      = string
       accessors = list(string)
     })
+    EVENTBRITE_API_KEYS = object({
+      data      = string
+      accessors = list(string)
+    })
     STRIPE_SECRET_KEY = object({
       data      = string
       accessors = list(string)
