@@ -55,6 +55,7 @@ class IAPJWTValidationMiddleware:
             email = decoded_token["email"]
             sub = decoded_token["sub"]
             if not email or not sub:
+                LOGGER.warning("IAP auth failed", decoded_token)
                 raise ForbiddenError("IAP auth failed")
 
             LOGGER.info("Admin authenticated through IAP", decoded_token)
