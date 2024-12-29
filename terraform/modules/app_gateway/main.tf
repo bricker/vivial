@@ -4,13 +4,16 @@ resource "kubernetes_manifest" "gateway" {
     prevent_destroy = true
   }
 
+  field_manager {
+    force_conflicts = true
+  }
+
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "Gateway"
     metadata = {
       name      = var.service_name
       namespace = var.namespace
-      labels    = var.labels
 
       annotations = {
         "networking.gke.io/certmap" : var.google_certificate_manager_certificate_map.name
@@ -67,7 +70,6 @@ resource "kubernetes_manifest" "gateway_policy" {
     metadata = {
       name      = var.service_name
       namespace = var.namespace
-      labels    = var.labels
     }
 
     spec = {

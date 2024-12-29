@@ -19,10 +19,6 @@ resource "kubernetes_service_account" "app_ksa" {
     annotations = {
       "iam.gke.io/gcp-service-account" = google_service_account.app_service_account.email
     }
-
-    labels = {
-      app = var.kube_service_name
-    }
   }
 }
 

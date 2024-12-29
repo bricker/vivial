@@ -1,8 +1,3 @@
-moved {
-  from = kubernetes_deployment.app["core-api"]
-  to   = kubernetes_deployment.app
-}
-
 resource "kubernetes_deployment" "app" {
   lifecycle {
     prevent_destroy = true
@@ -17,8 +12,7 @@ resource "kubernetes_deployment" "app" {
     name      = local.app_name
     namespace = var.kube_namespace_name
     labels = {
-      app_group = local.app_name
-      app       = local.app_name
+      app = local.app_name
     }
   }
 

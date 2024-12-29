@@ -21,8 +21,3 @@ variable "google_compute_ssl_policy" {
     name = string
   })
 }
-
-variable "labels" {
-  type    = map(string)
-  default = {}
-}

@@ -1,28 +1,11 @@
 module "app_gateway" {
-  depends_on   = [google_compute_global_address.a_addrs]
-  source       = "../../modules/app_gateway"
-  service_name = module.kubernetes_service.name
-  labels = {
-    app = local.app_name
-  }
+  depends_on                                 = [google_compute_global_address.a_addrs]
+  source                                     = "../../modules/app_gateway"
+  service_name                               = module.kubernetes_service.name
   namespace                                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   global_address_names                       = [for addr in google_compute_global_address.a_addrs : addr.name]
   google_compute_ssl_policy                  = var.google_compute_ssl_policy
-}
-
-module "gateway_backend_policy" {
-  source = "../../modules/gateway_backend_policy"
-
-  name      = local.app_name
-  namespace = var.kube_namespace_name
-  labels = {
-    app = local.app_name
-  }
-  service_name                      = module.kubernetes_service.name
-  iap_oauth_client_kube_secret_name = var.iap_oauth_client_kube_secret_name
-  iap_oauth_client_id               = var.iap_oauth_client_id
-  iap_enabled                       = var.iap_enabled
 }
 
 resource "kubernetes_manifest" "app_httproute" {
@@ -36,10 +19,6 @@ resource "kubernetes_manifest" "app_httproute" {
     metadata = {
       name      = local.app_name
       namespace = var.kube_namespace_name
-
-      labels = {
-        app = local.app_name
-      }
     }
 
     spec = {
@@ -78,7 +57,7 @@ resource "kubernetes_manifest" "app_httproute" {
             },
             {
               path = {
-                type  = "PathPrefix"
+                type  = "Exact"
                 value = "/graphql"
               }
             },
@@ -107,20 +86,51 @@ resource "kubernetes_manifest" "app_httproute" {
                     value = "1"
                   },
                   {
-                    name  = "eave-lb-geo-region"
-                    value = "{client_region}"
+                    name  = "eave-lb-client-ip"
+                    value = "{client_ip_address}"
                   },
+                ]
+              }
+            },
+            {
+              type = "ResponseHeaderModifier"
+              responseHeaderModifier = {
+                set = [
                   {
-                    name  = "eave-lb-geo-subdivision"
-                    value = "{client_region_subdivision}"
-                  },
+                    name  = "server"
+                    value = "n/a"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          # Anything matching these rules go through the IAP-enabled service
+          matches = [
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/iap"
+              }
+            },
+          ]
+
+          backendRefs = [
+            {
+              name = module.iap_app_kubernetes_service.name
+              port = module.iap_app_kubernetes_service.port.number
+            }
+          ]
+
+          filters = [
+            {
+              type = "RequestHeaderModifier"
+              requestHeaderModifier = {
+                set = [
                   {
-                    name  = "eave-lb-geo-city"
-                    value = "{client_city}"
-                  },
-                  {
-                    name  = "eave-lb-geo-coordinates"
-                    value = "{client_city_lat_long}"
+                    name  = "eave-lb"
+                    value = "1"
                   },
                   {
                     name  = "eave-lb-client-ip"

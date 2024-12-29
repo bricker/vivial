@@ -1,5 +1,4 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { CORE_API_INTERNAL_BASE } from "../../util/http";
 
 import {
   AdminBookingInfoDocument,
@@ -15,12 +14,13 @@ import {
   UpdateBookingMutation,
   UpdateBookingMutationVariables,
 } from "$eave-admin/js/graphql/generated/graphql";
+import { myWindow } from "$eave-admin/js/types/window";
 import type {} from "@reduxjs/toolkit/query";
 import { executeOperation } from "../../graphql/graphql-fetch";
 
 export const coreApiSlice = createApi({
   reducerPath: "coreApi",
-  baseQuery: fetchBaseQuery({ baseUrl: CORE_API_INTERNAL_BASE }),
+  baseQuery: fetchBaseQuery({ baseUrl: myWindow.app.apiBase }),
   endpoints: (builder) => ({
     /**
      * Admin Core API - GraphQL Queries

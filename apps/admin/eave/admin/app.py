@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from http import HTTPStatus
 
 from starlette.applications import Starlette
+from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Mount, Route
@@ -14,6 +15,7 @@ import eave.stdlib.time
 from eave.admin.config import ADMIN_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import MIME_TYPE_JSON
+from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 from eave.stdlib.status import status_payload
 
 eave.stdlib.time.set_utc()
@@ -66,11 +68,12 @@ app = Starlette(
         Mount("/static", StaticFiles(directory="eave/admin/static")),
         Route(
             path="/status",
-            methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+            methods=["GET"],
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
     lifespan=_app_lifespan,
+    middleware=[Middleware(IAPJWTValidationMiddleware, aud=ADMIN_APP_CONFIG.iap_jwt_aud)],
 )

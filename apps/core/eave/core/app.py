@@ -7,7 +7,7 @@ import starlette.endpoints
 import stripe
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.routing import Route
+from starlette.routing import Mount, Route
 from strawberry.asgi import GraphQL
 
 import eave.stdlib.time
@@ -21,6 +21,7 @@ from eave.core.starlette_exception_handlers import starlette_exception_handlers
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 
 from .admin.graphql.schema import schema as internal_schema
 from .database import async_engine
@@ -81,12 +82,6 @@ app = starlette.applications.Starlette(
             endpoint=StatusEndpoint,
             methods=[
                 aiohttp.hdrs.METH_GET,
-                aiohttp.hdrs.METH_POST,
-                aiohttp.hdrs.METH_PUT,
-                aiohttp.hdrs.METH_PATCH,
-                aiohttp.hdrs.METH_DELETE,
-                aiohttp.hdrs.METH_HEAD,
-                aiohttp.hdrs.METH_OPTIONS,
             ],
         ),
         Route(
@@ -112,16 +107,6 @@ app = starlette.applications.Starlette(
             endpoint=graphql_app,
         ),
         Route(
-            path="/internal/graphql",
-            methods=[
-                aiohttp.hdrs.METH_POST,
-                aiohttp.hdrs.METH_GET,  # Allows GraphiQL in development
-            ]
-            if SHARED_CONFIG.is_development
-            else [aiohttp.hdrs.METH_POST],
-            endpoint=internal_graphql_app,
-        ),
-        Route(
             path="/public/logout",
             endpoint=LogoutEndpoint,
             methods=[
@@ -133,6 +118,24 @@ app = starlette.applications.Starlette(
             endpoint=RefreshTokensEndpoint,
             methods=[
                 aiohttp.hdrs.METH_POST,
+            ],
+        ),
+        Mount(
+            # This path prefix matches configuration in Kubernetes and shouldn't be changed.
+            # It is configured to send everything on this path through the IAP
+            "/iap",
+            middleware=[Middleware(IAPJWTValidationMiddleware, aud=CORE_API_APP_CONFIG.iap_jwt_aud)],
+            routes=[
+                Route(
+                    path="/graphql",
+                    methods=[
+                        aiohttp.hdrs.METH_POST,
+                        aiohttp.hdrs.METH_GET,  # Allows GraphiQL in development
+                    ]
+                    if SHARED_CONFIG.is_development
+                    else [aiohttp.hdrs.METH_POST],
+                    endpoint=internal_graphql_app,
+                ),
             ],
         ),
     ],

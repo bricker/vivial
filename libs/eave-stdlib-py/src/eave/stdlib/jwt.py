@@ -205,6 +205,7 @@ def validate_jws_or_exception(
     except signing.InvalidSignatureError as e:
         raise InvalidJWSError() from e
 
+    issued_at = float(jws.payload.iat)
     expires_at = float(jws.payload.exp)
     not_before = float(jws.payload.nbf)
 
@@ -214,6 +215,8 @@ def validate_jws_or_exception(
         raise InvalidJWTClaimsError("aud")
     if jws.payload.pur != expected_purpose:
         raise InvalidJWTClaimsError("pur")
+    if now < issued_at - ALLOWED_CLOCK_DRIFT_SECONDS:
+        raise InvalidJWTClaimsError("iat")
     if now < not_before - ALLOWED_CLOCK_DRIFT_SECONDS:
         raise InvalidJWTClaimsError("nbf")
     if now > expires_at + ALLOWED_CLOCK_DRIFT_SECONDS:

@@ -39,11 +39,13 @@ resource "google_monitoring_uptime_check_config" "uptime_checks" {
     request_method = "GET"
     use_ssl        = true
     validate_ssl   = true
+
     accepted_response_status_codes {
       status_class = null
       status_value = 200
     }
   }
+
   monitored_resource {
     labels = {
       host       = each.value.host

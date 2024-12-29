@@ -9,7 +9,6 @@ resource "kubernetes_manifest" "backend_policy" {
     metadata = {
       name      = var.name
       namespace = var.namespace
-      labels    = var.labels
     }
 
     spec = {
