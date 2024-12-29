@@ -1,16 +1,17 @@
 import dataclasses
+import random
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from functools import wraps
 from http import HTTPMethod
-import random
 from typing import Any, Literal
 
 import aiohttp
 
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.pagination import Pagination
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import NOT_SET
 
 from .models.category import Category, Subcategory
@@ -359,6 +360,9 @@ class EventbriteClient:
 
             try_num = 0
             while response.status == 429 and try_num < len(self._api_keys):
+                LOGGER.warning(
+                    f"429 from Eventbrite; attempting key rotation ({self._current_api_key_idx + 1}/{len(self._api_keys)}"
+                )
                 # Rate limited. Switch to next API key and try again.
                 try_num += 1
                 self._increment_api_key_idx()

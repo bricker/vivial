@@ -1,12 +1,12 @@
 resource "kubernetes_cron_job_v1" "eventbrite_filler" {
   metadata {
-    name = local.eventbrite_filler_job_name
+    name      = local.eventbrite_filler_job_name
     namespace = var.kube_namespace_name
   }
 
   spec {
     concurrency_policy = "Replace"
-    schedule = "0 20 * * *"
+    schedule           = "0 20 * * *"
 
     job_template {
       metadata {

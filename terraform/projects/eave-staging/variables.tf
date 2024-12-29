@@ -26,6 +26,11 @@ variable "EVENTBRITE_API_KEY" {
   sensitive = true
 }
 
+variable "EVENTBRITE_API_KEYS" {
+  type      = string
+  sensitive = true
+}
+
 variable "STRIPE_SECRET_KEY" {
   type      = string
   sensitive = true

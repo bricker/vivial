@@ -8,9 +8,9 @@ sys.path.append(".")
 
 # ruff: noqa: E402
 
-import time
 import asyncio
 import random
+import time
 from datetime import UTC, datetime, timedelta
 from pprint import pprint
 from typing import Any
@@ -24,13 +24,13 @@ from eave.core.lib.google_places import GoogleMapsUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eventbrite.client import ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 from eave.stdlib.typing import JsonObject
-from eave.stdlib.config import SHARED_CONFIG
 
 # These are hand-picked by Vivial staff
 _EVENTBRITE_ORGANIZER_IDS = {
@@ -234,6 +234,7 @@ _run_stats: dict[str, Any] = {
     "events_imported": 0,
     "runtime_seconds": 0,
 }
+
 
 async def _get_eventbrite_events() -> None:
     LOGGER.info(f"GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")

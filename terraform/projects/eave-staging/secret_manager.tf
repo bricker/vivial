@@ -22,6 +22,12 @@ module "app_secrets" {
         module.core_api_app.service_account.member,
       ],
     },
+    EVENTBRITE_API_KEYS = {
+      data = var.EVENTBRITE_API_KEYS
+      accessors = [
+        module.core_api_app.service_account.member,
+      ],
+    },
     STRIPE_SECRET_KEY = {
       data = var.STRIPE_SECRET_KEY
       accessors = [
