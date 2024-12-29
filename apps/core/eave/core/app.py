@@ -17,7 +17,7 @@ from eave.core.endpoints.logout import LogoutEndpoint
 from eave.core.endpoints.noop import NoopEndpoint
 from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
-from eave.core.starlette_exception_handlers import starlette_exception_handlers
+from eave.stdlib.starlette import exception_handlers
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
@@ -139,7 +139,7 @@ app = starlette.applications.Starlette(
             ],
         ),
     ],
-    exception_handlers=starlette_exception_handlers,
+    exception_handlers=exception_handlers,
     middleware=[
         # CORS is needed only for dashboard to API communications.
         Middleware(

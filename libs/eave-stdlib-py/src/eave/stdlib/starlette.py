@@ -35,7 +35,7 @@ def http_error_handler(request: Request, exc: Exception) -> Response:
         return _make_error_response(http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-starlette_exception_handlers: Mapping[Any, Callable[[Request, Exception], Response]] = {
+exception_handlers: Mapping[Any, Callable[[Request, Exception], Response]] = {
     HTTPError: http_error_handler,
     # This special case is used by Starlette for the ServerErrorMiddleware, which always re-raises the error.
     # This generic handler allows us to define our own Internal Server Error response.

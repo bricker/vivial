@@ -15,6 +15,7 @@ from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import MIME_TYPE_BINARY, MIME_TYPE_JSON
 from eave.stdlib.status import status_payload
+from eave.stdlib.starlette import exception_handlers
 
 eave.stdlib.time.set_utc()
 
@@ -100,6 +101,7 @@ app = Starlette(
         Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
+    exception_handlers=exception_handlers,
     lifespan=_app_lifespan,
 )
 

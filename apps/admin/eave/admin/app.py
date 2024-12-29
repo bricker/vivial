@@ -16,6 +16,7 @@ from eave.admin.config import ADMIN_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
+from eave.stdlib.starlette import exception_handlers
 from eave.stdlib.status import status_payload
 
 eave.stdlib.time.set_utc()
@@ -74,6 +75,7 @@ app = Starlette(
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
+    exception_handlers=exception_handlers,
     lifespan=_app_lifespan,
     middleware=[Middleware(IAPJWTValidationMiddleware, aud=ADMIN_APP_CONFIG.iap_jwt_aud)],
 )
