@@ -7,5 +7,6 @@ source "${EAVE_HOME}"/develop/functions.bash
 (
 	cd "$(e.parentpath)"
 	python-activate-venv
-	python eave/core/activities_db/eventbrite_scraper.py
+
+	"$EAVE_HOME"/bin/run-with-dotenv -- python eave/core/eventbrite_filler.py
 )

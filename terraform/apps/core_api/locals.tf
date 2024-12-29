@@ -1,6 +1,7 @@
 locals {
   app_name = "core-api"
   domain   = trimsuffix(google_dns_record_set.default.name, ".")
+  eventbrite_filler_job_name = "eventbrite-filler"
 
   preset_production = var.environment == "PROD"
 

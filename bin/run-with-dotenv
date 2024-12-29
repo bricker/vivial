@@ -2,11 +2,6 @@
 
 # isort: off
 
-import os
-import sys
-
-sys.path.append(".")
-
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -15,6 +10,7 @@ load_standard_dotenv_files()
 
 # ruff: noqa: E402
 
+import os
 from subprocess import Popen
 import click
 
