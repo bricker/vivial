@@ -66,7 +66,7 @@ resource "google_monitoring_alert_policy" "uptime_alert_policies" {
   combiner              = "OR"
   display_name          = "FAILURE - ${each.value.name}"
   enabled               = each.value.enabled
-  notification_channels = concat([google_monitoring_notification_channel.slack.name], var.addl_notification_channels)
+  notification_channels = concat([google_monitoring_notification_channel.slack_uptime.name], var.addl_notification_channels)
 
   severity = each.value.severity
 
