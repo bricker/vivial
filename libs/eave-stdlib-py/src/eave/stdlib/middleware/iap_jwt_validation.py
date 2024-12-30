@@ -27,24 +27,24 @@ class IAPJWTValidationMiddleware:
 
     async def __call__(
         self,
-        _scope: Scope,
-        _receive: Receive,
-        _send: Send,
+        scope: Scope,
+        receive: Receive,
+        send: Send,
     ) -> None:
-        scope = cast(asgiref.typing.Scope, _scope)
-        receive = cast(asgiref.typing.ASGIReceiveCallable, _receive)
-        send = cast(asgiref.typing.ASGISendCallable, _send)
+        cscope = cast(asgiref.typing.Scope, scope)
+        creceive = cast(asgiref.typing.ASGIReceiveCallable, receive)
+        csend = cast(asgiref.typing.ASGISendCallable, send)
 
-        if scope["type"] != "http":
-            raise Exception(f"only HTTP requests are allowed ({scope["type"]})")
+        if cscope["type"] != "http":
+            raise Exception(f"only HTTP requests are allowed ({cscope["type"]})")
 
-        if scope["path"] == "/healthz" or scope["path"] == "/status":
+        if cscope["path"] == "/healthz" or cscope["path"] == "/status":
             # Healthcheck endpoints always allowed
-            await self.app(scope, receive, send)
+            await self.app(cscope, creceive, csend)
             return
 
         if not SHARED_CONFIG.is_local:
-            jwt_assertion_header = get_header_value_or_exception(scope=scope, name=IAP_JWT_HEADER)
+            jwt_assertion_header = get_header_value_or_exception(scope=cscope, name=IAP_JWT_HEADER)
 
             decoded_token = id_token.verify_token(
                 jwt_assertion_header,
@@ -61,4 +61,4 @@ class IAPJWTValidationMiddleware:
 
             LOGGER.info("Admin authenticated through IAP", decoded_token)
 
-        await self.app(scope, receive, send)
+        await self.app(cscope, creceive, csend)
