@@ -116,7 +116,7 @@ class Itinerary:
 
     @strawberry.field
     def cost_breakdown(self) -> CostBreakdown:
-        return self.calculate_cost_breakdown()
+        return self.calculate_payment_due_breakdown()
 
     def calculate_cost_breakdown(self) -> CostBreakdown:
         cb = CostBreakdown()
@@ -128,3 +128,23 @@ class Itinerary:
             cb += self.reservation.calculate_cost_breakdown()
 
         return cb
+
+    def calculate_payment_due_breakdown(self) -> CostBreakdown:
+        cb = CostBreakdown()
+
+        if self.activity_plan and self.activity_plan.activity.is_bookable:
+            cb += self.activity_plan.calculate_cost_breakdown()
+
+        if self.reservation and self.reservation.restaurant.reservable:
+            cb += self.reservation.calculate_cost_breakdown()
+
+        return cb
+
+    @property
+    def has_bookable_components(self) -> bool:
+        if self.activity_plan and self.activity_plan.activity.is_bookable:
+            return True
+        elif self.reservation and self.reservation.restaurant.reservable:
+            return True
+        else:
+            return False

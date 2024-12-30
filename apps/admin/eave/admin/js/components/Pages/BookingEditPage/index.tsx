@@ -24,6 +24,8 @@ const InfoSpacer = styled("div")(() => ({
 const BookingEditPage = () => {
   const [error, setError] = useState("");
   const [bookingState, setBookingState] = useState(BookingState.Initiated);
+  const [bookSuccessful, setBookSuccessful] = useState(false);
+  const [cancelSuccessful, setCancelSuccessful] = useState(false);
   const params = useParams();
   const bookingIdParam = params["bookingId"];
   if (!bookingIdParam) {
@@ -48,6 +50,11 @@ const BookingEditPage = () => {
     switch (resp.data?.adminUpdateBooking?.__typename) {
       case "AdminUpdateBookingSuccess": {
         // yay we done it
+        if (state === BookingState.Booked) {
+          setBookSuccessful(true);
+        } else if (state === BookingState.Canceled) {
+          setCancelSuccessful(true);
+        }
         break;
       }
       case "AdminUpdateBookingFailure": {
@@ -120,16 +127,24 @@ const BookingEditPage = () => {
         />
 
         <div style={{ display: "flex", justifyContent: "space-around" }}>
-          <LoadingButton
-            sx={{ backgroundColor: colors.midGreySecondaryField }}
-            loading={updateBookingIsLoading}
-            onClick={handleCancelBooking}
-          >
-            Mark as Canceled
-          </LoadingButton>
-          <LoadingButton loading={updateBookingIsLoading} onClick={handleBookBooking}>
-            Mark as Booked
-          </LoadingButton>
+          {cancelSuccessful ? (
+            <div>Successful ✅.</div>
+          ) : (
+            <LoadingButton
+              sx={{ backgroundColor: colors.midGreySecondaryField }}
+              loading={updateBookingIsLoading}
+              onClick={handleCancelBooking}
+            >
+              Mark as Canceled
+            </LoadingButton>
+          )}
+          {bookSuccessful ? (
+            <div>Successful ✅.</div>
+          ) : (
+            <LoadingButton loading={updateBookingIsLoading} onClick={handleBookBooking}>
+              Mark as Booked
+            </LoadingButton>
+          )}
         </div>
       </InfoSpacer>
       {!bookingIsLoading && !bookingInfo?.adminBooking && (

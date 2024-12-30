@@ -6,7 +6,7 @@ import strawberry
 import stripe
 
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
     perform_post_confirm_actions,
 )
@@ -14,7 +14,7 @@ from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
 )
-from eave.core.graphql.types.cost_breakdown import CostBreakdown
+from eave.core.graphql.types.itinerary import Itinerary
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
@@ -84,10 +84,6 @@ async def initiate_booking_mutation(
     if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
         return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
 
-    activity_plan: ActivityPlan | None = None
-    reservation: Reservation | None = None
-    total_cost_breakdown = CostBreakdown()
-
     try:
         async with database.async_session.begin() as db_session:
             # If a booking with account and outing ID already exists, use it.
@@ -109,6 +105,14 @@ async def initiate_booking_mutation(
                     stripe_payment_intent_reference=None,  # Not created yet
                     state=BookingState.INITIATED,
                 )
+
+            itinerary = BookingDetails(
+                id=booking_orm.id,  # Warning: This is NULL until the Booking object is persisted!
+                activity_plan=None,
+                reservation=None,
+                state=booking_orm.state,
+                survey=None,
+            )
 
             if len(outing_orm.activities) > 0:
                 outing_activity_orm = outing_orm.activities[0]  # We only support one activity currently.
@@ -136,13 +140,11 @@ async def initiate_booking_mutation(
 
                     booking_orm.activities = [booking_activity_orm]
 
-                    activity_plan = ActivityPlan(
+                    itinerary.activity_plan = ActivityPlan(
                         activity=activity,
                         start_time=booking_activity_orm.start_time_local,
                         headcount=booking_activity_orm.headcount,
                     )
-
-                    total_cost_breakdown += activity_plan.calculate_cost_breakdown()
 
             if len(outing_orm.reservations) > 0:
                 reservation_orm = outing_orm.reservations[0]  # We only support 1 reservation right now
@@ -169,17 +171,15 @@ async def initiate_booking_mutation(
 
                     booking_orm.reservations = [booking_reservation_orm]
 
-                    reservation = Reservation(
+                    itinerary.reservation = Reservation(
                         arrival_time=booking_reservation_orm.start_time_local,
                         headcount=booking_reservation_orm.headcount,
                         restaurant=restaurant,
                     )
 
-                    total_cost_breakdown += reservation.calculate_cost_breakdown()
+        payment_due_cents = itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents()
 
-        booking_total_cost_cents = total_cost_breakdown.calculate_total_cost_cents()
-
-        if booking_total_cost_cents > 0:
+        if payment_due_cents > 0:
             if not account_orm.stripe_customer_id:
                 stripe_customer = await stripe.Customer.create_async(
                     email=account_orm.email,
@@ -197,7 +197,7 @@ async def initiate_booking_mutation(
 
             stripe_payment_create_params: stripe.PaymentIntent.CreateParams = {
                 "currency": "usd",
-                "amount": total_cost_breakdown.calculate_total_cost_cents(),
+                "amount": payment_due_cents,
                 "capture_method": "manual",
                 "receipt_email": account_orm.email,
                 "setup_future_usage": "on_session",
@@ -231,7 +231,7 @@ async def initiate_booking_mutation(
             stripe_payment_intent = await stripe.PaymentIntent.create_async(**stripe_payment_create_params)
 
             if not stripe_payment_intent.client_secret:
-                LOGGER.error("Missing client secret from Stripe Payment Intent response")
+                LOGGER.error("Missing client secret from Stripe Payment Intent response", log_ctx(info.context))
                 return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.PAYMENT_INTENT_FAILED)
 
             async with database.async_session.begin() as db_session:
@@ -257,7 +257,7 @@ async def initiate_booking_mutation(
                     "payment_element": {
                         "enabled": True,
                         "features": {
-                            "payment_method_save": "enabled",
+                            # "payment_method_save": "enabled",
                             "payment_method_save_usage": "on_session",
                             "payment_method_redisplay": "enabled",
                             "payment_method_remove": "enabled",
@@ -275,39 +275,40 @@ async def initiate_booking_mutation(
         if input.auto_confirm:
             async with database.async_session.begin() as db_session:
                 db_session.add(booking_orm)
-                booking_orm.state = BookingState.CONFIRMED
+
+                if itinerary.has_bookable_components:
+                    booking_orm.state = BookingState.CONFIRMED
+                else:
+                    booking_orm.state = BookingState.BOOKED
 
     except InvalidRecordError as e:
-        LOGGER.exception(e)
+        LOGGER.exception(e, log_ctx(info.context))
         return InitiateBookingFailure(
             failure_reason=InitiateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
         )
+
+    # Update the state in case it changed in the logic above
+    itinerary.state = booking_orm.state
+    itinerary.id = booking_orm.id
 
     if input.auto_confirm:
         await perform_post_confirm_actions(
             booking_orm=booking_orm,
             account_orm=account_orm,
             visitor_id=visitor_id,
-            total_cost_cents=booking_total_cost_cents,
+            itinerary=itinerary,
         )
 
     else:
         _fire_analytics_booking_initiated(
             booking=booking_orm,
-            reservation=reservation,
-            activity_plan=activity_plan,
+            itinerary=itinerary,
             account_id=account_orm.id,
             visitor_id=visitor_id,
         )
 
     return InitiateBookingSuccess(
-        booking=BookingDetails(
-            id=booking_orm.id,  # Warning: This is NULL until the Booking object is persisted!
-            survey=None,
-            state=booking_orm.state,
-            activity_plan=activity_plan,
-            reservation=reservation,
-        ),
+        booking=itinerary,
         payment_intent=graphql_payment_intent,
         customer_session=graphql_customer_session,
     )
@@ -316,8 +317,7 @@ async def initiate_booking_mutation(
 def _fire_analytics_booking_initiated(
     *,
     booking: BookingOrm,
-    reservation: Reservation | None,
-    activity_plan: ActivityPlan | None,
+    itinerary: Itinerary,
     account_id: UUID,
     visitor_id: str | None,
 ) -> None:
@@ -328,8 +328,9 @@ def _fire_analytics_booking_initiated(
         extra_properties={
             "booking_id": str(booking.id),
             "outing_id": str(booking.outing.id) if booking.outing else None,
-            "restaurant_info": reservation.build_analytics_properties() if reservation else None,
-            "activity_info": activity_plan.build_analytics_properties() if activity_plan else None,
+            "payment_breakdown": itinerary.calculate_payment_due_breakdown().build_analytics_properties(),
+            "restaurant_info": itinerary.reservation.build_analytics_properties() if itinerary.reservation else None,
+            "activity_info": itinerary.activity_plan.build_analytics_properties() if itinerary.activity_plan else None,
             "survey_info": Survey.from_orm(booking.outing.survey).build_analytics_properties()
             if booking.outing and booking.outing.survey
             else None,

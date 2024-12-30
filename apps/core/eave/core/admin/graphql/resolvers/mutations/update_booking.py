@@ -70,7 +70,12 @@ async def admin_update_booking_mutation(
     new_restaurant = strawberry.UNSET
 
     async with database.async_session.begin() as db_session:
+        # Get the original booking so we can tell what changed.
+        # There is a better way to do this using `db_session`
+        # Note that this has to be in its own session
         original_booking = await BookingOrm.get_one(db_session, input.booking_id)
+
+    async with database.async_session.begin() as db_session:
         updated_booking = await BookingOrm.get_one(db_session, input.booking_id)
 
     if (

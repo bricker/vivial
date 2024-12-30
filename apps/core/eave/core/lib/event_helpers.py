@@ -2,19 +2,23 @@ import math
 import uuid
 
 from eave.core import database
-from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
+from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityPlan, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
+from eave.core.graphql.types.itinerary import Itinerary
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.restaurant import Reservation, Restaurant
+from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.eventbrite import EventbriteUtility
 from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.orm.booking import BookingOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm, EvergreenActivityTicketTypeOrm
+from eave.core.orm.outing import OutingOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 
@@ -126,3 +130,47 @@ async def resolve_restaurant_details(
         case RestaurantSource.GOOGLE_PLACES:
             restaurant = await places.get_google_places_restaurant(restaurant_id=source_id)
             return restaurant
+
+
+async def resolve_itinerary(orm: OutingOrm | BookingOrm) -> Itinerary:
+    activity_orm = None
+    activity_plan = None
+
+    reservation_orm = None
+    reservation = None
+
+    if len(orm.activities) > 0:
+        # We only support one activity currently
+        activity_orm = orm.activities[0]
+        activity = await resolve_activity_details(
+            source=activity_orm.source, source_id=activity_orm.source_id, survey=orm.survey
+        )
+
+        if activity:
+            activity_plan = ActivityPlan(
+                activity=activity,
+                headcount=activity_orm.headcount,
+                start_time=activity_orm.start_time_local,
+            )
+
+    if len(orm.reservations) > 0:
+        # We only support one reservation currently
+        reservation_orm = orm.reservations[0]
+        restaurant = await resolve_restaurant_details(
+            source=reservation_orm.source,
+            source_id=reservation_orm.source_id,
+        )
+
+        if restaurant:
+            reservation = Reservation(
+                restaurant=restaurant,
+                arrival_time=reservation_orm.start_time_local,
+                headcount=reservation_orm.headcount,
+            )
+
+    return Itinerary(
+        id=orm.id,
+        activity_plan=activity_plan,
+        reservation=reservation,
+        survey=Survey.from_orm(orm.survey) if orm.survey else None,
+    )
