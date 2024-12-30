@@ -319,7 +319,6 @@ const CheckoutForm = ({
             confirmParams: {
               return_url: `${window.location.origin}${returnPath}`,
               save_payment_method: true,
-              setup_future_usage: "on_session",
               receipt_email: account?.email,
             },
           });
