@@ -123,9 +123,9 @@ const CheckoutForm = ({
   const account = useSelector((state: RootState) => state.auth.account);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
-  const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
-  const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
-  const [confirmBooking, { isLoading: confirmBookingIsLoading }] = useConfirmBookingMutation();
+  const [updateReserverDetails] = useUpdateReserverDetailsMutation();
+  const [submitReserverDetails] = useSubmitReserverDetailsMutation();
+  const [confirmBooking] = useConfirmBookingMutation();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
@@ -135,10 +135,6 @@ const CheckoutForm = ({
   );
 
   const [submissionIsLoading, setSubmissionIsLoading] = useState(false);
-
-  useEffect(() => {
-    setSubmissionIsLoading(updateDetailsIsLoading || submitDetailsIsLoading || confirmBookingIsLoading);
-  }, [updateDetailsIsLoading, submitDetailsIsLoading, confirmBookingIsLoading]);
 
   // only prevent submit on internalError since that can be fixed w/o another submit
   const submitButtonDisabled = !!(
@@ -320,6 +316,9 @@ const CheckoutForm = ({
               return_url: `${window.location.origin}${returnPath}`,
               save_payment_method: true,
               receipt_email: account?.email,
+              payment_method_data: {
+                allow_redisplay: "always",
+              },
             },
           });
 

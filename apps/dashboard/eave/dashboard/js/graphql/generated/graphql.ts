@@ -291,7 +291,6 @@ export enum InitiateBookingFailureReason {
 export type InitiateBookingInput = {
   autoConfirm?: Scalars['Boolean']['input'];
   outingId: Scalars['UUID']['input'];
-  paymentMethodId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type InitiateBookingResult = InitiateBookingFailure | InitiateBookingSuccess;
