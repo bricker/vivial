@@ -26,6 +26,9 @@ class PlanOutingInput:
     search_area_ids: list[UUID]
     budget: OutingBudget
     headcount: int
+    excluded_eventbrite_event_ids: list[str] | None
+    excluded_google_place_ids: list[str] | None
+    excluded_evergreen_activity_ids: list[UUID] | None
     is_reroll: bool = False
 
 
@@ -81,6 +84,9 @@ async def plan_outing_mutation(
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
+        excluded_eventbrite_event_ids=input.excluded_eventbrite_event_ids,
+        excluded_google_place_ids=input.excluded_google_place_ids,
+        excluded_evergreen_activity_ids=input.excluded_evergreen_activity_ids,
         visitor_id=visitor_id,
         account=account,
         survey=survey,

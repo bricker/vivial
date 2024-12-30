@@ -448,6 +448,9 @@ export enum PlanOutingFailureReason {
 
 export type PlanOutingInput = {
   budget: OutingBudget;
+  excludedEventbriteEventIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  excludedEvergreenActivityIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  excludedGooglePlaceIds?: InputMaybe<Array<Scalars['String']['input']>>;
   groupPreferences: Array<OutingPreferencesInput>;
   headcount: Scalars['Int']['input'];
   isReroll?: Scalars['Boolean']['input'];
