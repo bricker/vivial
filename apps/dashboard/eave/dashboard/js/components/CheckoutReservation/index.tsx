@@ -136,10 +136,6 @@ const CheckoutForm = ({
 
   const [submissionIsLoading, setSubmissionIsLoading] = useState(false);
 
-  useEffect(() => {
-    setSubmissionIsLoading(updateDetailsIsLoading || submitDetailsIsLoading || confirmBookingIsLoading);
-  }, [updateDetailsIsLoading, submitDetailsIsLoading, confirmBookingIsLoading]);
-
   // only prevent submit on internalError since that can be fixed w/o another submit
   const submitButtonDisabled = !!(
     submissionIsLoading ||
