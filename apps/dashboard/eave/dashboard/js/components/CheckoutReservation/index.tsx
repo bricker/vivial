@@ -320,6 +320,9 @@ const CheckoutForm = ({
               return_url: `${window.location.origin}${returnPath}`,
               save_payment_method: true,
               receipt_email: account?.email,
+              payment_method_data: {
+                allow_redisplay: "always",
+              }
             },
           });
 
