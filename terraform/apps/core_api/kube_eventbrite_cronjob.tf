@@ -1,6 +1,6 @@
 resource "kubernetes_manifest" "eventbrite_filler_cron" {
   manifest = {
-    apiVersion = "batch/v1beta"
+    apiVersion = "batch/v1beta1"
     kind       = "CronJob"
 
     metadata = {
