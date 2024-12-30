@@ -132,7 +132,10 @@ async def confirm_booking_mutation(
                 # There is still a possibility that they won't be, though.
                 booking_orm.reserver_details = default_reserver_details
 
-        booking_orm.state = BookingState.CONFIRMED
+        if itinerary.has_bookable_components:
+            booking_orm.state = BookingState.CONFIRMED
+        else:
+            booking_orm.state = BookingState.BOOKED
 
     await perform_post_confirm_actions(
         booking_orm=booking_orm,
