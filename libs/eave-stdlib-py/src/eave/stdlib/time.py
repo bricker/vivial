@@ -52,6 +52,10 @@ def datetime_window(dt: datetime, *, minutes: int) -> tuple[datetime, datetime]:
     return (lower, upper)
 
 
+def pretty_date(dt: datetime) -> str:
+    suffixed_day = num_with_english_suffix(dt.day)
+    return dt.strftime(f"%A, %B {suffixed_day}")
+
 def pretty_datetime(dt: datetime) -> str:
     suffixed_day = num_with_english_suffix(dt.day)
 

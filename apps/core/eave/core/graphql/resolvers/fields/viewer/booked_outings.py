@@ -75,8 +75,8 @@ async def list_bookings_query(
     booking_peeks = []
 
     for booking in sorted(account.bookings, key=lambda booking: booking.start_time_utc):
-        if booking.state != BookingState.CONFIRMED:
-            # Only show the user confirmed bookings
+        if not booking.state.is_visible:
+            # Only show the user confirmed or booked bookings
             continue
 
         # NOTE: only getting 1 (or None) result here instead of full scalars result since
