@@ -288,5 +288,7 @@ async def _notify_slack_booking_confirmed(
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
     send_booking_status_email(
         booking_orm=booking_orm,
-        emails=[account_orm.email], # FIXME: `booking_orm.accounts` requires an open session, so for now we're just using the given account.
+        emails=[
+            account_orm.email
+        ],  # FIXME: `booking_orm.accounts` requires an open session, so for now we're just using the given account.
     )
