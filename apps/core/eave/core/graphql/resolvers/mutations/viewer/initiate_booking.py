@@ -224,7 +224,9 @@ async def initiate_booking_mutation(
 
                 # Get the defauilt payment method
                 # FIXME: This actually just chooses the first one, is that ok for "default"?
-                payment_methods = await stripe.Customer.list_payment_methods_async(customer=account_orm.stripe_customer_id)
+                payment_methods = await stripe.Customer.list_payment_methods_async(
+                    customer=account_orm.stripe_customer_id
+                )
                 if len(payment_methods) > 0:
                     default_payment_method = payment_methods.data[0]
                     stripe_payment_create_params.update(

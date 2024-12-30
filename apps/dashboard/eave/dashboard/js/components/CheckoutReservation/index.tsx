@@ -123,9 +123,9 @@ const CheckoutForm = ({
   const account = useSelector((state: RootState) => state.auth.account);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
-  const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
-  const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
-  const [confirmBooking, { isLoading: confirmBookingIsLoading }] = useConfirmBookingMutation();
+  const [updateReserverDetails] = useUpdateReserverDetailsMutation();
+  const [submitReserverDetails] = useSubmitReserverDetailsMutation();
+  const [confirmBooking] = useConfirmBookingMutation();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
@@ -318,7 +318,7 @@ const CheckoutForm = ({
               receipt_email: account?.email,
               payment_method_data: {
                 allow_redisplay: "always",
-              }
+              },
             },
           });
 
