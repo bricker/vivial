@@ -23,11 +23,11 @@ resource "google_iap_settings" "admin_gw" {
     oauth_settings {
       login_hint = "eave.fyi"
     }
-    reauth_settings {
-      max_age = "2592000s"
-      method = "ENROLLED_SECOND_FACTORS"
-      policy_type = "DEFAULT"
-    }
+    # reauth_settings {
+    #   max_age = "2592000s"
+    #   method = "ENROLLED_SECOND_FACTORS"
+    #   policy_type = "DEFAULT"
+    # }
   }
   application_settings {
     cookie_domain = "vivialapp.com"
@@ -48,11 +48,11 @@ resource "google_iap_settings" "core_gw" {
     oauth_settings {
       login_hint = "eave.fyi"
     }
-    reauth_settings {
-      max_age = "2592000s"
-      method = "ENROLLED_SECOND_FACTORS"
-      policy_type = "DEFAULT"
-    }
+    # reauth_settings {
+    #   max_age = "2592000s"
+    #   method = "ENROLLED_SECOND_FACTORS"
+    #   policy_type = "DEFAULT"
+    # }
   }
   application_settings {
     cookie_domain = "vivialapp.com"
