@@ -157,6 +157,10 @@ class OutingPlanner:
     group_activity_category_preferences: list[ActivityCategoryOrm]
     group_open_to_bars: bool
 
+    excluded_eventbrite_event_ids: list[str]
+    excluded_google_place_ids: list[str]
+    excluded_evergreen_activity_ids: list[UUID]
+
     def __init__(
         self,
         individual_preferences: list[OutingPreferencesInput],
@@ -165,6 +169,9 @@ class OutingPlanner:
         restaurant: Restaurant | None = None,
         activity_start_time: datetime | None = None,
         restaurant_arrival_time: datetime | None = None,
+        excluded_eventbrite_event_ids: list[str] | None = None,
+        excluded_google_place_ids: list[str] | None = None,
+        excluded_evergreen_activity_ids: list[UUID] | None = None,
     ) -> None:
         self.places = GooglePlacesUtility()
         self.eventbrite = EventbriteUtility()
@@ -183,6 +190,14 @@ class OutingPlanner:
         self.group_restaurant_category_preferences = _combine_restaurant_categories(individual_preferences)
         self.group_activity_category_preferences = _combine_activity_categories(individual_preferences)
         self.group_open_to_bars = _combine_bar_openness(individual_preferences)
+
+        self.excluded_google_place_ids = excluded_google_place_ids if excluded_google_place_ids is not None else []
+        self.excluded_eventbrite_event_ids = (
+            excluded_eventbrite_event_ids if excluded_eventbrite_event_ids is not None else []
+        )
+        self.excluded_evergreen_activity_ids = (
+            excluded_evergreen_activity_ids if excluded_evergreen_activity_ids is not None else []
+        )
 
     async def plan_activity(self) -> Activity | None:
         """
@@ -220,6 +235,7 @@ class OutingPlanner:
                 budget=self.survey.budget,
                 within_areas=within_areas,
                 vivial_activity_category_ids=group_activity_category_preferences_ids,
+                excluded_eventbrite_event_ids=self.excluded_eventbrite_event_ids,
             ).order_by(func.random())
 
             eventbrite_events_results = await db_session.scalars(eventbrite_events_query)
@@ -246,6 +262,7 @@ class OutingPlanner:
                 activity_category_ids=group_activity_category_preferences_ids,
                 open_at_local=start_time_local,
                 budget=self.survey.budget,
+                excluded_evergreen_activity_ids=self.excluded_evergreen_activity_ids,
             ).order_by(func.random())
 
             evergreen_activity_orms = await db_session.scalars(evergreen_activities_query)
@@ -280,6 +297,9 @@ class OutingPlanner:
                 else:
                     LOGGER.exception(e)
                     continue
+
+            if len(self.excluded_google_place_ids):
+                places_nearby = [p for p in places_nearby if p.id not in self.excluded_google_place_ids]
 
             random.shuffle(places_nearby)
 
@@ -379,6 +399,9 @@ class OutingPlanner:
                 else:
                     LOGGER.exception(e)
                     continue
+
+            if len(self.excluded_google_place_ids):
+                restaurants_nearby = [r for r in restaurants_nearby if r.id not in self.excluded_google_place_ids]
 
             random.shuffle(restaurants_nearby)
 

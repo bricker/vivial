@@ -112,6 +112,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
         cls,
         *,
         eventbrite_event_id: str = NOT_SET,
+        excluded_eventbrite_event_ids: list[str] = NOT_SET,
         budget: OutingBudget = NOT_SET,
         start_time: datetime = NOT_SET,
         within_areas: list[GeoArea] = NOT_SET,
@@ -121,6 +122,9 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
 
         if eventbrite_event_id is not NOT_SET:
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
+
+        if excluded_eventbrite_event_ids is not NOT_SET and len(excluded_eventbrite_event_ids):
+            lookup = lookup.where(cls.eventbrite_event_id.not_in(excluded_eventbrite_event_ids))
 
         if vivial_activity_category_ids is not NOT_SET:
             lookup = lookup.where(cls.vivial_activity_category_id.in_(vivial_activity_category_ids))
