@@ -125,6 +125,13 @@ async def confirm_booking_mutation(
 
     async with database.async_session.begin() as db_session:
         db_session.add(booking_orm)
+
+        if booking_orm.reserver_details is None:
+            if default_reserver_details := account_orm.get_default_reserver_details():
+                # Hacky way to make sure some reserver details are set.
+                # There is still a possibility that they won't be, though.
+                booking_orm.reserver_details = default_reserver_details
+
         booking_orm.state = BookingState.CONFIRMED
 
     await perform_post_confirm_actions(

@@ -276,7 +276,7 @@ class _EaveConfig(ConfigBase):
     def stripe_environment(self) -> StripeEnvironment:
         v = os.getenv("STRIPE_ENVIRONMENT", "live")
 
-        match v:
+        match v.lower():
             case "test":
                 return StripeEnvironment.TEST
             case _:

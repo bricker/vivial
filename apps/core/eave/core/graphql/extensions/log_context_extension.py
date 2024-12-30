@@ -31,7 +31,7 @@ class LogContextExtension(SchemaExtension):
         try:
             # Safety because `context` here is typed as "Any"
             self.execution_context.context["operation_name"] = operation_name
-            self.execution_context.context["operation_type"] = self.execution_context.operation_type
+            self.execution_context.context["operation_type"] = self.execution_context.operation_type.name
 
         except Exception as e:
             LOGGER.exception(e)
