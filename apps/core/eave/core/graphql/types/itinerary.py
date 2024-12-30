@@ -116,10 +116,6 @@ class Itinerary:
 
     @strawberry.field
     def cost_breakdown(self) -> CostBreakdown:
-        return self.calculate_cost_breakdown()
-
-    @strawberry.field
-    def payment_due_breakdown(self) -> CostBreakdown:
         return self.calculate_payment_due_breakdown()
 
     def calculate_cost_breakdown(self) -> CostBreakdown:

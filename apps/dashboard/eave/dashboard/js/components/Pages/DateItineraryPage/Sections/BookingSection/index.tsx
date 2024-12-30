@@ -397,7 +397,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
             <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
           </>
         )}
-        {activityPlan && isPaidOuting(outing) && (
+        {activityPlan && activityPlan.costBreakdown.totalCostCents > 0 && (
           <>
             <CostItem>
               <CostDescription>

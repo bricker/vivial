@@ -290,6 +290,7 @@ async def initiate_booking_mutation(
 
     # Update the state in case it changed in the logic above
     itinerary.state = booking_orm.state
+    itinerary.id = booking_orm.id
 
     if input.auto_confirm:
         await perform_post_confirm_actions(
