@@ -257,8 +257,10 @@ async def initiate_booking_mutation(
                     "payment_element": {
                         "enabled": True,
                         "features": {
+                            # These two `payment_method_save` options will add a checkbox to the payment form to save the card.
+                            # Although with our current implementation, the card is always saved anyways.
                             # "payment_method_save": "enabled",
-                            "payment_method_save_usage": "on_session",
+                            # "payment_method_save_usage": "on_session",
                             "payment_method_redisplay": "enabled",
                             "payment_method_remove": "enabled",
                         },
