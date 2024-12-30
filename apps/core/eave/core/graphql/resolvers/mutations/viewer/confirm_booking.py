@@ -146,15 +146,18 @@ async def perform_post_confirm_actions(
     visitor_id: str | None,
     itinerary: Itinerary,
 ) -> None:
-    # TODO: Move all of this into an offline queue
-    _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm)
-    _fire_analytics_booking_confirmed(
-        booking_orm=booking_orm,
-        account_orm=account_orm,
-        visitor_id=visitor_id,
-        itinerary=itinerary,
-    )
-    await _notify_slack_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary)
+    try:
+        # TODO: Move all of this into an offline queue
+        _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm)
+        _fire_analytics_booking_confirmed(
+            booking_orm=booking_orm,
+            account_orm=account_orm,
+            visitor_id=visitor_id,
+            itinerary=itinerary,
+        )
+        await _notify_slack_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary)
+    except Exception as e:
+        LOGGER.exception(e)
 
 
 def _fire_analytics_booking_confirmed(
@@ -285,4 +288,5 @@ async def _notify_slack_booking_confirmed(
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
     send_booking_status_email(
         booking_orm=booking_orm,
+        emails=[account_orm.email], # FIXME: `booking_orm.accounts` requires an open session, so for now we're just using the given account.
     )

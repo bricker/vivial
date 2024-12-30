@@ -47,7 +47,6 @@ def validate_session(session: Session, flush_context: UOWTransaction, instances:
     This does have the benefit of validating everything at once, so the client will receive all validation errors.
     """
     validation_errors: list[ValidationError] = []
-
     try:
         for obj in session.dirty:
             if isinstance(obj, Base):

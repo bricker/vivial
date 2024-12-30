@@ -262,7 +262,6 @@ async def initiate_booking_mutation(
                             # "payment_method_save": "enabled",
                             # "payment_method_save_usage": "on_session",
                             "payment_method_redisplay": "enabled",
-                            "payment_method_remove": "enabled",
                         },
                     },
                 },
@@ -302,12 +301,15 @@ async def initiate_booking_mutation(
         )
 
     else:
-        _fire_analytics_booking_initiated(
-            booking=booking_orm,
-            itinerary=itinerary,
-            account_id=account_orm.id,
-            visitor_id=visitor_id,
-        )
+        try:
+            _fire_analytics_booking_initiated(
+                booking=booking_orm,
+                itinerary=itinerary,
+                account_id=account_orm.id,
+                visitor_id=visitor_id,
+            )
+        except Exception as e:
+            LOGGER.exception(e)
 
     return InitiateBookingSuccess(
         booking=itinerary,

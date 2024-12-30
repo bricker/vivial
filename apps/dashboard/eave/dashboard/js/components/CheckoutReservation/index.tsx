@@ -200,8 +200,6 @@ const CheckoutForm = ({
       setInternalReserverDetailError(undefined);
       setSubmissionIsLoading(true);
 
-      const isPaidActivity = isPaidOuting(bookingDetails);
-
       try {
         if (bookingDetails?.reservation) {
           // if the reserver details dont have db ID yet, create a new entry
@@ -314,13 +312,14 @@ const CheckoutForm = ({
         const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: bookingDetails!.id });
 
         // execute the payment
-        if (isPaidActivity) {
+        if (isPaidOuting(bookingDetails)) {
           const { error: confirmPaymentError } = await stripeClient.confirmPayment({
             elements: stripeElements,
             redirect: "if_required",
             confirmParams: {
               return_url: `${window.location.origin}${returnPath}`,
               save_payment_method: true,
+              setup_future_usage: "on_session",
               receipt_email: account?.email,
             },
           });

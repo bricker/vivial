@@ -41,7 +41,7 @@ def send_welcome_email(*, to_emails: list[str]) -> None:
             LOGGER.exception(e)
 
 
-def send_booking_status_email(*, booking_orm: BookingOrm) -> None:
+def send_booking_status_email(*, booking_orm: BookingOrm, emails: list[str]) -> None:
     data = BookingConfirmationData(
         booking_date=pretty_datetime(booking_orm.start_time_local),
         booking_details_url=f"{SHARED_CONFIG.eave_dashboard_base_url_public}/plans/{booking_orm.id}?utm_source=booking-confirmation-email",
@@ -71,7 +71,7 @@ def send_booking_status_email(*, booking_orm: BookingOrm) -> None:
 
     try:
         SENDGRID_MAILER.send_templated_email(
-            to_emails=[a.email for a in booking_orm.accounts],
+            to_emails=emails,
             template_id=template_id,
             dynamic_data=dataclasses.asdict(data),
         )

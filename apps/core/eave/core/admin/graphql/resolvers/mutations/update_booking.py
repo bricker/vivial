@@ -77,6 +77,7 @@ async def admin_update_booking_mutation(
 
     async with database.async_session.begin() as db_session:
         updated_booking = await BookingOrm.get_one(db_session, input.booking_id)
+        accounts = updated_booking.accounts
 
     if (
         input.activity_source is not None
@@ -166,6 +167,7 @@ async def admin_update_booking_mutation(
     if original_booking.state != BookingState.BOOKED and updated_booking.state == BookingState.BOOKED:
         send_booking_status_email(
             booking_orm=updated_booking,
+            emails=[a.email for a in accounts]
         )
 
     return AdminUpdateBookingSuccess(
