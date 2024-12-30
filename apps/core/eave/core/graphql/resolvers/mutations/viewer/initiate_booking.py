@@ -14,7 +14,6 @@ from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
 )
-from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.itinerary import Itinerary
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
@@ -108,11 +107,11 @@ async def initiate_booking_mutation(
                 )
 
             itinerary = BookingDetails(
-                id=booking_orm.id, # Warning: This is NULL until the Booking object is persisted!
+                id=booking_orm.id,  # Warning: This is NULL until the Booking object is persisted!
                 activity_plan=None,
                 reservation=None,
                 state=booking_orm.state,
-                survey=None
+                survey=None,
             )
 
             if len(outing_orm.activities) > 0:

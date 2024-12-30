@@ -1,14 +1,12 @@
-from collections.abc import Awaitable, Callable, Iterator
-from typing import Any, override
+from collections.abc import Iterator
+from typing import override
 from uuid import uuid4
 
-from graphql import GraphQLResolveInfo
 from strawberry.extensions import SchemaExtension
-from strawberry.types import ExecutionContext
 
 from eave.core.graphql.context import log_ctx
 from eave.stdlib.logging import LOGGER
-from eave.stdlib.typing import JsonObject
+
 
 class LogContextExtension(SchemaExtension):
     @override

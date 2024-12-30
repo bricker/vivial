@@ -1,7 +1,6 @@
-from collections.abc import Awaitable, Callable, Iterator
-from typing import Any, override
+from collections.abc import Iterator
+from typing import override
 
-from graphql import GraphQLResolveInfo
 from strawberry.extensions import SchemaExtension
 
 from eave.stdlib.analytics import SEGMENT_ANONYMOUS_ID_COOKIE_NAME

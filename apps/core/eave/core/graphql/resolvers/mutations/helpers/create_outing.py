@@ -1,14 +1,9 @@
 from eave.core import database
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
-from eave.core.graphql.types.activity import ActivityPlan
-from eave.core.graphql.types.itinerary import Itinerary
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
-from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.analytics_client import ANALYTICS
-from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.booking import BookingOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
 

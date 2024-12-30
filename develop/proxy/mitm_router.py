@@ -36,7 +36,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
                 "status",
                 "healthz",
                 "graphql",
-                "iap", # This is technically public to the internet, but behind IAP in production
+                "iap",  # This is technically public to the internet, but behind IAP in production
                 "public",
                 "favicon.ico",
             ]:

@@ -131,6 +131,7 @@ async def resolve_restaurant_details(
             restaurant = await places.get_google_places_restaurant(restaurant_id=source_id)
             return restaurant
 
+
 async def resolve_itinerary(orm: OutingOrm | BookingOrm) -> Itinerary:
     activity_orm = None
     activity_plan = None
@@ -156,7 +157,8 @@ async def resolve_itinerary(orm: OutingOrm | BookingOrm) -> Itinerary:
         # We only support one reservation currently
         reservation_orm = orm.reservations[0]
         restaurant = await resolve_restaurant_details(
-            source=reservation_orm.source, source_id=reservation_orm.source_id,
+            source=reservation_orm.source,
+            source_id=reservation_orm.source_id,
         )
 
         if restaurant:

@@ -7,6 +7,7 @@ from starlette.responses import Response
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonObject
 
+
 class GraphQLContext(TypedDict):
     request: Request
     response: Response
@@ -17,13 +18,14 @@ class GraphQLContext(TypedDict):
     request_id: NotRequired[str]
     extra: NotRequired[JsonObject]
 
+
 def log_ctx(context: GraphQLContext) -> JsonObject:
     # the `info.context` passed into this function is typed as `Any`, so this try/catch is for runtime safety
     try:
         authenticated_account_id = context.get("authenticated_account_id")
         request_id = context.get("request_id")
         extra = context.get("extra")
-        rest = { **extra } if extra else {}
+        rest = {**extra} if extra else {}
 
         return {
             "source": "graphql",

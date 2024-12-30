@@ -6,17 +6,17 @@ from uuid import UUID
 import strawberry
 import stripe
 
-from eave.core.graphql.types.itinerary import Itinerary
-from eave.core.lib.event_helpers import resolve_itinerary
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.core.graphql.types.booking import (
     Booking,
 )
+from eave.core.graphql.types.itinerary import Itinerary
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.analytics_client import ANALYTICS
+from eave.core.lib.event_helpers import resolve_itinerary
 from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.mail import send_booking_status_email
 from eave.core.orm.account import AccountOrm
@@ -140,20 +140,29 @@ async def confirm_booking_mutation(
 
 
 async def perform_post_confirm_actions(
-    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, itinerary: Itinerary,
+    *,
+    booking_orm: BookingOrm,
+    account_orm: AccountOrm,
+    visitor_id: str | None,
+    itinerary: Itinerary,
 ) -> None:
     # TODO: Move all of this into an offline queue
     _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm)
     _fire_analytics_booking_confirmed(
-        booking_orm=booking_orm, account_orm=account_orm, visitor_id=visitor_id, itinerary=itinerary,
+        booking_orm=booking_orm,
+        account_orm=account_orm,
+        visitor_id=visitor_id,
+        itinerary=itinerary,
     )
-    await _notify_slack_booking_confirmed(
-        booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary
-    )
+    await _notify_slack_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary)
 
 
 def _fire_analytics_booking_confirmed(
-    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, itinerary: Itinerary,
+    *,
+    booking_orm: BookingOrm,
+    account_orm: AccountOrm,
+    visitor_id: str | None,
+    itinerary: Itinerary,
 ) -> None:
     ANALYTICS.track(
         event_name="booking_complete",
@@ -178,7 +187,9 @@ async def _notify_slack_booking_confirmed(
     account_orm: AccountOrm,
     itinerary: Itinerary,
 ) -> None:
-    total_cost_formatted = f"${"{:.2f}".format(itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents() / 100)}"
+    total_cost_formatted = (
+        f"${"{:.2f}".format(itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents() / 100)}"
+    )
     reserver_details = booking_orm.reserver_details
     dashboard_url = f"{SHARED_CONFIG.eave_admin_base_url_public}/bookings/{booking_orm.id}/edit"
 

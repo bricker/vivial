@@ -37,10 +37,8 @@ schema = strawberry.Schema(
         QueryDepthLimiter(max_depth=10),
         MaxAliasesLimiter(max_alias_count=15),
         MaxTokensLimiter(max_token_count=1000),
-
         LogContextExtension(),
         VisitorIdExtension(),
-
         MaskErrors(
             error_message="Internal Server Error",
             should_mask_error=_should_mask_error,
