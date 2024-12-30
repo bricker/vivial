@@ -4,7 +4,7 @@ from eave.core.orm.booking import BookingOrm, BookingState
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.mail import SENDGRID_MAILER
-from eave.stdlib.time import pretty_date, pretty_datetime, pretty_time
+from eave.stdlib.time import pretty_date, pretty_time
 
 _WELCOME_EMAIL_TEMPLATE_ID = "d-638ba190b929408aa71a92771a85d817"
 _BOOKING_CONFIRMED_EMAIL_TEMPLATE_ID = "d-a277ef6f31364c00b8033ef4b492719f"
