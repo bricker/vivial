@@ -1,18 +1,23 @@
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterator
 from typing import Any, override
 
 from graphql import GraphQLResolveInfo
 from strawberry.extensions import SchemaExtension
 
 from eave.stdlib.analytics import SEGMENT_ANONYMOUS_ID_COOKIE_NAME
+from eave.stdlib.logging import LOGGER
 
 
 class VisitorIdExtension(SchemaExtension):
     @override
-    def resolve(
-        self, next_: Callable[..., Awaitable[Any]], root: Any, info: GraphQLResolveInfo, *args, **kwargs
-    ) -> Any:
-        visitor_id = info.context["request"].cookies.get(SEGMENT_ANONYMOUS_ID_COOKIE_NAME)
-        info.context["visitor_id"] = visitor_id
+    def on_operation(self) -> Iterator[None]:
+        LOGGER.debug("VisitorIdExtension")
 
-        return next_(root, info, *args, **kwargs)
+        try:
+            # Safety because `context` is typed as `Any`
+            visitor_id = self.execution_context.context["request"].cookies.get(SEGMENT_ANONYMOUS_ID_COOKIE_NAME)
+            self.execution_context.context["visitor_id"] = visitor_id
+        except Exception as e:
+            LOGGER.exception(e)
+
+        yield

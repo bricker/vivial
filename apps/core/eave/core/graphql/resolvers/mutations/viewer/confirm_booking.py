@@ -6,10 +6,11 @@ from uuid import UUID
 import strawberry
 import stripe
 
+from eave.core.graphql.types.itinerary import Itinerary
+from eave.core.lib.event_helpers import resolve_itinerary
 import eave.stdlib.slack
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
+from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.core.graphql.types.booking import (
     Booking,
 )
@@ -96,7 +97,7 @@ async def confirm_booking_mutation(
         # Validate that the payment intent has been authorized, but the funds haven't been captured.
         # This is important because if the payment authorization failed, we shouldn't create the booking.
         if stripe_payment_intent.status not in ["success", "requires_capture"]:
-            LOGGER.error("invalid stripe payment intent status")
+            LOGGER.warning("invalid stripe payment intent status", log_ctx(info.context))
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.PAYMENT_REQUIRED)
     else:
         stripe_payment_intent = None
@@ -104,39 +105,33 @@ async def confirm_booking_mutation(
     # Although we already checked the cost in the `initiate booking` operation,
     # It's important that we double-check it here too, in case the real cost changed.
     # It's not enough to store the pre-calculated cost in the database somewhere, because that can become out of date.
-    booking_total_cost_cents = await get_total_cost_cents(booking_orm)
+    itinerary = await resolve_itinerary(orm=booking_orm)
+    payment_due_cents = itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents()
 
-    if booking_total_cost_cents > 0:
-        # If the outing costs any money, then:
+    if payment_due_cents > 0:
+        # We have to collect money
 
         # Validate that there is a payment intent.
         if not stripe_payment_intent:
-            LOGGER.error("No payment intent available for paid outing")
+            LOGGER.warning("No payment intent available for paid outing", log_ctx(info.context))
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.PAYMENT_REQUIRED)
 
         # Validate that the authorized amount for the payment intent can cover the cost of the outing.
-        if stripe_payment_intent.amount < booking_total_cost_cents:
+        if stripe_payment_intent.amount < payment_due_cents:
             # We authorized an amount less than the actual cost of the outing.
             # If the authorization ended up being _more_, then we'll only capture the necessary amount when the funds are captured.
-            LOGGER.error("Authorization amount too low for outing")
+            LOGGER.warning("Authorization amount too low for outing", log_ctx(info.context))
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.PAYMENT_REQUIRED)
 
     async with database.async_session.begin() as db_session:
         db_session.add(booking_orm)
-
-        if booking_orm.reserver_details is None:
-            if default_reserver_details := account_orm.get_default_reserver_details():
-                # Hacky way to make sure some reserver details are set.
-                # There is still a possibility that they won't be, though.
-                booking_orm.reserver_details = default_reserver_details
-
         booking_orm.state = BookingState.CONFIRMED
 
     await perform_post_confirm_actions(
         booking_orm=booking_orm,
         account_orm=account_orm,
         visitor_id=visitor_id,
-        total_cost_cents=booking_total_cost_cents,
+        itinerary=itinerary,
     )
 
     return ConfirmBookingSuccess(
@@ -145,20 +140,20 @@ async def confirm_booking_mutation(
 
 
 async def perform_post_confirm_actions(
-    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, total_cost_cents: int
+    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, itinerary: Itinerary,
 ) -> None:
     # TODO: Move all of this into an offline queue
     _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm)
     _fire_analytics_booking_confirmed(
-        booking_orm=booking_orm, account_orm=account_orm, visitor_id=visitor_id, total_cost_cents=total_cost_cents
+        booking_orm=booking_orm, account_orm=account_orm, visitor_id=visitor_id, itinerary=itinerary,
     )
     await _notify_slack_booking_confirmed(
-        booking_orm=booking_orm, account_orm=account_orm, total_cost_cents=total_cost_cents
+        booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary
     )
 
 
 def _fire_analytics_booking_confirmed(
-    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, total_cost_cents: int
+    *, booking_orm: BookingOrm, account_orm: AccountOrm, visitor_id: str | None, itinerary: Itinerary,
 ) -> None:
     ANALYTICS.track(
         event_name="booking_complete",
@@ -167,11 +162,9 @@ def _fire_analytics_booking_confirmed(
         extra_properties={
             "booking_id": str(booking_orm.id),
             "outing_id": str(booking_orm.outing.id) if booking_orm.outing else None,
-            "activity_info": {
-                "costs": {
-                    "total_cents": total_cost_cents,
-                },
-            },
+            "payment_breakdown": itinerary.calculate_payment_due_breakdown().build_analytics_properties(),
+            "restaurant_info": itinerary.reservation.build_analytics_properties() if itinerary.reservation else None,
+            "activity_info": itinerary.activity_plan.build_analytics_properties() if itinerary.activity_plan else None,
             "survey_info": Survey.from_orm(booking_orm.outing.survey).build_analytics_properties()
             if booking_orm.outing and booking_orm.outing.survey
             else None,
@@ -183,9 +176,9 @@ async def _notify_slack_booking_confirmed(
     *,
     booking_orm: BookingOrm,
     account_orm: AccountOrm,
-    total_cost_cents: int,
+    itinerary: Itinerary,
 ) -> None:
-    total_cost_formatted = f"${"{:.2f}".format(total_cost_cents / 100)}"
+    total_cost_formatted = f"${"{:.2f}".format(itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents() / 100)}"
     reserver_details = booking_orm.reserver_details
     dashboard_url = f"{SHARED_CONFIG.eave_admin_base_url_public}/bookings/{booking_orm.id}/edit"
 
