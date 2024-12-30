@@ -68,7 +68,7 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
     });
   }
 
-  if (itinerary.activityPlan) {
+  if (itinerary.activityPlan && itinerary.activityPlan.activity.source !== ActivitySource.GooglePlaces) {
     breakdown.push({
       key: "activity",
       costName: itinerary.activityPlan.activity.name,
