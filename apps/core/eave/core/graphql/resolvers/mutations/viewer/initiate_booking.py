@@ -36,7 +36,6 @@ from eave.stdlib.util import unwrap
 class InitiateBookingInput:
     outing_id: UUID
     auto_confirm: bool = False
-    payment_method_id: str | None = None
 
 
 @strawberry.type
@@ -178,6 +177,8 @@ async def initiate_booking_mutation(
                     )
 
         payment_due_cents = itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents()
+        graphql_payment_intent = None
+        graphql_customer_session = None
 
         if payment_due_cents > 0:
             if not account_orm.stripe_customer_id:
@@ -221,12 +222,18 @@ async def initiate_booking_mutation(
                     }
                 )
 
-            if input.payment_method_id:
-                stripe_payment_create_params.update(
-                    {
-                        "payment_method": input.payment_method_id,
-                    }
+                # Get the defauilt payment method
+                # FIXME: This actually just chooses the first one, is that ok for "default"?
+                payment_methods = await stripe.Customer.list_payment_methods_async(
+                    customer=account_orm.stripe_customer_id
                 )
+                if len(payment_methods) > 0:
+                    default_payment_method = payment_methods.data[0]
+                    stripe_payment_create_params.update(
+                        {
+                            "payment_method": default_payment_method.id,
+                        }
+                    )
 
             stripe_payment_intent = await stripe.PaymentIntent.create_async(**stripe_payment_create_params)
 
@@ -251,27 +258,26 @@ async def initiate_booking_mutation(
                 id=stripe_payment_intent.id, client_secret=stripe_payment_intent.client_secret
             )
 
-            stripe_customer_session = await stripe.CustomerSession.create_async(
-                customer=account_orm.stripe_customer_id,
-                components={
-                    "payment_element": {
-                        "enabled": True,
-                        "features": {
-                            # These two `payment_method_save` options will add a checkbox to the payment form to save the card.
-                            # Although with our current implementation, the card is always saved anyways.
-                            # "payment_method_save": "enabled",
-                            # "payment_method_save_usage": "on_session",
-                            "payment_method_redisplay": "enabled",
+            if not input.auto_confirm:
+                # We don't need a customer session for one-click booking.
+                stripe_customer_session = await stripe.CustomerSession.create_async(
+                    customer=account_orm.stripe_customer_id,
+                    components={
+                        "payment_element": {
+                            "enabled": True,
+                            "features": {
+                                "payment_method_allow_redisplay_filters": ["always", "limited", "unspecified"],
+                                # These two `payment_method_save` options will add a checkbox to the payment form to save the card.
+                                # Although with our current implementation, the card is always saved anyways.
+                                # "payment_method_save": "enabled",
+                                # "payment_method_save_usage": "on_session",
+                                "payment_method_redisplay": "enabled",
+                            },
                         },
                     },
-                },
-            )
+                )
 
-            graphql_customer_session = CustomerSession(client_secret=stripe_customer_session.client_secret)
-
-        else:
-            graphql_payment_intent = None
-            graphql_customer_session = None
+                graphql_customer_session = CustomerSession(client_secret=stripe_customer_session.client_secret)
 
         if input.auto_confirm:
             async with database.async_session.begin() as db_session:

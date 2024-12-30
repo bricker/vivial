@@ -265,7 +265,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         input: {
           outingId: outing.id,
           autoConfirm: true,
-          paymentMethodId: defaultPaymentMethod?.id,
         },
       });
 
