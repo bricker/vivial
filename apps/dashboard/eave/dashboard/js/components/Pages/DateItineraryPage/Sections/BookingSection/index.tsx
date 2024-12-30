@@ -396,7 +396,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
             <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
           </>
         )}
-        {activityPlan && (
+        {activityPlan && activityPlan.activity.source !== ActivitySource.GooglePlaces && (
           <>
             <CostItem>
               <CostDescription>
