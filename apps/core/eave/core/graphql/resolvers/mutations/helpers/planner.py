@@ -224,12 +224,15 @@ class OutingPlanner:
 
         log_ctx = self._log_ctx()
 
-        regions = [SearchRegionOrm.one_or_exception(search_region_id=search_area_id) for search_area_id in self.survey.search_area_ids]
+        regions = [
+            SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
+            for search_area_id in self.survey.search_area_ids
+        ]
 
         if len(regions) == 0:
             # Failsafe - This should never happen
             LOGGER.warning("No activity search areas categories could be resolved; falling back to defaults", log_ctx)
-            regions = list(SearchRegionOrm.all()) # already a list, doing this for safety
+            regions = list(SearchRegionOrm.all())  # already a list, doing this for safety
 
         random.shuffle(regions)
 
@@ -426,7 +429,11 @@ class OutingPlanner:
                 if len(restaurants_nearby) == 0:
                     # Call `continue` because there is no need to continue if everything was filtered out.
                     # That's a confusing sentence.
-                    LOGGER.warning("no restaurants found for google category ids", log_ctx, {"google_category_ids": google_category_id_group})
+                    LOGGER.warning(
+                        "no restaurants found for google category ids",
+                        log_ctx,
+                        {"google_category_ids": google_category_id_group},
+                    )
                     continue
 
                 random.shuffle(restaurants_nearby)
@@ -518,9 +525,14 @@ class OutingPlanner:
             "source": "planner",
             "correlation_id": self.correlation_id,
             "group_activity_category_preferences": [p.name for p in self.group_activity_category_preferences],
-            "search_areas": [SearchRegionOrm.one_or_exception(search_region_id=search_area_id).name for search_area_id in self.survey.search_area_ids],
+            "search_areas": [
+                SearchRegionOrm.one_or_exception(search_region_id=search_area_id).name
+                for search_area_id in self.survey.search_area_ids
+            ],
             "survey": dataclasses.asdict(Survey.from_orm(self.survey)),
             "start_time_local": self.activity_start_time_local.isoformat() if self.activity_start_time_local else None,
-            "restaurant_arrival_time_local": self.restaurant_arrival_time_local.isoformat() if self.restaurant_arrival_time_local else None,
+            "restaurant_arrival_time_local": self.restaurant_arrival_time_local.isoformat()
+            if self.restaurant_arrival_time_local
+            else None,
             "excluded_eventbrite_event_ids": self.excluded_eventbrite_event_ids,
         }
