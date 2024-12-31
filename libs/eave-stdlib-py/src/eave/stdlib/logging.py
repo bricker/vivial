@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import sys
 from logging import Logger, LogRecord
@@ -5,7 +6,7 @@ from typing import Any, override
 
 import google.cloud.logging
 
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import JsonObject, JsonValue
 
 from .config import SHARED_CONFIG
 
@@ -113,49 +114,63 @@ class EaveLogger:
         print(self.f(level, message))
 
     def debug(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
-        self._raw_logger.debug(**self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.debug(msg, **self._preparekwargs(msg, *args, **kwargs))
 
     def info(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
-        self._raw_logger.info(**self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.info(msg, **self._preparekwargs(msg, *args, **kwargs))
 
     def warning(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
-        self._raw_logger.warning(**self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.warning(msg, **self._preparekwargs(msg, *args, **kwargs))
 
     def error(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
-        self._raw_logger.error(**self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.error(msg, **self._preparekwargs(msg, *args, **kwargs))
 
     def exception(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
-        self._raw_logger.exception(**self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.exception(msg, **self._preparekwargs(msg, *args, **kwargs))
 
     def critical(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
-        self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.critical(msg, **self._preparekwargs(msg, *args, **kwargs))
 
     def _preparekwargs(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> dict[str, Any]:
         if isinstance(msg, Exception):
-            kwargs["exc_info"] = msg
+            kwargs["exc_info"] = True
 
         kwargs.setdefault("stacklevel", 2)
         extra = kwargs.pop("extra", {})
 
+        eave_extras = {}
+
+        for a in args:
+            if a:
+                for k, v in a.items():
+                    eave_extras[k] = _build_extra(v)
+
         return {
-            "msg": str(msg),
             "extra": JsonObject(
                 {
-                    "json_fields": {
-                        "metadata": {
-                            "eave": {
-                                **extra,
-                                **{k: v for a in args if a for k, v in a.items()},
-                            },
-                        },
-                    },
+                    "logger": "eave",
+                    "eave": {k: _build_extra(v) for a in args if a for k, v in a.items()},
+                    **extra,
                 },
             ),
             **kwargs,
         }
+
+
+def _build_extra(v: Any) -> JsonValue:
+    if isinstance(v, (int, float, bool)) or v is None:
+        return v
+    elif isinstance(v, list):
+        return [_build_extra(e) for e in v]
+    elif isinstance(v, dict):
+        return {k: _build_extra(e) for k, e in v.items()}
+    elif dataclasses.is_dataclass(v) and not isinstance(v, type):
+        return _build_extra(dataclasses.asdict(v))
+    else:
+        return str(v)
 
 
 # Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
