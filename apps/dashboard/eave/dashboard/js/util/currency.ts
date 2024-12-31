@@ -11,8 +11,12 @@ export function formatTotalCost(costBreakdown: CostBreakdownFieldsFragment): str
   return currencyFormatter.format(costBreakdown.totalCostCents / 100);
 }
 
-export function formatBaseCost(costBreakdown: CostBreakdownFieldsFragment): string {
-  return currencyFormatter.format(costBreakdown.baseCostCents / 100);
+export function formatMaxBaseCost(costBreakdown: CostBreakdownFieldsFragment): string {
+  return currencyFormatter.format(costBreakdown.maxBaseCostCents / 100);
+}
+
+export function formatMinBaseCost(costBreakdown: CostBreakdownFieldsFragment): string {
+  return currencyFormatter.format(costBreakdown.minBaseCostCents / 100);
 }
 
 export function formatFeesAndTaxes(costBreakdown: CostBreakdownFieldsFragment): string {

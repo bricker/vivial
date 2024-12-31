@@ -1,5 +1,5 @@
 import { ActivitySource, type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
-import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
+import { formatFeesAndTaxes, formatMaxBaseCost, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React, { Fragment } from "react";
 
@@ -64,7 +64,7 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
     breakdown.push({
       key: "reservation",
       costName: itinerary.reservation.restaurant.name,
-      costValue: formatBaseCost(itinerary.reservation.costBreakdown),
+      costValue: formatMaxBaseCost(itinerary.reservation.costBreakdown),
     });
   }
 
@@ -72,7 +72,7 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
     breakdown.push({
       key: "activity",
       costName: itinerary.activityPlan.activity.name,
-      costValue: formatBaseCost(itinerary.activityPlan.costBreakdown),
+      costValue: formatMaxBaseCost(itinerary.activityPlan.costBreakdown),
     });
   }
 

@@ -96,7 +96,7 @@ class EventbriteUtility:
                 if base_cost is None:
                     continue
 
-                cost_breakdown = CostBreakdown(base_cost_cents=base_cost["value"])
+                cost_breakdown = CostBreakdown(max_base_cost_cents=base_cost["value"])
 
                 if (fee := ticket_class.get("fee")) is not None:
                     cost_breakdown.fee_cents = fee["value"]

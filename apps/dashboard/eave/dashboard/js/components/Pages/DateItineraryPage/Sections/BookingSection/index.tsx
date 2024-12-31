@@ -21,11 +21,11 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 
 import {
-  formatBaseCost,
+  ZERO_DOLLARS_FORMATTED,
   formatFeesAndTaxes,
+  formatMaxBaseCost,
   formatTotalCost,
   hasUnbookableCost,
-  ZERO_DOLLARS_FORMATTED,
 } from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
@@ -404,7 +404,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
               </CostDescription>{" "}
               ...
             </CostItem>
-            <CostItem>{formatBaseCost(activityPlan.costBreakdown)}</CostItem>
+            <CostItem>{formatMaxBaseCost(activityPlan.costBreakdown)}</CostItem>
             {activityPlan.costBreakdown.taxCents + activityPlan.costBreakdown.feeCents > 0 && (
               <>
                 <CostItem>

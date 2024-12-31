@@ -229,8 +229,9 @@ export type ConfirmBookingSuccess = {
 
 export type CostBreakdown = {
   __typename?: 'CostBreakdown';
-  baseCostCents: Scalars['Int']['output'];
   feeCents: Scalars['Int']['output'];
+  maxBaseCostCents: Scalars['Int']['output'];
+  minBaseCostCents: Scalars['Int']['output'];
   taxCents: Scalars['Int']['output'];
   totalCostCents: Scalars['Int']['output'];
 };
@@ -722,7 +723,8 @@ export type ActivityFieldsFragment = {
     notes?: string | null,
     costBreakdown: {
       __typename: 'CostBreakdown',
-      baseCostCents: number,
+      minBaseCostCents: number,
+      maxBaseCostCents: number,
       feeCents: number,
       taxCents: number,
       totalCostCents: number
@@ -782,7 +784,8 @@ export type ActivityPlanFieldsFragment = {
   headcount: number,
   costBreakdown: {
     __typename: 'CostBreakdown',
-    baseCostCents: number,
+    minBaseCostCents: number,
+    maxBaseCostCents: number,
     feeCents: number,
     taxCents: number,
     totalCostCents: number
@@ -816,7 +819,8 @@ export type ActivityPlanFieldsFragment = {
       notes?: string | null,
       costBreakdown: {
         __typename: 'CostBreakdown',
-        baseCostCents: number,
+        minBaseCostCents: number,
+        maxBaseCostCents: number,
         feeCents: number,
         taxCents: number,
         totalCostCents: number
@@ -935,7 +939,8 @@ export type RestaurantCategoryFieldsFragment = {
 
 export type CostBreakdownFieldsFragment = {
   __typename: 'CostBreakdown',
-  baseCostCents: number,
+  minBaseCostCents: number,
+  maxBaseCostCents: number,
   feeCents: number,
   taxCents: number,
   totalCostCents: number
@@ -970,7 +975,8 @@ type ItineraryFields_BookingDetails_Fragment = {
   }>,
   costBreakdown: {
     __typename: 'CostBreakdown',
-    baseCostCents: number,
+    minBaseCostCents: number,
+    maxBaseCostCents: number,
     feeCents: number,
     taxCents: number,
     totalCostCents: number
@@ -981,7 +987,8 @@ type ItineraryFields_BookingDetails_Fragment = {
     headcount: number,
     costBreakdown: {
       __typename: 'CostBreakdown',
-      baseCostCents: number,
+      minBaseCostCents: number,
+      maxBaseCostCents: number,
       feeCents: number,
       taxCents: number,
       totalCostCents: number
@@ -1015,7 +1022,8 @@ type ItineraryFields_BookingDetails_Fragment = {
         notes?: string | null,
         costBreakdown: {
           __typename: 'CostBreakdown',
-          baseCostCents: number,
+          minBaseCostCents: number,
+          maxBaseCostCents: number,
           feeCents: number,
           taxCents: number,
           totalCostCents: number
@@ -1075,7 +1083,8 @@ type ItineraryFields_BookingDetails_Fragment = {
     headcount: number,
     costBreakdown: {
       __typename: 'CostBreakdown',
-      baseCostCents: number,
+      minBaseCostCents: number,
+      maxBaseCostCents: number,
       feeCents: number,
       taxCents: number,
       totalCostCents: number
@@ -1162,7 +1171,8 @@ type ItineraryFields_Outing_Fragment = {
   }>,
   costBreakdown: {
     __typename: 'CostBreakdown',
-    baseCostCents: number,
+    minBaseCostCents: number,
+    maxBaseCostCents: number,
     feeCents: number,
     taxCents: number,
     totalCostCents: number
@@ -1173,7 +1183,8 @@ type ItineraryFields_Outing_Fragment = {
     headcount: number,
     costBreakdown: {
       __typename: 'CostBreakdown',
-      baseCostCents: number,
+      minBaseCostCents: number,
+      maxBaseCostCents: number,
       feeCents: number,
       taxCents: number,
       totalCostCents: number
@@ -1207,7 +1218,8 @@ type ItineraryFields_Outing_Fragment = {
         notes?: string | null,
         costBreakdown: {
           __typename: 'CostBreakdown',
-          baseCostCents: number,
+          minBaseCostCents: number,
+          maxBaseCostCents: number,
           feeCents: number,
           taxCents: number,
           totalCostCents: number
@@ -1267,7 +1279,8 @@ type ItineraryFields_Outing_Fragment = {
     headcount: number,
     costBreakdown: {
       __typename: 'CostBreakdown',
-      baseCostCents: number,
+      minBaseCostCents: number,
+      maxBaseCostCents: number,
       feeCents: number,
       taxCents: number,
       totalCostCents: number
@@ -1442,7 +1455,8 @@ export type ReservationFieldsFragment = {
   headcount: number,
   costBreakdown: {
     __typename: 'CostBreakdown',
-    baseCostCents: number,
+    minBaseCostCents: number,
+    maxBaseCostCents: number,
     feeCents: number,
     taxCents: number,
     totalCostCents: number
@@ -1635,7 +1649,8 @@ export type InitiateBookingMutation = {
         }>,
         costBreakdown: {
           __typename: 'CostBreakdown',
-          baseCostCents: number,
+          minBaseCostCents: number,
+          maxBaseCostCents: number,
           feeCents: number,
           taxCents: number,
           totalCostCents: number
@@ -1646,7 +1661,8 @@ export type InitiateBookingMutation = {
           headcount: number,
           costBreakdown: {
             __typename: 'CostBreakdown',
-            baseCostCents: number,
+            minBaseCostCents: number,
+            maxBaseCostCents: number,
             feeCents: number,
             taxCents: number,
             totalCostCents: number
@@ -1680,7 +1696,8 @@ export type InitiateBookingMutation = {
               notes?: string | null,
               costBreakdown: {
                 __typename: 'CostBreakdown',
-                baseCostCents: number,
+                minBaseCostCents: number,
+                maxBaseCostCents: number,
                 feeCents: number,
                 taxCents: number,
                 totalCostCents: number
@@ -1740,7 +1757,8 @@ export type InitiateBookingMutation = {
           headcount: number,
           costBreakdown: {
             __typename: 'CostBreakdown',
-            baseCostCents: number,
+            minBaseCostCents: number,
+            maxBaseCostCents: number,
             feeCents: number,
             taxCents: number,
             totalCostCents: number
@@ -1875,7 +1893,8 @@ export type PlanOutingMutation = {
       }>,
       costBreakdown: {
         __typename: 'CostBreakdown',
-        baseCostCents: number,
+        minBaseCostCents: number,
+        maxBaseCostCents: number,
         feeCents: number,
         taxCents: number,
         totalCostCents: number
@@ -1886,7 +1905,8 @@ export type PlanOutingMutation = {
         headcount: number,
         costBreakdown: {
           __typename: 'CostBreakdown',
-          baseCostCents: number,
+          minBaseCostCents: number,
+          maxBaseCostCents: number,
           feeCents: number,
           taxCents: number,
           totalCostCents: number
@@ -1920,7 +1940,8 @@ export type PlanOutingMutation = {
             notes?: string | null,
             costBreakdown: {
               __typename: 'CostBreakdown',
-              baseCostCents: number,
+              minBaseCostCents: number,
+              maxBaseCostCents: number,
               feeCents: number,
               taxCents: number,
               totalCostCents: number
@@ -1980,7 +2001,8 @@ export type PlanOutingMutation = {
         headcount: number,
         costBreakdown: {
           __typename: 'CostBreakdown',
-          baseCostCents: number,
+          minBaseCostCents: number,
+          maxBaseCostCents: number,
           feeCents: number,
           taxCents: number,
           totalCostCents: number
@@ -2292,7 +2314,8 @@ export type BookingDetailsQuery = {
       }>,
       costBreakdown: {
         __typename: 'CostBreakdown',
-        baseCostCents: number,
+        minBaseCostCents: number,
+        maxBaseCostCents: number,
         feeCents: number,
         taxCents: number,
         totalCostCents: number
@@ -2303,7 +2326,8 @@ export type BookingDetailsQuery = {
         headcount: number,
         costBreakdown: {
           __typename: 'CostBreakdown',
-          baseCostCents: number,
+          minBaseCostCents: number,
+          maxBaseCostCents: number,
           feeCents: number,
           taxCents: number,
           totalCostCents: number
@@ -2337,7 +2361,8 @@ export type BookingDetailsQuery = {
             notes?: string | null,
             costBreakdown: {
               __typename: 'CostBreakdown',
-              baseCostCents: number,
+              minBaseCostCents: number,
+              maxBaseCostCents: number,
               feeCents: number,
               taxCents: number,
               totalCostCents: number
@@ -2397,7 +2422,8 @@ export type BookingDetailsQuery = {
         headcount: number,
         costBreakdown: {
           __typename: 'CostBreakdown',
-          baseCostCents: number,
+          minBaseCostCents: number,
+          maxBaseCostCents: number,
           feeCents: number,
           taxCents: number,
           totalCostCents: number
@@ -2531,7 +2557,8 @@ export type OutingQuery = {
     }>,
     costBreakdown: {
       __typename: 'CostBreakdown',
-      baseCostCents: number,
+      minBaseCostCents: number,
+      maxBaseCostCents: number,
       feeCents: number,
       taxCents: number,
       totalCostCents: number
@@ -2542,7 +2569,8 @@ export type OutingQuery = {
       headcount: number,
       costBreakdown: {
         __typename: 'CostBreakdown',
-        baseCostCents: number,
+        minBaseCostCents: number,
+        maxBaseCostCents: number,
         feeCents: number,
         taxCents: number,
         totalCostCents: number
@@ -2576,7 +2604,8 @@ export type OutingQuery = {
           notes?: string | null,
           costBreakdown: {
             __typename: 'CostBreakdown',
-            baseCostCents: number,
+            minBaseCostCents: number,
+            maxBaseCostCents: number,
             feeCents: number,
             taxCents: number,
             totalCostCents: number
@@ -2636,7 +2665,8 @@ export type OutingQuery = {
       headcount: number,
       costBreakdown: {
         __typename: 'CostBreakdown',
-        baseCostCents: number,
+        minBaseCostCents: number,
+        maxBaseCostCents: number,
         feeCents: number,
         taxCents: number,
         totalCostCents: number
@@ -2898,7 +2928,8 @@ export const SurveyFieldsFragmentDoc = new TypedDocumentString(`
 export const CostBreakdownFieldsFragmentDoc = new TypedDocumentString(`
     fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -3042,7 +3073,8 @@ fragment ActivityCategoryFields on ActivityCategory {
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -3163,7 +3195,8 @@ fragment ActivityCategoryFields on ActivityCategory {
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -3259,7 +3292,8 @@ export const ReservationFieldsFragmentDoc = new TypedDocumentString(`
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -3395,7 +3429,8 @@ fragment ActivityCategoryFields on ActivityCategory {
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -3740,7 +3775,8 @@ fragment ActivityCategoryFields on ActivityCategory {
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -3986,7 +4022,8 @@ fragment ActivityCategoryFields on ActivityCategory {
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -4470,7 +4507,8 @@ fragment ActivityCategoryFields on ActivityCategory {
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
@@ -4720,7 +4758,8 @@ fragment ActivityCategoryFields on ActivityCategory {
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents

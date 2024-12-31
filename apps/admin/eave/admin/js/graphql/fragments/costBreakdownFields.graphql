@@ -1,5 +1,6 @@
 fragment CostBreakdownFields on CostBreakdown {
-  baseCostCents
+  minBaseCostCents
+  maxBaseCostCents
   feeCents
   taxCents
   totalCostCents
