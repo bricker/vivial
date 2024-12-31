@@ -365,10 +365,8 @@ class OutingPlanner:
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(arrival_time_local, self.survey.timezone):
             google_category_id_groups = [list(_BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS)]
-            random.shuffle(google_category_id_groups)
         elif is_late_morning(arrival_time_local, self.survey.timezone):
             google_category_id_groups = [list(_BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS)]
-            random.shuffle(google_category_id_groups)
         else:
             # Already randomized in combiner funcs
             google_category_id_groups = [cat.google_category_ids for cat in self.group_restaurant_category_preferences]
