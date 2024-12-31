@@ -128,7 +128,7 @@ async def get_booking_details_query(
         account = await AccountOrm.get_one(session, account_id)
 
     booking_orm = account.get_booking(booking_id=input.booking_id)
-    if not booking_orm or booking_orm.state != BookingState.CONFIRMED:
+    if not booking_orm or not booking_orm.state.is_visible:
         LOGGER.warning("Booking not found or invalid state", {"bookingId": str(input.booking_id)})
         return None
 
