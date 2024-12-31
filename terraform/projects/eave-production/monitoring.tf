@@ -19,21 +19,12 @@ module "monitoring" {
       name     = "Website uptime check"
       enabled  = true
       severity = "CRITICAL"
-      host     = "www-preview.${local.dns_domain}" # domain prefix is hardcoded on purpose
+      host     = "www.${local.dns_domain}" # domain prefix is hardcoded on purpose
       path     = "/status"
       matches_json_path = {
         content   = "OK"
         json_path = "$.status"
       }
-    },
-    {
-      service         = "www-squarespace"
-      name            = "Website (Squarespace) uptime check"
-      enabled         = true
-      severity        = "CRITICAL"
-      host            = "www.${local.dns_domain}" # domain prefix is hardcoded on purpose
-      path            = "/"
-      contains_string = "Eave"
     },
     {
       service  = "cdn"
