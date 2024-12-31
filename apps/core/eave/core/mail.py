@@ -4,7 +4,7 @@ from eave.core.orm.booking import BookingOrm, BookingState
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.mail import SENDGRID_MAILER
-from eave.stdlib.time import pretty_datetime, pretty_time
+from eave.stdlib.time import pretty_date, pretty_time
 
 _WELCOME_EMAIL_TEMPLATE_ID = "d-638ba190b929408aa71a92771a85d817"
 _BOOKING_CONFIRMED_EMAIL_TEMPLATE_ID = "d-a277ef6f31364c00b8033ef4b492719f"
@@ -43,7 +43,7 @@ def send_welcome_email(*, to_emails: list[str]) -> None:
 
 def send_booking_status_email(*, booking_orm: BookingOrm, emails: list[str]) -> None:
     data = BookingConfirmationData(
-        booking_date=pretty_datetime(booking_orm.start_time_local),
+        booking_date=pretty_date(booking_orm.start_time_local),
         booking_details_url=f"{SHARED_CONFIG.eave_dashboard_base_url_public}/plans/{booking_orm.id}?utm_source=booking-confirmation-email",
         activities=[
             EventItem(
