@@ -20,7 +20,13 @@ async def get_billing_portal_url_query(*, info: strawberry.Info[GraphQLContext])
                 "invoice_history": {
                     "enabled": False,
                 },
-            }
+                "customer_update": {
+                    "enabled": False,
+                },
+                "payment_method_update": {
+                    "enabled": True,
+                },
+            },
         )
 
         session = await stripe.billing_portal.Session.create_async(
