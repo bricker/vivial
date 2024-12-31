@@ -11,8 +11,6 @@ from eave.stdlib.logging import LOGGER
 class LogContextExtension(SchemaExtension):
     @override
     def on_operation(self) -> Iterator[None]:
-        LOGGER.debug("LogContextExtension:on_operation")
-
         try:
             # Safety because `context` here is typed as "Any"
             self.execution_context.context["correlation_id"] = uuid4().hex
@@ -25,7 +23,6 @@ class LogContextExtension(SchemaExtension):
 
     @override
     def on_execute(self) -> Iterator[None]:
-        LOGGER.debug("LogContextExtension:on_execute")
         operation_name = self.execution_context.operation_name
 
         try:

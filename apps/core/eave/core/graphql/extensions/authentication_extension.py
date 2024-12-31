@@ -41,8 +41,6 @@ class AuthenticationExtension(FieldExtension):
     async def resolve_async(
         self, next_: Callable[..., Awaitable[Any]], source: Any, info: strawberry.Info[GraphQLContext], **kwargs
     ) -> Any:
-        LOGGER.debug("AuthenticationExtension")
-
         encoded_jws = info.context["request"].cookies.get(ACCESS_TOKEN_COOKIE_NAME)
         try:
             if not encoded_jws:

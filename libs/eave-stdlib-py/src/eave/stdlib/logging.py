@@ -152,9 +152,10 @@ class EaveLogger:
             "msg": msg,
             "extra": JsonObject(
                 {
-                    "logger": "eave",
-                    "eave": {k: _build_extra(v) for a in args if a for k, v in a.items()},
-                    **extra,
+                    "json_fields": {
+                        "eave": {k: _build_extra(v) for a in args if a for k, v in a.items()},
+                        **extra,
+                    },
                 },
             ),
             **kwargs,
