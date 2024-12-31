@@ -15,7 +15,6 @@ from eave.stdlib.jwt import (
     JWTPurpose,
     validate_jws_or_exception,
 )
-from eave.stdlib.logging import LOGGER
 
 
 @strawberry.enum
