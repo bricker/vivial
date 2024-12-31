@@ -215,7 +215,7 @@ async def build_evergreen_activity(
     address: str,
     category: str,
     subcategory: str | None,
-    bookable: bool,
+    bookable: bool,  # noqa
     booking_url: str | None,
     duration: int,
     ticket_type: str,
@@ -275,7 +275,8 @@ async def build_evergreen_activity(
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=math.floor(ticket_max_cost * 100),  # TODO: min/max
+                min_base_cost_cents=math.floor(ticket_min_cost * 100),
+                max_base_cost_cents=math.floor(ticket_max_cost * 100),
                 service_fee_cents=math.floor(fees_dollars * 100),
                 tax_percentage=tax_percentage,
                 title=ticket_type,

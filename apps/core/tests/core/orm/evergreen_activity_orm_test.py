@@ -82,10 +82,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
     async def test_evergreen_activity_select_by_budget_1(self) -> None:
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
+            cost = self.anyint(min=1, max=5) * 100  # INEXPENSIVE
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=1, max=5) * 100,  # INEXPENSIVE
+                min_base_cost_cents=cost,
+                max_base_cost_cents=cost,
                 service_fee_cents=self.anyint(min=0, max=10) * 100,
                 tax_percentage=self.anyint(min=0, max=7) / 100,
                 title=self.anystr(),
@@ -99,10 +101,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
     async def test_evergreen_activity_select_by_budget_2(self) -> None:
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
+            cost = self.anyint(min=10**6) * 100  # VERY EXPENSIVE
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=10**6) * 100,  # VERY EXPENSIVE
+                min_base_cost_cents=cost,
+                max_base_cost_cents=cost,
                 service_fee_cents=self.anyint(),
                 tax_percentage=self.anyfloat(),
                 title=self.anystr(),
@@ -116,10 +120,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
     async def test_evergreen_activity_select_by_budget_3(self) -> None:
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
+            cost = self.anyint(min=11, max=100) * 100  # within MODERATE
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=11, max=100) * 100,  # within MODERATE
+                min_base_cost_cents=cost,
+                max_base_cost_cents=cost,
                 service_fee_cents=self.anyint(min=0, max=10) * 100,
                 tax_percentage=self.anyint(min=0, max=10) / 100,
                 title=self.anystr(),
@@ -135,10 +141,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
 
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
+            cost = self.anyint(min=10**6) * 100
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=10**6) * 100,
+                min_base_cost_cents=cost,
+                max_base_cost_cents=cost,
                 service_fee_cents=self.anyint(min=0, max=5) * 100,
                 tax_percentage=0.07,
                 title=self.anystr(),
@@ -155,7 +163,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=40 * 100,  # MODERATE is 50 bucks max
+                min_base_cost_cents=40 * 100,
+                max_base_cost_cents=40 * 100,  # MODERATE is 50 bucks max
                 service_fee_cents=5 * 100,
                 tax_percentage=20 / 100,  # result is $54, above MODERATE limit
                 title=self.anystr(),
@@ -172,7 +181,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=0,
+                max_base_cost_cents=0,
+                min_base_cost_cents=0,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -189,7 +199,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=0,
+                max_base_cost_cents=0,
+                min_base_cost_cents=0,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -206,7 +217,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=0,
+                max_base_cost_cents=0,
+                min_base_cost_cents=0,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -223,7 +235,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=0,
+                max_base_cost_cents=0,
+                min_base_cost_cents=0,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -237,10 +250,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
     async def test_evergreen_activity_select_by_budget_10(self) -> None:
         async with self.db_session.begin() as session:
             activity = self.make_evergreen_activity(session)
+            cost = self.anyint(min=10**6) * 100
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(min=10**6) * 100,
+                max_base_cost_cents=cost,
+                min_base_cost_cents=cost,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -257,7 +272,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=150 * 100,  # EXPENSIVE upper bound
+                max_base_cost_cents=150 * 100,  # EXPENSIVE upper bound
+                min_base_cost_cents=150 * 100,
                 service_fee_cents=self.anyint(min=1, max=10) * 100,
                 tax_percentage=self.anyint(min=0, max=10) / 100,
                 title=self.anystr(),
@@ -274,7 +290,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=150 * 100,  # EXPENSIVE upper bound
+                max_base_cost_cents=150 * 100,  # EXPENSIVE upper bound
+                min_base_cost_cents=150 * 100,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -297,7 +314,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 EvergreenActivityTicketTypeOrm(
                     session,
                     evergreen_activity=activity,
-                    base_cost_cents=cost[0] * 100,
+                    max_base_cost_cents=cost[0] * 100,
+                    min_base_cost_cents=cost[0] * 100,
                     service_fee_cents=cost[1] * 100,
                     tax_percentage=cost[2] / 100,
                     title=self.anystr(),
@@ -320,7 +338,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 EvergreenActivityTicketTypeOrm(
                     session,
                     evergreen_activity=activity,
-                    base_cost_cents=cost[0] * 100,
+                    max_base_cost_cents=cost[0] * 100,
+                    min_base_cost_cents=cost[0] * 100,
                     service_fee_cents=cost[1] * 100,
                     tax_percentage=cost[2] / 100,
                     title=self.anystr(),
@@ -343,7 +362,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 EvergreenActivityTicketTypeOrm(
                     session,
                     evergreen_activity=activity,
-                    base_cost_cents=cost[0] * 100,
+                    max_base_cost_cents=cost[0] * 100,
+                    min_base_cost_cents=cost[0] * 100,
                     service_fee_cents=cost[1] * 100,
                     tax_percentage=cost[2] / 100,
                     title=self.anystr(),
@@ -366,7 +386,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 EvergreenActivityTicketTypeOrm(
                     session,
                     evergreen_activity=activity,
-                    base_cost_cents=cost[0] * 100,
+                    max_base_cost_cents=cost[0] * 100,
+                    min_base_cost_cents=cost[0] * 100,
                     service_fee_cents=cost[1] * 100,
                     tax_percentage=cost[2] / 100,
                     title=self.anystr(),
@@ -385,7 +406,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 EvergreenActivityTicketTypeOrm(
                     session,
                     evergreen_activity=activity,
-                    base_cost_cents=cost[0] * 100,
+                    max_base_cost_cents=cost[0] * 100,
+                    min_base_cost_cents=cost[0] * 100,
                     service_fee_cents=cost[1] * 100,
                     tax_percentage=cost[2] / 100,
                     title=self.anystr(),
@@ -408,7 +430,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 EvergreenActivityTicketTypeOrm(
                     session,
                     evergreen_activity=activity,
-                    base_cost_cents=cost[0] * 100,
+                    max_base_cost_cents=cost[0] * 100,
+                    min_base_cost_cents=cost[0] * 100,
                     service_fee_cents=cost[1] * 100,
                     tax_percentage=cost[2] / 100,
                     title=self.anystr(),
@@ -427,7 +450,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity_1,
-                base_cost_cents=20 * 100,
+                max_base_cost_cents=20 * 100,
+                min_base_cost_cents=20 * 100,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -436,7 +460,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity_2,
-                base_cost_cents=5 * 100,
+                max_base_cost_cents=5 * 100,
+                min_base_cost_cents=5 * 100,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -457,7 +482,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity_1,
-                base_cost_cents=20 * 100,
+                max_base_cost_cents=20 * 100,
+                min_base_cost_cents=20 * 100,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -466,7 +492,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity_2,
-                base_cost_cents=5 * 100,
+                max_base_cost_cents=5 * 100,
+                min_base_cost_cents=5 * 100,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -475,7 +502,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity_3,
-                base_cost_cents=7 * 100,
+                max_base_cost_cents=7 * 100,
+                min_base_cost_cents=7 * 100,
                 service_fee_cents=0,
                 tax_percentage=0,
                 title=self.anystr(),
@@ -923,10 +951,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
                 ],
             )
 
+            cost = self.anyint(max=100)
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity,
-                base_cost_cents=self.anyint(max=100),
+                max_base_cost_cents=cost,
+                min_base_cost_cents=cost,
                 service_fee_cents=self.anyint(max=100),
                 tax_percentage=self.anyint(max=2) / 100,
                 title=self.anystr(),
@@ -968,10 +998,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
                     Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
                 ],
             )
+            cost = self.anyint(max=100)
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity_1,
-                base_cost_cents=self.anyint(max=100),
+                max_base_cost_cents=cost,
+                min_base_cost_cents=cost,
                 service_fee_cents=self.anyint(max=100),
                 tax_percentage=self.anyint(max=2) / 100,
                 title=self.anystr(),
@@ -988,10 +1020,12 @@ class TestEvergreenActivityOrm(BaseTestCase):
                     Range((2 * 24 + 18) * 60, (3 * 24 + 2) * 60)  # wed 18:00-thu 2:00
                 ],
             )
+            cost = self.anyint(max=100)
             EvergreenActivityTicketTypeOrm(
                 session,
                 evergreen_activity=activity_2,
-                base_cost_cents=self.anyint(max=100),
+                max_base_cost_cents=cost,
+                min_base_cost_cents=cost,
                 service_fee_cents=self.anyint(max=100),
                 tax_percentage=self.anyint(max=2) / 100,
                 title=self.anystr(),
@@ -1057,7 +1091,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
         ticket = EvergreenActivityTicketTypeOrm(
             None,
             evergreen_activity=activity,
-            base_cost_cents=100,
+            max_base_cost_cents=100,
+            min_base_cost_cents=100,
             service_fee_cents=5,
             tax_percentage=0.07,
             title=self.anystr(),
@@ -1070,7 +1105,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
         ticket = EvergreenActivityTicketTypeOrm(
             None,
             evergreen_activity=activity,
-            base_cost_cents=100,
+            max_base_cost_cents=100,
+            min_base_cost_cents=100,
             service_fee_cents=6,
             tax_percentage=0.07,
             title=self.anystr(),
@@ -1083,7 +1119,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
         ticket = EvergreenActivityTicketTypeOrm(
             None,
             evergreen_activity=activity,
-            base_cost_cents=100,
+            max_base_cost_cents=100,
+            min_base_cost_cents=100,
             service_fee_cents=8,
             tax_percentage=0.07,  # This creates 115.56
             title=self.anystr(),
@@ -1096,7 +1133,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
         ticket = EvergreenActivityTicketTypeOrm(
             None,
             evergreen_activity=activity,
-            base_cost_cents=1550,
+            max_base_cost_cents=1550,
+            min_base_cost_cents=1550,
             service_fee_cents=400,
             tax_percentage=0.07,
             title=self.anystr(),
@@ -1109,7 +1147,8 @@ class TestEvergreenActivityOrm(BaseTestCase):
         ticket = EvergreenActivityTicketTypeOrm(
             None,
             evergreen_activity=activity,
-            base_cost_cents=1550,
+            min_base_cost_cents=1550,
+            max_base_cost_cents=1550,
             service_fee_cents=400,
             tax_percentage=0.07,
             title=self.anystr(),

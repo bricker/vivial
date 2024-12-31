@@ -130,7 +130,8 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     title: Mapped[str] = mapped_column()
-    base_cost_cents: Mapped[int] = mapped_column()
+    max_base_cost_cents: Mapped[int] = mapped_column()
+    min_base_cost_cents: Mapped[int] = mapped_column()
     service_fee_cents: Mapped[int] = mapped_column()
     tax_percentage: Mapped[float] = mapped_column()
 
@@ -145,13 +146,15 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
         *,
         evergreen_activity: EvergreenActivityOrm,
         title: str,
-        base_cost_cents: int,
+        max_base_cost_cents: int,
+        min_base_cost_cents: int,
         service_fee_cents: int,
         tax_percentage: float,
     ) -> None:
         self.evergreen_activity = evergreen_activity
         self.title = title
-        self.base_cost_cents = max(0, base_cost_cents)
+        self.max_base_cost_cents = max(0, max_base_cost_cents)
+        self.min_base_cost_cents = max(0, min_base_cost_cents)
         self.service_fee_cents = max(0, service_fee_cents)
         self.tax_percentage = max(0, tax_percentage)
 
@@ -170,7 +173,7 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
         if total_cost_cents_lte is not NOT_SET:
             query = query.where(
-                (EvergreenActivityTicketTypeOrm.base_cost_cents + EvergreenActivityTicketTypeOrm.service_fee_cents)
+                (EvergreenActivityTicketTypeOrm.max_base_cost_cents + EvergreenActivityTicketTypeOrm.service_fee_cents)
                 * (EvergreenActivityTicketTypeOrm.tax_percentage + 1)
                 <= total_cost_cents_lte
             )
@@ -179,7 +182,7 @@ class EvergreenActivityTicketTypeOrm(Base, GetOneByIdMixin):
 
     @property
     def total_cost_cents(self) -> int:
-        return math.floor((self.base_cost_cents + self.service_fee_cents) * (1 + self.tax_percentage))
+        return math.floor((self.max_base_cost_cents + self.service_fee_cents) * (1 + self.tax_percentage))
 
 
 class WeeklyScheduleOrm(Base, GetOneByIdMixin):
