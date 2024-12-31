@@ -20,6 +20,7 @@ async def create_outing(
     account: AccountOrm | None,
     survey: SurveyOrm,
     is_reroll: bool,
+    correlation_id: str | None,
 ) -> Outing:
     plan = await OutingPlanner(
         individual_preferences=individual_preferences,
@@ -27,6 +28,7 @@ async def create_outing(
         excluded_google_place_ids=excluded_google_place_ids,
         excluded_evergreen_activity_ids=excluded_evergreen_activity_ids,
         survey=survey,
+        correlation_id=correlation_id,
     ).plan()
 
     async with database.async_session.begin() as db_session:

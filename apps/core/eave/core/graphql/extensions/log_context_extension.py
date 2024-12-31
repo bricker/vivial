@@ -15,7 +15,7 @@ class LogContextExtension(SchemaExtension):
 
         try:
             # Safety because `context` here is typed as "Any"
-            self.execution_context.context["request_id"] = str(uuid4())
+            self.execution_context.context["correlation_id"] = uuid4().hex
             self.execution_context.context["extra"] = {}
 
         except Exception as e:
