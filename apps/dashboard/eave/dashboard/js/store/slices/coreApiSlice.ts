@@ -1,4 +1,5 @@
 import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
+import { appendOutingMemory, updateOutingMemory } from "$eave-dashboard/js/util/outingMemory";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
@@ -197,8 +198,10 @@ export const coreApiSlice = createApi({
 
     planOuting: builder.mutation<PlanOutingMutation, PlanOutingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        appendOutingMemory(variables);
         console.info("Planning outing with the following inputs:", variables.input);
         const data = await executeOperation({ query: PlanOutingDocument, variables });
+        updateOutingMemory(data);
         return { data };
       },
     }),

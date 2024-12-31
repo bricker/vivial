@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from eave.core import database
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
@@ -11,6 +13,9 @@ from eave.core.orm.survey import SurveyOrm
 async def create_outing(
     *,
     individual_preferences: list[OutingPreferencesInput],
+    excluded_eventbrite_event_ids: list[str] | None,
+    excluded_google_place_ids: list[str] | None,
+    excluded_evergreen_activity_ids: list[UUID] | None,
     visitor_id: str | None,
     account: AccountOrm | None,
     survey: SurveyOrm,
@@ -18,6 +23,9 @@ async def create_outing(
 ) -> Outing:
     plan = await OutingPlanner(
         individual_preferences=individual_preferences,
+        excluded_eventbrite_event_ids=excluded_eventbrite_event_ids,
+        excluded_google_place_ids=excluded_google_place_ids,
+        excluded_evergreen_activity_ids=excluded_evergreen_activity_ids,
         survey=survey,
     ).plan()
 

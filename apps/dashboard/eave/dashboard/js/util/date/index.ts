@@ -44,8 +44,19 @@ export function isTomorrow(date: Date): boolean {
   return date.toDateString() === tomorrow.toDateString();
 }
 
+export function isExpired(date: Date): boolean {
+  const now = new Date();
+  return date < now;
+}
+
 export function in24Hours(): Date {
   const now = new Date();
   const millisecondsIn24Hours = 24 * 60 * 60 * 1000;
   return new Date(now.getTime() + millisecondsIn24Hours);
+}
+
+export function in1Year(): Date {
+  const oneYearFromNow = new Date();
+  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+  return oneYearFromNow;
 }
