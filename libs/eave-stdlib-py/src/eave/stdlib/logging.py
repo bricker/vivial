@@ -87,7 +87,7 @@ class CustomFilter(logging.Filter):
 _root_logger = logging.getLogger()
 _root_logger.setLevel(SHARED_CONFIG.log_level)
 
-if SHARED_CONFIG.is_development or SHARED_CONFIG.is_test:
+if SHARED_CONFIG.is_local:
     _stream_handler = logging.StreamHandler(sys.stdout)
     _stream_handler.setLevel(SHARED_CONFIG.log_level)
     _stream_handler.setFormatter(CustomFormatter())
