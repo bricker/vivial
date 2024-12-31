@@ -15,9 +15,18 @@ async def get_billing_portal_url_query(*, info: strawberry.Info[GraphQLContext])
         account_orm = await AccountOrm.get_one(db_session, account_id)
 
     if account_orm.stripe_customer_id:
+        configuration = await stripe.billing_portal.Configuration.create_async(
+            features={
+                "invoice_history": {
+                    "enabled": False,
+                },
+            }
+        )
+
         session = await stripe.billing_portal.Session.create_async(
             customer=account_orm.stripe_customer_id,
             return_url=f"{SHARED_CONFIG.eave_dashboard_base_url_public}/account",
+            configuration=configuration.id,
         )
 
         return session.url
