@@ -47,7 +47,7 @@ from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.core.shared.geo import GeoPoint
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
@@ -247,10 +247,10 @@ async def main() -> None:
         },
     )
 
-    eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
-    eaveLogger.fprint(logging.INFO, f"> Target Database: {seed_db.url.database}")
-    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {seed_db.url}")
-    eaveLogger.fprint(
+    LOGGER.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
+    LOGGER.fprint(logging.INFO, f"> Target Database: {seed_db.url.database}")
+    LOGGER.fprint(logging.INFO, f"> Postgres connection URI: {seed_db.url}")
+    LOGGER.fprint(
         logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."
     )
 
@@ -258,14 +258,14 @@ async def main() -> None:
     if args.account:
         warn_msg = f"Seeding for account {args.account}. {warn_msg}"
 
-    answer = input(eaveLogger.f(logging.WARNING, f"{warn_msg} (Y/n) "))
+    answer = input(LOGGER.f(logging.WARNING, f"{warn_msg} (Y/n) "))
     if answer != "Y":
-        eaveLogger.fprint(logging.CRITICAL, "Aborting.")
+        LOGGER.fprint(logging.CRITICAL, "Aborting.")
         return
 
-    eaveLogger.fprint(logging.INFO, f"Starting to seed your db {seed_db.url.database}...")
+    LOGGER.fprint(logging.INFO, f"Starting to seed your db {seed_db.url.database}...")
     await seed_database(db=seed_db, account_id=args.account)
-    eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
+    LOGGER.fprint(logging.INFO, "\nYour database has been seeded!")
 
 
 if __name__ == "__main__":

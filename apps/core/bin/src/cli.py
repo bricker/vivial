@@ -29,7 +29,7 @@ import eave.core.orm.base
 from eave.core._database_setup import create_database_tables, drop_database_tables, init_database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LOGGER
 
 _alembic_config = alembic.config.Config("alembic.ini")
 
@@ -56,13 +56,13 @@ def run_migrations() -> None:
     eave_db_user = os.environ["EAVE_DB_USER"]
     google_cloud_project = os.environ["GOOGLE_CLOUD_PROJECT"]
 
-    eaveLogger.fprint(logging.WARNING, "Running DB migrations!")
-    eaveLogger.fprint(logging.WARNING, f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_HOST={eave_db_host}")
-    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
-    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_USER={eave_db_user}")
+    LOGGER.fprint(logging.WARNING, "Running DB migrations!")
+    LOGGER.fprint(logging.WARNING, f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    LOGGER.fprint(logging.WARNING, f"EAVE_DB_HOST={eave_db_host}")
+    LOGGER.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
+    LOGGER.fprint(logging.WARNING, f"EAVE_DB_USER={eave_db_user}")
 
-    answer = input(eaveLogger.f(logging.WARNING, "Proceed? (y/n) "))
+    answer = input(LOGGER.f(logging.WARNING, "Proceed? (y/n) "))
 
     if answer != "y":
         raise click.Abort()
@@ -86,19 +86,19 @@ def create_revision(message: str) -> None:
 @db.command()
 @click.option("-d", "--database", required=False, default=CORE_API_APP_CONFIG.db_name)
 def init_dev(database: str) -> None:
-    eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
-    eaveLogger.fprint(logging.INFO, f"> EAVE_DB_NAME: {database}")
+    LOGGER.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
+    LOGGER.fprint(logging.INFO, f"> EAVE_DB_NAME: {database}")
 
-    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.database.async_engine.url}")
+    LOGGER.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.database.async_engine.url}")
 
-    eaveLogger.fprint(
+    LOGGER.fprint(
         logging.WARNING,
         f"\nThis script will perform the following operations on the {database} database:",
     )
-    eaveLogger.fprint(logging.WARNING, "- 💥 DELETES THE DATABASE 💥 (if it exists)")
-    eaveLogger.fprint(logging.WARNING, "- (RE-)CREATES THE DATABASE")
+    LOGGER.fprint(logging.WARNING, "- 💥 DELETES THE DATABASE 💥 (if it exists)")
+    LOGGER.fprint(logging.WARNING, "- (RE-)CREATES THE DATABASE")
 
-    answer = input(eaveLogger.f(logging.WARNING, f"Proceed to delete and (re-)create the {database} database? (Y/n) "))
+    answer = input(LOGGER.f(logging.WARNING, f"Proceed to delete and (re-)create the {database} database? (Y/n) "))
     if answer != "Y":
         print("Aborting.")
         return
@@ -114,18 +114,18 @@ def init_dev(database: str) -> None:
 @db.command()
 @click.option("-d", "--database", required=False, default=CORE_API_APP_CONFIG.db_name)
 def create_tables(database: str) -> None:
-    eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
-    eaveLogger.fprint(logging.INFO, f"> EAVE_DB_NAME: {database}")
+    LOGGER.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
+    LOGGER.fprint(logging.INFO, f"> EAVE_DB_NAME: {database}")
 
-    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.database.async_engine.url}")
+    LOGGER.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.database.async_engine.url}")
 
-    eaveLogger.fprint(
+    LOGGER.fprint(
         logging.WARNING,
         f"\nThis script will perform the following operations on the {database} database:",
     )
-    eaveLogger.fprint(logging.WARNING, "- Creates the tables using Base.metadata (not migrations)")
+    LOGGER.fprint(logging.WARNING, "- Creates the tables using Base.metadata (not migrations)")
 
-    answer = input(eaveLogger.f(logging.WARNING, "Proceed to create the tables? (Y/n) "))
+    answer = input(LOGGER.f(logging.WARNING, "Proceed to create the tables? (Y/n) "))
     if answer != "Y":
         print("Aborting.")
         return
@@ -141,18 +141,18 @@ def create_tables(database: str) -> None:
 @db.command()
 @click.option("-d", "--database", required=False, default=CORE_API_APP_CONFIG.db_name)
 def drop_tables(database: str) -> None:
-    eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
-    eaveLogger.fprint(logging.INFO, f"> EAVE_DB_NAME: {database}")
+    LOGGER.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
+    LOGGER.fprint(logging.INFO, f"> EAVE_DB_NAME: {database}")
 
-    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.database.async_engine.url}")
+    LOGGER.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.database.async_engine.url}")
 
-    eaveLogger.fprint(
+    LOGGER.fprint(
         logging.WARNING,
         f"\nThis script will perform the following operations on the {database} database:",
     )
-    eaveLogger.fprint(logging.WARNING, "- DROPS ALL TABLES using Base.metadata")
+    LOGGER.fprint(logging.WARNING, "- DROPS ALL TABLES using Base.metadata")
 
-    answer = input(eaveLogger.f(logging.WARNING, "Proceed to DROP the tables? (Y/n) "))
+    answer = input(LOGGER.f(logging.WARNING, "Proceed to DROP the tables? (Y/n) "))
     if answer != "Y":
         print("Aborting.")
         return
