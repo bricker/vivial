@@ -20,6 +20,20 @@ class GeoPoint:
     def geoalchemy_shape(self) -> WKBElement:
         return geoalchemy2.shape.from_shape(self.shapely_shape(), srid=SpatialReferenceSystemId.LAT_LON, extended=False)
 
+    def expand_rect(self, *, miles: float) -> tuple["GeoPoint", "GeoPoint"]:
+        latdegrees = miles/69
+        londegrees = latdegrees / math.cos(self.lat)
+        return (
+            GeoPoint(
+                lat=self.lat-latdegrees,
+                lon=self.lon-londegrees
+            ),
+            GeoPoint(
+                lat=self.lat+latdegrees,
+                lon=self.lon+londegrees,
+            ),
+        )
+
     def haversine_distance(self, to_point: "GeoPoint") -> float:
         """
         Returns the distance between `self` and `to_point` measured in miles.
