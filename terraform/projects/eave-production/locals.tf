@@ -10,7 +10,7 @@ locals {
   dns_domain      = "vivialapp.com"
   resource_domain = "eave.fyi" # This is used for Storage buckets and stuff, because our public domain changed but we couldn't delete all of our resources.
 
-  www_public_domain_prefix   = "www-preview"
+  www_public_domain_prefix   = "www"
   api_public_domain_prefix   = "api"
   admin_public_domain_prefix = "admin"
 
