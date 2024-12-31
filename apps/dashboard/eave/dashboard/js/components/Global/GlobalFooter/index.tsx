@@ -74,7 +74,7 @@ const GlobalFooter = () => {
   return (
     <Footer>
       <SocialContainer>
-        <SocialLink href="mailto:info@vivialapp.com" target="_blank">
+        <SocialLink href="mailto:friends@vivialapp.com" target="_blank">
           <EmailIcon />
         </SocialLink>
         <SocialLink href="https://www.tiktok.com/@vivial.app" target="_blank">
