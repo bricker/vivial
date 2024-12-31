@@ -173,6 +173,4 @@ def _build_extra(v: Any) -> JsonValue:
         return str(v)
 
 
-# Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
-eaveLogger = EaveLogger()  # noqa: N816
-LOGGER = eaveLogger  # This alias makes auto-importing easier
+LOGGER = EaveLogger()
