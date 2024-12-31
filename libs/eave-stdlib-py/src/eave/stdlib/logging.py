@@ -114,25 +114,25 @@ class EaveLogger:
         print(self.f(level, message))
 
     def debug(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
-        self._raw_logger.debug(msg, **self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.debug(**self._preparekwargs(msg, *args, **kwargs))
 
     def info(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
-        self._raw_logger.info(msg, **self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.info(**self._preparekwargs(msg, *args, **kwargs))
 
     def warning(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
-        self._raw_logger.warning(msg, **self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.warning(**self._preparekwargs(msg, *args, **kwargs))
 
     def error(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
-        self._raw_logger.error(msg, **self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.error(**self._preparekwargs(msg, *args, **kwargs))
 
     def exception(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
-        self._raw_logger.exception(msg, **self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.exception(**self._preparekwargs(msg, *args, **kwargs))
 
     def critical(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
-        self._raw_logger.critical(msg, **self._preparekwargs(msg, *args, **kwargs))
+        self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
 
     def _preparekwargs(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> dict[str, Any]:
         if isinstance(msg, Exception):
@@ -149,6 +149,7 @@ class EaveLogger:
                     eave_extras[k] = _build_extra(v)
 
         return {
+            "msg": msg,
             "extra": JsonObject(
                 {
                     "logger": "eave",
