@@ -31,9 +31,10 @@ resource "google_project_iam_binding" "project_gke_node_role_members" {
   }
 
   project = data.google_project.default.id
-  role    = data.google_iam_role.custom_gke_node_role.id
+  role    = module.custom_gke_node_role.google_project_iam_custom_role.id
   members = [
     google_service_account.gke_node.member,
+    data.google_compute_default_service_account.default.member
   ]
 }
 
@@ -43,8 +44,9 @@ resource "google_artifact_registry_repository_iam_binding" "docker_repo_gke_node
   }
 
   repository = data.google_artifact_registry_repository.docker.name
-  role       = data.google_iam_role.custom_gke_node_role.id
+  role       = module.custom_gke_node_role.google_project_iam_custom_role.id
   members = [
     google_service_account.gke_node.member,
+    data.google_compute_default_service_account.default.member
   ]
 }

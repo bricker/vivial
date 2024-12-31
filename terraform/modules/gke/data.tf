@@ -5,6 +5,5 @@ data "google_artifact_registry_repository" "docker" {
   repository_id = var.docker_repository_ref.repository_id
 }
 
-data "google_iam_role" "custom_gke_node_role" {
-  name = module.custom_gke_node_role.name
+data "google_compute_default_service_account" "default" {
 }
