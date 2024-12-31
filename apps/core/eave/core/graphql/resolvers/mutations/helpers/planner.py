@@ -199,6 +199,18 @@ class OutingPlanner:
             excluded_evergreen_activity_ids if excluded_evergreen_activity_ids is not None else []
         )
 
+
+        print("**********************self.excluded_google_place_ids**********************")
+        print(self.excluded_google_place_ids)
+
+        print("**********************self.excluded_eventbrite_event_ids**********************")
+        print(self.excluded_eventbrite_event_ids)
+
+        print("**********************self.excluded_evergreen_activity_ids**********************")
+        print(self.excluded_evergreen_activity_ids)
+
+
+
     async def plan_activity(self) -> Activity | None:
         """
         Plan an activity for the outing, taking into consideration the outing

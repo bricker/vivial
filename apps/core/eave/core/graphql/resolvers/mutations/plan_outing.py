@@ -26,10 +26,10 @@ class PlanOutingInput:
     search_area_ids: list[UUID]
     budget: OutingBudget
     headcount: int
-    excluded_eventbrite_event_ids: list[str] | None
-    excluded_google_place_ids: list[str] | None
-    excluded_evergreen_activity_ids: list[UUID] | None
     is_reroll: bool = False
+    excluded_eventbrite_event_ids: list[str] | None = None
+    excluded_google_place_ids: list[str] | None = None
+    excluded_evergreen_activity_ids: list[UUID] | None = None
 
 
 @strawberry.type
