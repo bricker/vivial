@@ -4,13 +4,9 @@ resource "google_redis_instance" "eave_redis" {
   auth_enabled            = true
   authorized_network      = "projects/${var.project_id}/global/networks/default"
   connect_mode            = "DIRECT_PEERING"
-  customer_managed_key    = null
-  display_name            = null
-  labels                  = {}
-  location_id             = null
-  memory_size_gb          = 1
-  project                 = var.project_id
-  read_replicas_mode      = "READ_REPLICAS_DISABLED"
+  memory_size_gb          = 8
+  project                 = data.google_project.default.id
+  # read_replicas_mode      = "READ_REPLICAS_DISABLED"
   redis_configs           = {}
   redis_version           = "REDIS_7_0"
   region                  = var.region

@@ -486,7 +486,6 @@ class TestInitiateBookingResolver(BaseTestCase):
                 "input": {
                     "outingId": str(outing.id),
                     "autoConfirm": True,
-                    "paymentMethodId": self.anystr("payment method id"),
                 },
             },
             account_id=account.id,

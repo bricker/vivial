@@ -1,8 +1,3 @@
-moved {
-  from = google_monitoring_notification_channel.slack
-  to   = google_monitoring_notification_channel.slack_uptime
-}
-
 resource "google_monitoring_notification_channel" "slack_uptime" {
   display_name = "Slack - Uptime Checks"
   enabled      = true
@@ -23,6 +18,20 @@ resource "google_monitoring_notification_channel" "slack_errors" {
   force_delete = false
   labels = {
     channel_name = "#alerts-errors"
+    team         = "Eave"
+  }
+  sensitive_labels {
+    auth_token = var.slack_auth_token
+  }
+  type = "slack"
+}
+
+resource "google_monitoring_notification_channel" "slack_systems_alerts" {
+  display_name = "Slack - Systems Alerts"
+  enabled      = true
+  force_delete = false
+  labels = {
+    channel_name = "#alerts-systems"
     team         = "Eave"
   }
   sensitive_labels {
