@@ -48,10 +48,6 @@ const LineItemContainer = styled("div")(() => ({
   columnGap: 8,
 }));
 
-const LineItemText = styled(Typography)<{ boldText?: boolean }>(({ boldText }) => ({
-  fontWeight: boldText ? "bold" : "inherit",
-}));
-
 type Breakdown = { key: string; costName: string; costValue: string };
 
 /**
@@ -123,9 +119,11 @@ const CostBreakdown = ({ itinerary }: { itinerary: ItineraryFieldsFragment }) =>
         <LineItemContainer>
           {breakdown.map((charge) => (
             <Fragment key={charge.key}>
-              <LineItemText>{charge.costName}</LineItemText>
-              <LineItemText>...</LineItemText>
-              <LineItemText boldText={charge.costValue === FREE}>{charge.costValue}</LineItemText>
+              <Typography>{charge.costName}</Typography>
+              <Typography>...</Typography>
+              <Typography sx={{ fontWeight: charge.costValue === FREE ? "bold" : "inherit" }}>
+                {charge.costValue}
+              </Typography>
             </Fragment>
           ))}
         </LineItemContainer>
