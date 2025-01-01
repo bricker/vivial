@@ -14,7 +14,6 @@ const FREE = "FREE";
 
 const ComponentContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
-  padding: "24px 32px",
   display: "flex",
   flexDirection: "column",
   gap: 16,
@@ -24,10 +23,6 @@ const TotalCostContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
   justifyContent: "space-between",
-}));
-
-const TopDivider = styled(Divider)(({ theme }) => ({
-  borderColor: theme.palette.primary.main,
 }));
 
 const CostDivider = styled(Divider)(({ theme }) => ({
@@ -53,8 +48,8 @@ const LineItemContainer = styled("div")(() => ({
   columnGap: 8,
 }));
 
-const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
-  fontWeight: bold ? "bold" : "inherit",
+const LineItemText = styled(Typography)<{ boldText?: boolean }>(({ boldText }) => ({
+  fontWeight: boldText ? "bold" : "inherit",
 }));
 
 type Breakdown = { key: string; costName: string; costValue: string };
@@ -118,27 +113,24 @@ const CostBreakdown = ({ itinerary }: { itinerary: ItineraryFieldsFragment }) =>
   const totalCostFormatted = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(itinerary.costBreakdown);
 
   return (
-    <>
-      <TopDivider />
-      <ComponentContainer>
-        <TotalCostContainer>
-          <TotalText variant="subtitle2">{costHeader}</TotalText>
-          <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
-        </TotalCostContainer>
-        <CostDivider />
-        <BreakdownContainer>
-          <LineItemContainer>
-            {breakdown.map((charge) => (
-              <Fragment key={charge.key}>
-                <LineItemText>{charge.costName}</LineItemText>
-                <LineItemText>...</LineItemText>
-                <LineItemText bold={charge.costValue === FREE}>{charge.costValue}</LineItemText>
-              </Fragment>
-            ))}
-          </LineItemContainer>
-        </BreakdownContainer>
-      </ComponentContainer>
-    </>
+    <ComponentContainer>
+      <TotalCostContainer>
+        <TotalText variant="subtitle2">{costHeader}</TotalText>
+        <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
+      </TotalCostContainer>
+      <CostDivider />
+      <BreakdownContainer>
+        <LineItemContainer>
+          {breakdown.map((charge) => (
+            <Fragment key={charge.key}>
+              <LineItemText>{charge.costName}</LineItemText>
+              <LineItemText>...</LineItemText>
+              <LineItemText boldText={charge.costValue === FREE}>{charge.costValue}</LineItemText>
+            </Fragment>
+          ))}
+        </LineItemContainer>
+      </BreakdownContainer>
+    </ComponentContainer>
   );
 };
 

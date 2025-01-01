@@ -42,18 +42,6 @@ const Section = styled("section")(({ theme }) => ({
   padding: "32px 32px 56px",
 }));
 
-const Header = styled("div")(({ theme }) => ({
-  color: theme.palette.common.white,
-  borderBottom: `1px solid ${colors.secondaryButtonCTA}`,
-  display: "flex",
-  justifyContent: "space-between",
-  paddingBottom: 16,
-  marginBottom: 16,
-  fontSize: rem(16),
-  lineHeight: rem(19),
-  fontWeight: 600,
-}));
-
 const OneClickBooking = styled("div")(() => ({
   display: "flex",
 }));

@@ -20,7 +20,7 @@ import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { myWindow } from "$eave-dashboard/js/types/window";
-import { CircularProgress, Typography, styled } from "@mui/material";
+import { CircularProgress, Divider, Typography, styled } from "@mui/material";
 import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe, type Appearance, type CssFontSource, type CustomFontSource } from "@stripe/stripe-js";
 import React, { FormEvent, useCallback, useEffect, useState } from "react";
@@ -47,6 +47,10 @@ const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   width: "90%",
   alignSelf: "center",
   marginTop: 8,
+}));
+
+const PaddedCostBreakdown = styled(CostBreakdown)(() => ({
+  padding: "24px 32px",
 }));
 
 const FormContainer = styled("form")(() => ({
@@ -91,6 +95,10 @@ const FooterContainer = styled("div")(() => ({
 
 const FooterText = styled(Typography)(() => ({
   textAlign: "center",
+}));
+
+const TopDivider = styled(Divider)(({ theme }) => ({
+  borderColor: theme.palette.primary.main,
 }));
 
 const ErrorText = styled(Typography)(({ theme }) => ({
@@ -395,7 +403,12 @@ const CheckoutForm = ({
 
   return (
     <PageContainer>
-      {showCostBreakdown && requiresPayment && <CostBreakdown itinerary={bookingDetails!} />}
+      {showCostBreakdown && requiresPayment && (
+        <>
+          <TopDivider />
+          <PaddedCostBreakdown itinerary={bookingDetails!} />
+        </>
+      )}
 
       <Wrapper>
         {usingAltUI && (
