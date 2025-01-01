@@ -42,6 +42,7 @@ from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.jwt import JWTPurpose, create_jws
 from eave.stdlib.time import ONE_DAY_IN_SECONDS, ONE_YEAR_IN_MINUTES
+from ._helpers.http_client_mixin import HTTPClientMixin
 from ._helpers.google_places_mocks_mixin import GooglePlacesMocksMixin
 from ._helpers.graphql_mixin import GraphQLMixin
 from ._helpers.orm_helpers_mixin import OrmHelpersMixin
@@ -54,7 +55,7 @@ _db_setup: bool = False
 # eave.core.database.async_engine.echo = True
 
 
-class BaseTestCase(RandomInstanceMixin, GraphQLMixin, OrmHelpersMixin, GooglePlacesMocksMixin, StripeMocksMixin, UtilityBaseTestCase):
+class BaseTestCase(RandomInstanceMixin, GraphQLMixin, OrmHelpersMixin, GooglePlacesMocksMixin, StripeMocksMixin, UtilityBaseTestCase, HTTPClientMixin):
     db_session: async_sessionmaker[AsyncSession]  # pyright: ignore [reportUninitializedInstanceVariable]
 
     @override

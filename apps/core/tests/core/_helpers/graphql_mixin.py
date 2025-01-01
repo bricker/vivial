@@ -19,6 +19,7 @@ class GraphQLMixin(RandomDataMixin, HTTPClientMixin):
 
     @override
     async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
         self._gql_cache = {}
 
     def load_graphql_query(self, name: str) -> str:
