@@ -1,5 +1,12 @@
 import { ActivitySource, type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
-import { formatFeesAndTaxes, formatMaxBaseCost, formatTotalCost } from "$eave-dashboard/js/util/currency";
+import {
+  ZERO_DOLLARS_FORMATTED,
+  formatCostRange,
+  formatFeesAndTaxes,
+  formatMaxBaseCost,
+  formatTotalCost,
+  hasUnbookableCost,
+} from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React, { Fragment } from "react";
 
@@ -60,7 +67,7 @@ type Breakdown = { key: string; costName: string; costValue: string };
 function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
-  if (itinerary.reservation) {
+  if (itinerary.reservation?.restaurant.reservable) {
     breakdown.push({
       key: "reservation",
       costName: itinerary.reservation.restaurant.name,
@@ -69,10 +76,17 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   }
 
   if (itinerary.activityPlan) {
+    let costValue = formatMaxBaseCost(itinerary.activityPlan.costBreakdown);
+    if (
+      !itinerary.activityPlan.activity.isBookable &&
+      itinerary.activityPlan.costBreakdown.minBaseCostCents !== itinerary.activityPlan.costBreakdown.maxBaseCostCents
+    ) {
+      costValue = formatCostRange(itinerary.activityPlan.costBreakdown);
+    }
     breakdown.push({
       key: "activity",
       costName: itinerary.activityPlan.activity.name,
-      costValue: formatMaxBaseCost(itinerary.activityPlan.costBreakdown),
+      costValue,
     });
   }
 
@@ -98,15 +112,17 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
 }
 
 const CostBreakdown = ({ itinerary }: { itinerary: ItineraryFieldsFragment }) => {
-  const totalCostFormatted = formatTotalCost(itinerary.costBreakdown);
   const breakdown = buildBreakdowns(itinerary);
+  const isUnbookable = hasUnbookableCost(itinerary);
+  const costHeader = isUnbookable ? "Due Today" : "Total Costs";
+  const totalCostFormatted = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(itinerary.costBreakdown);
 
   return (
     <>
       <TopDivider />
       <ComponentContainer>
         <TotalCostContainer>
-          <TotalText variant="subtitle2">Total Costs</TotalText>
+          <TotalText variant="subtitle2">{costHeader}</TotalText>
           <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
         </TotalCostContainer>
         <CostDivider />

@@ -19,14 +19,6 @@ import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
-
-import {
-  ZERO_DOLLARS_FORMATTED,
-  formatFeesAndTaxes,
-  formatMaxBaseCost,
-  formatTotalCost,
-  hasUnbookableCost,
-} from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
 import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
@@ -41,6 +33,7 @@ import { capitalize } from "$eave-dashboard/js/util/string";
 import Typography from "@mui/material/Typography";
 import OneClickBadge from "./OneClickBadge";
 import VivialBadge from "./VivialBadge";
+import CostBreakdown from "$eave-dashboard/js/components/CheckoutReservation/CostBreakdown";
 
 const Section = styled("section")(({ theme }) => ({
   position: "relative",
@@ -59,28 +52,6 @@ const Header = styled("div")(({ theme }) => ({
   fontSize: rem(16),
   lineHeight: rem(19),
   fontWeight: 600,
-}));
-
-const CostBreakdown = styled("div")(() => ({
-  borderBottom: `1px solid ${colors.secondaryButtonCTA}`,
-  paddingBottom: 16,
-  display: "grid",
-  gridTemplateColumns: "1fr auto",
-  gridColumnGap: "8px",
-}));
-
-const CostItem = styled(Typography, {
-  shouldForwardProp: (prop) => prop !== "bold",
-})<{ bold?: boolean }>(({ bold }) => ({
-  display: "flex",
-  justifyContent: "flex-end",
-  alignItems: "flex-end",
-  fontWeight: bold ? 700 : 400,
-}));
-
-const CostDescription = styled("span")(() => ({
-  marginRight: 5,
-  textAlign: "right",
 }));
 
 const OneClickBooking = styled("div")(() => ({
@@ -336,12 +307,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     return null;
   }
 
-  const isUnbookable = hasUnbookableCost(outing);
-  const costHeader = isUnbookable ? "Due Today" : "Total Costs";
-  const cost = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(outing.costBreakdown);
-  const activityPlan = outing.activityPlan;
-  const reservation = outing.reservation;
-
   let oneClickUI: React.JSX.Element | undefined;
 
   if (oneClickEligible && reserverDetails && account) {
@@ -383,48 +348,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   return (
     <Section>
       <VivialBadge />
-      <Header>
-        <Typography variant="inherit">{costHeader}</Typography>
-        <Typography variant="inherit">{cost}</Typography>
-      </Header>
-      <CostBreakdown>
-        {reservation && reservation.restaurant.reservable && (
-          <>
-            <CostItem>
-              <CostDescription>{reservation.restaurant.name} Reservations</CostDescription> ...
-            </CostItem>
-            <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
-          </>
-        )}
-        {activityPlan && (
-          <>
-            <CostItem>
-              <CostDescription>
-                {activityPlan.activity.name} Tickets ({outing.headcount})
-              </CostDescription>{" "}
-              ...
-            </CostItem>
-            <CostItem>{formatMaxBaseCost(activityPlan.costBreakdown)}</CostItem>
-            {activityPlan.costBreakdown.taxCents + activityPlan.costBreakdown.feeCents > 0 && (
-              <>
-                <CostItem>
-                  <CostDescription>
-                    {activityPlan.activity.source === ActivitySource.Eventbrite
-                      ? "Service Fees & Taxes via Eventbrite"
-                      : "Service Feeds & Taxes"}{" "}
-                  </CostDescription>{" "}
-                  ...
-                </CostItem>
-                <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
-              </>
-            )}
-          </>
-        )}
-        <CostItem>
-          <CostDescription>Service Fees via Vivial</CostDescription> ...
-        </CostItem>
-        <CostItem bold>FREE</CostItem>
-      </CostBreakdown>
+      <CostBreakdown itinerary={outing} />
       {!viewOnly && (
         <>
           {oneClickUI}
