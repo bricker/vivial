@@ -5,8 +5,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib.logging import LOGGER
-from eave.stdlib.typing import JsonObject
-
+from eave.stdlib.typing import JsonObject, JsonValue
 
 class GraphQLContext(TypedDict):
     request: Request
@@ -16,6 +15,8 @@ class GraphQLContext(TypedDict):
     operation_name: NotRequired[str | None]
     operation_type: NotRequired[str | None]
     correlation_id: NotRequired[str]
+    client_ip: NotRequired[str | None]
+    client_geo: NotRequired[JsonObject]
     extra: NotRequired[JsonObject]
 
 
@@ -24,6 +25,8 @@ def log_ctx(context: GraphQLContext) -> JsonObject:
     try:
         authenticated_account_id = context.get("authenticated_account_id")
         correlation_id = context.get("correlation_id")
+        client_geo = context.get("client_geo")
+        client_ip = context.get("client_ip")
         extra = context.get("extra")
         rest = {**extra} if extra else {}
 
@@ -34,6 +37,8 @@ def log_ctx(context: GraphQLContext) -> JsonObject:
             "operation_name": context.get("operation_name"),
             "operation_type": context.get("operation_type"),
             "correlation_id": correlation_id,
+            "client_geo": client_geo,
+            "client_ip": client_ip,
             **rest,
         }
     except Exception as e:
