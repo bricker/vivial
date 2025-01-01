@@ -9,22 +9,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import {
-  ActivitySource,
   OutingBudget,
   type Itinerary,
   type PaymentMethodFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
+import { styled } from "@mui/material";
 
 import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
 import LoadingButton from "$eave-dashboard/js/components/Buttons/LoadingButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
 import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
+import CostBreakdown from "$eave-dashboard/js/components/CheckoutReservation/CostBreakdown";
 import Modal from "$eave-dashboard/js/components/Modal";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
@@ -33,7 +32,6 @@ import { capitalize } from "$eave-dashboard/js/util/string";
 import Typography from "@mui/material/Typography";
 import OneClickBadge from "./OneClickBadge";
 import VivialBadge from "./VivialBadge";
-import CostBreakdown from "$eave-dashboard/js/components/CheckoutReservation/CostBreakdown";
 
 const Section = styled("section")(({ theme }) => ({
   position: "relative",
