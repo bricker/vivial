@@ -27,6 +27,9 @@ class PlanOutingInput:
     budget: OutingBudget
     headcount: int
     is_reroll: bool = False
+    excluded_eventbrite_event_ids: list[str] | None = None
+    excluded_google_place_ids: list[str] | None = None
+    excluded_evergreen_activity_ids: list[UUID] | None = None
 
 
 @strawberry.type
@@ -81,10 +84,14 @@ async def plan_outing_mutation(
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
+        excluded_eventbrite_event_ids=input.excluded_eventbrite_event_ids,
+        excluded_google_place_ids=input.excluded_google_place_ids,
+        excluded_evergreen_activity_ids=input.excluded_evergreen_activity_ids,
         visitor_id=visitor_id,
         account=account,
         survey=survey,
         is_reroll=input.is_reroll,
+        correlation_id=info.context.get("correlation_id"),
     )
 
     return PlanOutingSuccess(outing=outing)

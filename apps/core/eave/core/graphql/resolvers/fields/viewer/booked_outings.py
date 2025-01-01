@@ -10,7 +10,6 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.core.shared.enums import BookingState
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -75,8 +74,8 @@ async def list_bookings_query(
     booking_peeks = []
 
     for booking in sorted(account.bookings, key=lambda booking: booking.start_time_utc):
-        if booking.state != BookingState.CONFIRMED:
-            # Only show the user confirmed bookings
+        if not booking.state.is_visible:
+            # Only show the user confirmed or booked bookings
             continue
 
         # NOTE: only getting 1 (or None) result here instead of full scalars result since
@@ -128,7 +127,7 @@ async def get_booking_details_query(
         account = await AccountOrm.get_one(session, account_id)
 
     booking_orm = account.get_booking(booking_id=input.booking_id)
-    if not booking_orm or booking_orm.state != BookingState.CONFIRMED:
+    if not booking_orm or not booking_orm.state.is_visible:
         LOGGER.warning("Booking not found or invalid state", {"bookingId": str(input.booking_id)})
         return None
 

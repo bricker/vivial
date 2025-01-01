@@ -26,10 +26,6 @@ class RestaurantCategoryOrm:
     def defaults(cls) -> list["RestaurantCategoryOrm"]:
         return list(_DEFAULT_RESTAURANT_CATEGORIES)  # shallow copy
 
-    @staticmethod
-    def combine_google_category_ids(restaurant_categories: list["RestaurantCategoryOrm"]) -> list[str]:
-        return [gcid for cat in restaurant_categories for gcid in cat.google_category_ids]
-
 
 # The Category ID for the special "Bar" category
 MAGIC_BAR_RESTAURANT_CATEGORY_ID = UUID("a7251c9d-6af0-423b-a11d-7015ee3f85fc")

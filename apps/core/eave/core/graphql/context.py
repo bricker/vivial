@@ -15,7 +15,7 @@ class GraphQLContext(TypedDict):
     visitor_id: NotRequired[str | None]
     operation_name: NotRequired[str | None]
     operation_type: NotRequired[str | None]
-    request_id: NotRequired[str]
+    correlation_id: NotRequired[str]
     extra: NotRequired[JsonObject]
 
 
@@ -23,7 +23,7 @@ def log_ctx(context: GraphQLContext) -> JsonObject:
     # the `info.context` passed into this function is typed as `Any`, so this try/catch is for runtime safety
     try:
         authenticated_account_id = context.get("authenticated_account_id")
-        request_id = context.get("request_id")
+        correlation_id = context.get("correlation_id")
         extra = context.get("extra")
         rest = {**extra} if extra else {}
 
@@ -33,7 +33,7 @@ def log_ctx(context: GraphQLContext) -> JsonObject:
             "visitor_id": context.get("visitor_id"),
             "operation_name": context.get("operation_name"),
             "operation_type": context.get("operation_type"),
-            "request_id": str(request_id) if request_id else None,
+            "correlation_id": correlation_id,
             **rest,
         }
     except Exception as e:

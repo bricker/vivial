@@ -12,6 +12,5 @@ resource "google_project_iam_binding" "project_admin_dashboard_accessor_role_mem
   role    = module.admin_dashboard_accessor_role.id
   members = [
     "group:everybody@eave.fyi",
-    "serviceAccount:service-${data.google_project.default.number}@gcp-sa-monitoring-notification.iam.gserviceaccount.com"
   ]
 }

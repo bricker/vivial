@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import sys
 from logging import Logger, LogRecord
@@ -5,7 +6,7 @@ from typing import Any, override
 
 import google.cloud.logging
 
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import JsonObject, JsonValue
 
 from .config import SHARED_CONFIG
 
@@ -86,7 +87,7 @@ class CustomFilter(logging.Filter):
 _root_logger = logging.getLogger()
 _root_logger.setLevel(SHARED_CONFIG.log_level)
 
-if SHARED_CONFIG.is_development or SHARED_CONFIG.is_test:
+if SHARED_CONFIG.is_local:
     _stream_handler = logging.StreamHandler(sys.stdout)
     _stream_handler.setLevel(SHARED_CONFIG.log_level)
     _stream_handler.setFormatter(CustomFormatter())
@@ -135,22 +136,25 @@ class EaveLogger:
 
     def _preparekwargs(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> dict[str, Any]:
         if isinstance(msg, Exception):
-            kwargs["exc_info"] = msg
+            kwargs["exc_info"] = True
 
         kwargs.setdefault("stacklevel", 2)
         extra = kwargs.pop("extra", {})
 
+        eave_extras = {}
+
+        for a in args:
+            if a:
+                for k, v in a.items():
+                    eave_extras[k] = _build_extra(v)
+
         return {
-            "msg": str(msg),
+            "msg": msg,
             "extra": JsonObject(
                 {
                     "json_fields": {
-                        "metadata": {
-                            "eave": {
-                                **extra,
-                                **{k: v for a in args if a for k, v in a.items()},
-                            },
-                        },
+                        "eave": {k: _build_extra(v) for a in args if a for k, v in a.items()},
+                        **extra,
                     },
                 },
             ),
@@ -158,6 +162,17 @@ class EaveLogger:
         }
 
 
-# Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
-eaveLogger = EaveLogger()  # noqa: N816
-LOGGER = eaveLogger  # This alias makes auto-importing easier
+def _build_extra(v: Any) -> JsonValue:
+    if isinstance(v, (int, float, bool)) or v is None:
+        return v
+    elif isinstance(v, list):
+        return [_build_extra(e) for e in v]
+    elif isinstance(v, dict):
+        return {k: _build_extra(e) for k, e in v.items()}
+    elif dataclasses.is_dataclass(v) and not isinstance(v, type):
+        return _build_extra(dataclasses.asdict(v))
+    else:
+        return str(v)
+
+
+LOGGER = EaveLogger()

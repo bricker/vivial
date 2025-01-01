@@ -204,7 +204,7 @@ def unwrap(value: T | None, default: T | None = None) -> T:
     but carry on with the program. For example:
 
         if (foo := result.get("foo")) is None:
-            eaveLogger.warning("foo is None")
+            LOGGER.warning("foo is None")
             foo = "default foo"
 
         do_something(foo)

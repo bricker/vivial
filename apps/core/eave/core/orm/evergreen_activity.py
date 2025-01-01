@@ -89,6 +89,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         activity_category_ids: list[UUID] = NOT_SET,
         open_at_local: datetime = NOT_SET,
         budget: OutingBudget = NOT_SET,
+        excluded_evergreen_activity_ids: list[UUID] = NOT_SET,
     ) -> Select[tuple[Self]]:
         query = super().select()
 
@@ -121,6 +122,9 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
                     )
                 )
             )
+
+        if excluded_evergreen_activity_ids is not NOT_SET and len(excluded_evergreen_activity_ids):
+            query = query.where(cls.id.not_in(excluded_evergreen_activity_ids))
 
         return query
 

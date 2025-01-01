@@ -10,8 +10,6 @@ from eave.stdlib.logging import LOGGER
 class VisitorIdExtension(SchemaExtension):
     @override
     def on_operation(self) -> Iterator[None]:
-        LOGGER.debug("VisitorIdExtension")
-
         try:
             # Safety because `context` is typed as `Any`
             visitor_id = self.execution_context.context["request"].cookies.get(SEGMENT_ANONYMOUS_ID_COOKIE_NAME)

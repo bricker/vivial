@@ -72,3 +72,15 @@ class BookingState(MatchedStrEnum):
 
     CANCELED = enum.auto()
     """Vivial canceled the booking"""
+
+    @property
+    def is_visible(self) -> bool:
+        match self:
+            case BookingState.INITIATED:
+                return False
+            case BookingState.CONFIRMED:
+                return True
+            case BookingState.BOOKED:
+                return True
+            case BookingState.CANCELED:
+                return False

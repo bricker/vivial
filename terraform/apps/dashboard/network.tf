@@ -22,10 +22,10 @@ resource "google_dns_record_set" "default" {
   ]
 }
 
-module "certificate" {
-  source                                     = "../../modules/certificate_manager"
-  google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
-  cert_name                                  = local.app_name
-  entry_name                                 = local.app_name
-  hostname                                   = local.domain
-}
+# module "certificate" {
+#   source                                     = "../../modules/certificate_manager"
+#   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
+#   cert_name                                  = local.app_name
+#   entry_name                                 = local.app_name
+#   hostname                                   = local.domain
+# }
