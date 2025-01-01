@@ -1,3 +1,7 @@
+import asyncio
+
+from cachetools import TTLCache
+
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
@@ -13,21 +17,36 @@ from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
-from eave.stdlib.eventbrite.models.event import EventStatus
+from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.time import ONE_DAY_IN_SECONDS
+
+_EVENTBRITE_EVENT_CACHE = TTLCache[str, Event](maxsize=10**3, ttl=ONE_DAY_IN_SECONDS)
 
 
 class EventbriteUtility:
     client: EventbriteClient
+    _places: GooglePlacesUtility
+    _lock: asyncio.Lock
 
     def __init__(self) -> None:
         self.client = EventbriteClient(api_keys=CORE_API_APP_CONFIG.eventbrite_api_keys)
         self._places = GooglePlacesUtility()
+        self._lock = asyncio.Lock()
+
+    async def get_eventbrite_event(self, *, event_id: str) -> Event:
+        async with self._lock:
+            if event_id in _EVENTBRITE_EVENT_CACHE:
+                return _EVENTBRITE_EVENT_CACHE[event_id]
+
+            event = await self.client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
+            _EVENTBRITE_EVENT_CACHE[event_id] = event
+            return event
 
     async def get_eventbrite_activity(self, *, event_id: str, survey: SurveyOrm | None) -> Activity | None:
-        event = await self.client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
+        event = await self.get_eventbrite_event(event_id=event_id)
 
         if not (ticket_availability := event.get("ticket_availability")):
             LOGGER.warning(

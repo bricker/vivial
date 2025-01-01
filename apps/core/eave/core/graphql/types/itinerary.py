@@ -96,6 +96,7 @@ class Itinerary:
         routes = GoogleRoutesUtility()
 
         try:
+            # This should not be cached because it contains realtime traffic information.
             response = await routes.client.compute_routes(
                 request=routes_request, metadata=[("x-goog-fieldmask", "routes.duration")]
             )

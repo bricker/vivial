@@ -1,3 +1,4 @@
+import asyncio
 import enum
 import urllib.parse
 from collections.abc import Sequence
@@ -7,6 +8,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import googlemaps.geocoding
+from cachetools import TTLCache
 from google.maps.places import (
     GetPhotoMediaRequest,
     GetPlaceRequest,
@@ -30,6 +32,7 @@ from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.time import ONE_WEEK_IN_SECONDS
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -84,15 +87,27 @@ class GooglePlaceAddressComponentType(enum.StrEnum):
     subpremise = "subpremise"
 
 
+_GOOGLE_PLACES_PLACE_CACHE = TTLCache[str, Place](maxsize=10**3, ttl=ONE_WEEK_IN_SECONDS)
+_GOOGLE_PLACES_SEARCH_NEARBY_CACHE = TTLCache[tuple[GeoArea, list[str]], list[Place]](maxsize=10**3, ttl=ONE_WEEK_IN_SECONDS)
+_GOOGLE_MAPS_GEOCODE_CACHE = TTLCache[str, list[GeocodeResult]](maxsize=10**3, ttl=ONE_WEEK_IN_SECONDS)
+
+
 class GoogleMapsUtility:
     client: googlemaps.Client
+    _lock: asyncio.Lock
 
     def __init__(self) -> None:
         self.client = googlemaps.Client(key=CORE_API_APP_CONFIG.google_maps_api_key)
+        self._lock = asyncio.Lock()
 
-    def geocode(self, address: str) -> list[GeocodeResult]:
-        results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self.client, address=address)
-        return results
+    async def geocode(self, address: str) -> list[GeocodeResult]:
+        async with self._lock:
+            if address in _GOOGLE_MAPS_GEOCODE_CACHE:
+                return _GOOGLE_MAPS_GEOCODE_CACHE[address]
+
+            results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self.client, address=address)
+            _GOOGLE_MAPS_GEOCODE_CACHE[address] = results
+            return results
 
 
 class GoogleRoutesUtility:
@@ -105,10 +120,12 @@ class GoogleRoutesUtility:
 class GooglePlacesUtility:
     client: PlacesAsyncClient
     _maps: GoogleMapsUtility
+    _lock: asyncio.Lock
 
     def __init__(self) -> None:
         self.client = PlacesAsyncClient()
         self._maps = GoogleMapsUtility()
+        self._lock = asyncio.Lock()
 
     async def restaurant_from_google_place(self, place: Place) -> Restaurant:
         photos = await self.photos_from_google_place(place)
@@ -265,11 +282,11 @@ class GooglePlacesUtility:
             address=address,
         )
 
-    # Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
     async def photo_from_google_place_photo(
         self,
         photo: PlacePhoto,
     ) -> Photo:
+        # Warning: This data cannot be cached, because the photo media response contains temporary, expiring image URLs
         photo_res = await self.client.get_photo_media(
             request=GetPhotoMediaRequest(
                 name=f"{photo.name}/media",
@@ -290,14 +307,20 @@ class GooglePlacesUtility:
         self,
         place_id: str,
     ) -> Place | None:
-        try:
-            place = await self.client.get_place(
-                request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
-            )
-            return place
-        except Exception as e:
-            LOGGER.error(e)
-            return None
+        async with self._lock:
+            if place_id in _GOOGLE_PLACES_PLACE_CACHE:
+                return _GOOGLE_PLACES_PLACE_CACHE[place_id]
+
+            try:
+                place = await self.client.get_place(
+                    request=GetPlaceRequest(name=f"places/{place_id}"),
+                    metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)],
+                )
+                _GOOGLE_PLACES_PLACE_CACHE[place_id] = place
+                return place
+            except Exception as e:
+                LOGGER.error(e)
+                return None
 
     async def get_google_places_activity(self, *, event_id: str) -> Activity | None:
         place = await self.get_google_place(
@@ -325,7 +348,7 @@ class GooglePlacesUtility:
         self,
         *,
         area: GeoArea,
-        included_primary_types: Sequence[str],
+        included_primary_types: list[str],
     ) -> list[Place]:
         """
         Given a Google Places API client, use it to search for places nearby the
@@ -334,19 +357,26 @@ class GooglePlacesUtility:
         https://developers.google.com/maps/documentation/places/web-service/nearby-search
         """
 
-        location_restriction = SearchNearbyRequest.LocationRestriction()
-        location_restriction.circle.radius = area.rad.meters
-        location_restriction.circle.center.latitude = area.center.lat
-        location_restriction.circle.center.longitude = area.center.lon
-        request = SearchNearbyRequest(
-            location_restriction=location_restriction,
-            included_primary_types=included_primary_types[0:50],
-        )
+        async with self._lock:
+            hashkey = (area, included_primary_types)
+            if hashkey in _GOOGLE_PLACES_SEARCH_NEARBY_CACHE:
+                return _GOOGLE_PLACES_SEARCH_NEARBY_CACHE[hashkey]
 
-        response = await self.client.search_nearby(
-            request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
-        )
-        return list(response.places)
+            location_restriction = SearchNearbyRequest.LocationRestriction()
+            location_restriction.circle.radius = area.rad.meters
+            location_restriction.circle.center.latitude = area.center.lat
+            location_restriction.circle.center.longitude = area.center.lon
+            request = SearchNearbyRequest(
+                location_restriction=location_restriction,
+                included_primary_types=included_primary_types[0:50],
+            )
+
+            response = await self.client.search_nearby(
+                request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
+            )
+            places = list(response.places)
+            _GOOGLE_PLACES_SEARCH_NEARBY_CACHE[hashkey] = places
+            return places
 
     def place_will_be_open(
         self, *, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo
@@ -395,15 +425,14 @@ class GooglePlacesUtility:
 
     async def google_maps_directions_url(self, address: str) -> str:
         try:
-            geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(
-                client=self._maps.client, address=address
-            )
+            geocode_results = await self._maps.geocode(address=address)
 
             for result in geocode_results:
                 if place_id := result.get("place_id"):
                     place = await self.get_google_place(place_id)
                     if place and place.google_maps_uri:
                         return place.google_maps_uri
+
         except Exception as e:
             if SHARED_CONFIG.is_local:
                 raise

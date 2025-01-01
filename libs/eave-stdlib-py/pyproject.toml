@@ -24,4 +24,5 @@ dependencies = [
   "crc32c==2.7.1",
   "sendgrid==6.11.0",
   "segment-analytics-python==2.3.3",
+  "cachetools==5.5.0"
 ]

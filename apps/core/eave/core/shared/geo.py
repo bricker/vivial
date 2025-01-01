@@ -1,4 +1,5 @@
 import math
+from typing import override
 
 import geoalchemy2.shape
 import strawberry
@@ -38,6 +39,11 @@ class GeoPoint:
         r = 3958.75
         return c * r
 
+    @override
+    def __hash__(self) -> int:
+        # WARNING: Strawberry classes are mutable, so this hash is unsafe
+        return hash((self.lat, self.lon))
+
 
 @strawberry.type
 class Distance:
@@ -48,8 +54,18 @@ class Distance:
         self.miles = miles
         self.meters = miles * 1609.34
 
+    @override
+    def __hash__(self) -> int:
+        # WARNING: Strawberry classes are mutable, so this hash is unsafe
+        return hash(self.miles)
+
 
 @strawberry.type
 class GeoArea:
     center: GeoPoint
     rad: Distance
+
+    @override
+    def __hash__(self) -> int:
+        # WARNING: Strawberry classes are mutable, so this hash is unsafe
+        return hash((self.center, self.rad))
