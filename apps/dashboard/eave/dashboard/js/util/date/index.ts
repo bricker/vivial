@@ -1,3 +1,4 @@
+import { numWithEnglishSuffix } from "../string";
 import { LOCALE, MONTH_DAY_LABELS } from "./constant";
 
 /**
@@ -19,7 +20,7 @@ export function getTimeOfDay(date: Date, stripZeroes: boolean = true): string {
 }
 
 export function getDayOfMonth(date: Date): string {
-  return MONTH_DAY_LABELS[date.getDate()] || "";
+  return numWithEnglishSuffix(date.getDate());
 }
 
 export function getDayOfWeek(date: Date): string {

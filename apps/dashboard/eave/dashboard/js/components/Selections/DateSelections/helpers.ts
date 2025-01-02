@@ -7,27 +7,11 @@ export function getStartTimeLabel(startTime: Date): string {
     return `Tomorrow @ ${timeOfDay}`;
   }
 
-  let str = "";
   const dow = getDayOfWeek(startTime);
+  const month = getMonth(startTime);
   const dom = getDayOfMonth(startTime);
 
-  if (dow) {
-    str += `${dow}`;
-    if (dom) {
-      str += ", ";
-    }
-  }
-
-  if (dom) {
-    const month = getMonth(startTime);
-    str += `${month} ${dom}`;
-  }
-
-  if (str.length > 0) {
-    str += " @ ";
-  }
-
-  str += timeOfDay;
+  const str = `${dow}, ${month} ${dom} @ ${timeOfDay}`;
   return str;
 }
 
