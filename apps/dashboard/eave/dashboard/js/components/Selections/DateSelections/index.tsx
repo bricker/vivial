@@ -136,7 +136,7 @@ const DateSelections = ({
         <RowTitle>When:</RowTitle>
         <RowButtons>
           <SelectButton onClick={onSelectStartTime} highlightColor={colors.lightPurpleAccent} highlighted>
-            🕑 {startTimeLabel}
+            {startTimeLabel}
           </SelectButton>
         </RowButtons>
       </Row>

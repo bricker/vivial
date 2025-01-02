@@ -1,4 +1,4 @@
-import { LOCALE, MONTH_DAY_LABELS, WEEKDAY_LABELS } from "./constant";
+import { LOCALE, MONTH_DAY_LABELS } from "./constant";
 
 /**
  * 6:00 PM -> 6pm
@@ -23,7 +23,7 @@ export function getDayOfMonth(date: Date): string {
 }
 
 export function getDayOfWeek(date: Date): string {
-  return WEEKDAY_LABELS[date.getDay()] || "";
+  return date.toLocaleDateString(LOCALE, { weekday: "short" });
 }
 
 export function getMonth(date: Date): string {

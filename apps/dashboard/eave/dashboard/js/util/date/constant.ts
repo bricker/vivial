@@ -34,5 +34,3 @@ export const MONTH_DAY_LABELS: (string | null)[] = [
   "30th",
   "31st",
 ];
-
-export const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

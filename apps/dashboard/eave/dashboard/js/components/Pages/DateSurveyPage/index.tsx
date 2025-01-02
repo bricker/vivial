@@ -111,6 +111,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
     padding: "64px",
     marginTop: 0,
     marginLeft: 60,
+    minWidth: 415,
   },
 }));
 
