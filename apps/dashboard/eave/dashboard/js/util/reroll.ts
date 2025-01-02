@@ -3,7 +3,7 @@ import { useCookies } from "react-cookie";
 import { CookieId, RerollCookie } from "../types/cookie";
 import { in24Hours } from "./date";
 
-export const MAX_REROLLS = 4;
+export const MAX_REROLLS = 10;
 
 export function useReroll(): [number, () => void] {
   const [rerolls, setRerolls] = useState<number>(0);
