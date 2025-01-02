@@ -37,6 +37,7 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
+import { useMobile } from "$eave-dashboard/js/util/mobile";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
 import LoadingButton from "../../Buttons/LoadingButton";
@@ -144,9 +145,14 @@ const DateSurveyPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [rerolls, rerolled] = useReroll();
+  const isMobile = useMobile();
 
   const handleSubmit = useCallback(async () => {
-    if (!isLoggedIn) {
+    // checking for mobile layout bcus the mobile layout needs
+    // to handle the reroll cookie on its own, but the desktop
+    // layout relys on the DateSelections component to handle
+    // that internally.
+    if (!isLoggedIn && isMobile) {
       if (rerolls >= MAX_REROLLS) {
         navigate(AppRoute.signupMultiReroll);
         return;
@@ -163,7 +169,7 @@ const DateSurveyPage = () => {
         searchAreaIds,
       },
     });
-  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime, rerolls]);
+  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime, rerolls, isMobile]);
 
   const handleSubmitPreferences = useCallback(async (selections: OutingPreferencesSelections) => {
     setOutingPreferences(selections);
@@ -307,21 +313,30 @@ const DateSurveyPage = () => {
               )}
             </>
           )}
-          <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
-            🎲 Pick my date
-          </SubmitButton>
-          {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+
+          {isMobile && (
+            <>
+              <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
+                🎲 Pick my date
+              </SubmitButton>
+              {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+            </>
+          )}
         </CopyContainer>
         <DateSurveyContainer>
           <DateSelections
+            cta={!isMobile ? "🎲 Pick my date" : undefined}
             headcount={headcount}
             budget={budget}
             startTime={startTime}
             searchAreaIds={searchAreaIds}
+            onSubmit={!isMobile ? handleSubmit : undefined}
             onSelectHeadcount={handleSelectHeadcount}
             onSelectBudget={handleSelectBudget}
             onSelectStartTime={toggleDatePickerOpen}
             onSelectSearchArea={toggleAreasOpen}
+            errorMessage={!isMobile ? errorMessage : undefined}
+            loading={!isMobile ? planOutingLoading : undefined}
           />
         </DateSurveyContainer>
       </PageContentContainer>
