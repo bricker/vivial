@@ -124,3 +124,47 @@ class TestOutingResolver(BaseTestCase):
         assert data["costBreakdown"]["feeCents"] == 0
         assert data["costBreakdown"]["taxCents"] == 0
         assert data["costBreakdown"]["totalCostCents"] == 0
+
+    async def test_get_outing_activity_expired(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            outing.activities[0].start_time_utc = self.anydatetime(past=True)
+
+        response = await self.make_graphql_request(
+            "getOuting",
+            {
+                "input": {
+                    "id": str(outing.id),
+                },
+            },
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["outing"] is None
+
+    async def test_get_outing_reservation_expired(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            outing.reservations[0].start_time_utc = self.anydatetime(past=True)
+
+        response = await self.make_graphql_request(
+            "getOuting",
+            {
+                "input": {
+                    "id": str(outing.id),
+                },
+            },
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["outing"] is None

@@ -4,12 +4,13 @@ import re
 import aiohttp
 from asgiref.typing import HTTPScope
 from starlette.responses import Response
+from starlette.types import Scope
 
 from eave.stdlib import util
 from eave.stdlib.http_exceptions import BadRequestError
 
 
-def get_header_value(scope: HTTPScope, name: str) -> str | None:
+def get_header_value(scope: Scope | HTTPScope, name: str) -> str | None:
     """
     This function doesn't support multiple headers with the same name.
     It will always choose the "first" one (from whatever order the ASGI server sent).
@@ -23,7 +24,7 @@ class MissingRequiredHeaderError(BadRequestError):
     pass
 
 
-def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:
+def get_header_value_or_exception(scope: Scope | HTTPScope, name: str) -> str:
     """
     Proxy to get_header_value, raises MissingRequiredHeader if header is missing
     """
@@ -34,7 +35,7 @@ def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:
 
 
 def get_headers(
-    scope: HTTPScope, excluded: set[str] | None = None, redacted: set[str] | None = None
+    scope: Scope | HTTPScope, excluded: set[str] | None = None, redacted: set[str] | None = None
 ) -> dict[str, str | None]:
     """
     This function doesn't support multiple headers with the same name.
@@ -61,7 +62,7 @@ def get_headers(
     }
 
 
-def get_bearer_token(scope: HTTPScope) -> str | None:
+def get_bearer_token(scope: Scope | HTTPScope) -> str | None:
     auth_header = get_header_value(scope=scope, name=aiohttp.hdrs.AUTHORIZATION)
     if auth_header is None:
         return None

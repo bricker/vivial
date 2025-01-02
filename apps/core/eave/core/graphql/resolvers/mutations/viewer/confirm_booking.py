@@ -8,7 +8,7 @@ import stripe
 
 import eave.stdlib.slack
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext, log_ctx
+from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
 from eave.core.graphql.types.booking import (
     Booking,
 )
@@ -142,6 +142,7 @@ async def confirm_booking_mutation(
         account_orm=account_orm,
         visitor_id=visitor_id,
         itinerary=itinerary,
+        ctx=info.context,
     )
 
     return ConfirmBookingSuccess(
@@ -155,6 +156,7 @@ async def perform_post_confirm_actions(
     account_orm: AccountOrm,
     visitor_id: str | None,
     itinerary: Itinerary,
+    ctx: GraphQLContext,
 ) -> None:
     try:
         # TODO: Move all of this into an offline queue
@@ -164,10 +166,13 @@ async def perform_post_confirm_actions(
             account_orm=account_orm,
             visitor_id=visitor_id,
             itinerary=itinerary,
+            ctx=ctx,
         )
-        await _notify_slack_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary)
+        await _notify_slack_booking_confirmed(
+            booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary, ctx=ctx
+        )
     except Exception as e:
-        LOGGER.exception(e)
+        LOGGER.exception(e, log_ctx(ctx))
 
 
 def _fire_analytics_booking_confirmed(
@@ -176,6 +181,7 @@ def _fire_analytics_booking_confirmed(
     account_orm: AccountOrm,
     visitor_id: str | None,
     itinerary: Itinerary,
+    ctx: GraphQLContext,
 ) -> None:
     ANALYTICS.track(
         event_name="booking_complete",
@@ -191,6 +197,7 @@ def _fire_analytics_booking_confirmed(
             if booking_orm.outing and booking_orm.outing.survey
             else None,
         },
+        ctx=analytics_ctx(ctx),
     )
 
 
@@ -199,6 +206,7 @@ async def _notify_slack_booking_confirmed(
     booking_orm: BookingOrm,
     account_orm: AccountOrm,
     itinerary: Itinerary,
+    ctx: GraphQLContext,
 ) -> None:
     total_cost_formatted = (
         f"${"{:.2f}".format(itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents() / 100)}"
@@ -292,7 +300,7 @@ async def _notify_slack_booking_confirmed(
         if SHARED_CONFIG.is_local:
             raise
         else:
-            LOGGER.exception(e)
+            LOGGER.exception(e, log_ctx(ctx))
 
 
 def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:

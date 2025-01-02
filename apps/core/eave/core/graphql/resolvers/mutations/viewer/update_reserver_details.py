@@ -18,9 +18,9 @@ from eave.stdlib.util import unwrap
 @strawberry.input
 class UpdateReserverDetailsInput:
     id: UUID
-    first_name: str
-    last_name: str
-    phone_number: str
+    first_name: str | None = strawberry.UNSET
+    last_name: str | None = strawberry.UNSET
+    phone_number: str | None = strawberry.UNSET
 
 
 @strawberry.type
@@ -55,9 +55,15 @@ async def update_reserver_details_mutation(
     try:
         async with database.async_session.begin() as db_session:
             reserver_details = await ReserverDetailsOrm.get_one(db_session, account_id=account_id, uid=input.id)
-            reserver_details.first_name = input.first_name
-            reserver_details.last_name = input.last_name
-            reserver_details.phone_number = input.phone_number
+
+            if input.first_name:
+                reserver_details.first_name = input.first_name
+
+            if input.last_name:
+                reserver_details.last_name = input.last_name
+
+            if input.phone_number:
+                reserver_details.phone_number = input.phone_number
 
         return UpdateReserverDetailsSuccess(
             reserver_details=ReserverDetails.from_orm(reserver_details),

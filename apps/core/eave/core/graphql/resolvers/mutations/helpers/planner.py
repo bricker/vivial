@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy import func
 
 import eave.core.database
+from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import Activity, ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import OutingPreferencesInput
@@ -164,12 +165,13 @@ class OutingPlanner:
     excluded_google_place_ids: list[str]
     excluded_evergreen_activity_ids: list[UUID]
 
-    correlation_id: str | None
+    ctx: GraphQLContext
 
     def __init__(
         self,
         individual_preferences: list[OutingPreferencesInput],
         survey: SurveyOrm,
+        ctx: GraphQLContext,
         activity: Activity | None = None,
         restaurant: Restaurant | None = None,
         activity_start_time: datetime | None = None,
@@ -177,7 +179,6 @@ class OutingPlanner:
         excluded_eventbrite_event_ids: list[str] | None = None,
         excluded_google_place_ids: list[str] | None = None,
         excluded_evergreen_activity_ids: list[UUID] | None = None,
-        correlation_id: str | None = None,
     ) -> None:
         self.places = GooglePlacesUtility()
         self.eventbrite = EventbriteUtility()
@@ -197,15 +198,11 @@ class OutingPlanner:
         self.group_activity_category_preferences = _combine_activity_categories(individual_preferences)
         self.group_open_to_bars = _combine_bar_openness(individual_preferences)
 
-        self.excluded_google_place_ids = excluded_google_place_ids if excluded_google_place_ids is not None else []
-        self.excluded_eventbrite_event_ids = (
-            excluded_eventbrite_event_ids if excluded_eventbrite_event_ids is not None else []
-        )
-        self.excluded_evergreen_activity_ids = (
-            excluded_evergreen_activity_ids if excluded_evergreen_activity_ids is not None else []
-        )
+        self.excluded_google_place_ids = excluded_google_place_ids or []
+        self.excluded_eventbrite_event_ids = excluded_eventbrite_event_ids or []
+        self.excluded_evergreen_activity_ids = excluded_evergreen_activity_ids or []
 
-        self.correlation_id = correlation_id
+        self.ctx = ctx
 
     async def plan_activity(self) -> Activity | None:
         """
@@ -521,7 +518,7 @@ class OutingPlanner:
     def _log_ctx(self) -> JsonObject:
         return {
             "source": "planner",
-            "correlation_id": self.correlation_id,
+            "correlation_id": self.ctx.get("correlation_id"),
             "group_activity_category_preferences": [p.name for p in self.group_activity_category_preferences],
             "search_areas": [
                 SearchRegionOrm.one_or_exception(search_region_id=search_area_id).name
@@ -533,4 +530,6 @@ class OutingPlanner:
             if self.restaurant_arrival_time_local
             else None,
             "excluded_eventbrite_event_ids": self.excluded_eventbrite_event_ids,
+            "excluded_google_place_ids": self.excluded_google_place_ids,
+            "excluded_evergreen_activity_ids": [x.hex for x in self.excluded_evergreen_activity_ids],
         }

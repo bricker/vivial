@@ -1,7 +1,8 @@
-from eave.core.orm.booking import BookingOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import BookingState, OutingBudget
+from eave.core.shared.enums import ActivitySource, BookingState, OutingBudget, RestaurantSource
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
 
 from ..base import BaseTestCase
@@ -107,6 +108,127 @@ class TestConfirmBookingResolver(BaseTestCase):
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 1
         assert self.get_mock("slack client").call_count == 2  # One for parent, one for thread
         assert self.get_mock("SendGridAPIClient.send").call_count == 1
+
+    async def test_confirm_booking_no_action_needed_is_immediately_booked(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            booking = self.make_booking(
+                session,
+                account,
+                outing,
+                stripe_payment_intent_reference=None,
+                reserver_details=None,
+            )
+
+            booking.activities[0].source = ActivitySource.GOOGLE_PLACES
+            booking.reservations[0].source = RestaurantSource.GOOGLE_PLACES
+
+            # When nothing is reservable, then the booking is immediate booked.
+            self.mock_google_place.reservable = False
+
+        assert booking.state == BookingState.INITIATED
+
+        response = await self.make_graphql_request(
+            "confirmBooking",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["confirmBooking"]
+        assert data["__typename"] == "ConfirmBookingSuccess"
+        assert data["booking"]["id"] == str(booking.id)
+        assert data["booking"]["state"] == BookingState.BOOKED
+
+        async with self.db_session.begin() as session:
+            booking_fetched = await BookingOrm.get_one(session, booking.id)
+            assert booking_fetched.state == BookingState.BOOKED
+
+    async def test_confirm_booking_no_action_needed_is_immediately_booked_for_evergreen(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+            evergreen_activity = EvergreenActivityOrm(
+                session,
+                activity_category_id=self.random_activity_categories()[0].id,
+                address=self.anyaddress(),
+                booking_url=None,
+                coordinates=self.anycoordinates(),
+                description=self.anystr(),
+                duration_minutes=self.anyint(min=30, max=120),
+                google_place_id=self.anystr(),
+                is_bookable=False,
+                title=self.anystr(),
+            )
+
+        async with self.db_session.begin() as session:
+            # This has to be a separate session so we can set source_id to evergreen activity ID
+
+            booking = self.make_booking(
+                session,
+                account,
+                outing,
+                stripe_payment_intent_reference=None,
+                reserver_details=None,
+            )
+
+            booking.activities = [
+                BookingActivityTemplateOrm(
+                    session,
+                    booking=booking,
+                    name=self.anystr(),
+                    start_time_utc=outing.activities[0].start_time_utc,
+                    timezone=self.anytimezone(),
+                    photo_uri=self.anyurl(),
+                    headcount=outing.survey.headcount if outing.survey else self.anyint(min=1, max=2),
+                    coordinates=self.anycoordinates(),
+                    external_booking_link=self.anyurl(),
+                    source=ActivitySource.INTERNAL,
+                    source_id=str(evergreen_activity.id),
+                    address=self.anyaddress(),
+                )
+            ]
+
+            booking.reservations[0].source = RestaurantSource.GOOGLE_PLACES
+
+        assert booking.state == BookingState.INITIATED
+
+        # When nothing is reservable, then the booking is immediate booked.
+        self.mock_google_place.reservable = False
+
+        response = await self.make_graphql_request(
+            "confirmBooking",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["confirmBooking"]
+        assert data["__typename"] == "ConfirmBookingSuccess"
+        assert data["booking"]["id"] == str(booking.id)
+        assert data["booking"]["state"] == BookingState.BOOKED
+
+        async with self.db_session.begin() as session:
+            booking_fetched = await BookingOrm.get_one(session, booking.id)
+            assert booking_fetched.state == BookingState.BOOKED
 
     async def test_confirm_booking_with_unauthorized_account_for_booking(self) -> None:
         async with self.db_session.begin() as session:
