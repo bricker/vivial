@@ -14,6 +14,8 @@ function _print_help() (
 )
 
 function main() (
+	e.verify_clean_git_index
+
 	local service=""
 	local dockerfile=""
 	local label=""

@@ -152,6 +152,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		return 0
 	)
 
+	function e.verify_clean_git_index() {
+		if ! test -z "$(git status --porcelain)"; then
+			statusmsg -e "Dirty git index!"
+			exit 1
+		fi
+	}
+
 	function e.shellname() {
 		echo -n "$(basename "$SHELL")"
 	}
