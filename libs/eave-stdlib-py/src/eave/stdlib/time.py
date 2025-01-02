@@ -64,8 +64,10 @@ def pretty_datetime(dt: datetime) -> str:
     if dt.minute == 0:
         minutefmt = ""
 
-    return dt.strftime(f"%A, %B {suffixed_day} at %-I{minutefmt}%p %Z")
+    p = dt.strftime("%p").lower()
+    return dt.strftime(f"%A, %B {suffixed_day} at %-I{minutefmt}{p} %Z")
 
 
 def pretty_time(dt: datetime) -> str:
-    return dt.strftime("%I:%M%p")
+    p = dt.strftime("%p").lower()
+    return dt.strftime(f"%-I:%M{p}")
