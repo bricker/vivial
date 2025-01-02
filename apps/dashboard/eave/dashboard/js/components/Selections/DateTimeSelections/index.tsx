@@ -2,7 +2,7 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import { DateCalendar } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -108,6 +108,12 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
   const [timeOptions, setTimeOptions] = useState(getTimeOptions(defaultValue));
   const [timeDropdownOpen, setTimeDropdownOpen] = useState(false);
 
+  useEffect(() => {
+    if (timeDropdownOpen) {
+      document.getElementById(selectedTime.label)?.scrollIntoView();
+    }
+  }, [timeDropdownOpen]);
+
   const handleDayChange = useCallback((value: Dayjs) => {
     setSelectedDay(value);
     setTimeOptions(getTimeOptions(value));
@@ -137,7 +143,7 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
           {timeDropdownOpen && (
             <TimeOptions>
               {timeOptions.map((timeObj) => (
-                <TimeButton key={timeObj.label} onClick={() => handleTimeChange(timeObj)}>
+                <TimeButton id={timeObj.label} key={timeObj.label} onClick={() => handleTimeChange(timeObj)}>
                   {timeObj.label === selectedTime.label ? (
                     <Time data-selected>
                       {timeObj.label} <CheckIcon />
