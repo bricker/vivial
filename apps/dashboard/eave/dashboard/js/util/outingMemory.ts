@@ -33,7 +33,7 @@ function initOutingMemoryCookie(): OutingMemoryCookie {
     excludedGooglePlaceSegments: [],
   };
   const expires = in1Year().toUTCString();
-  document.cookie = `${CookieId.OutingMemory}=${JSON.stringify(outingMemory)}; expires=${expires}`;
+  document.cookie = `${CookieId.OutingMemory}=${JSON.stringify(outingMemory)}; expires=${expires}; path=/`;
   return outingMemory;
 }
 
