@@ -1,5 +1,5 @@
 import { numWithEnglishSuffix } from "../string";
-import { LOCALE, MONTH_DAY_LABELS } from "./constant";
+import { LOCALE } from "./constant";
 
 /**
  * 6:00 PM -> 6pm
