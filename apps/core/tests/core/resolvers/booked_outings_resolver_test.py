@@ -181,6 +181,34 @@ class TestBookedOutingsResolver(BaseTestCase):
 
         assert data["id"] == str(booking.id)
 
+    async def test_booked_outings_details_booking_booked(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.BOOKED
+
+        response = await self.make_graphql_request(
+            "bookedOutingDetails",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                }
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        data = result.data["viewer"]["bookedOutingDetails"]
+
+        assert data["id"] == str(booking.id)
+
     async def test_booked_outings_details_booking_not_confirmed(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)
@@ -206,3 +234,154 @@ class TestBookedOutingsResolver(BaseTestCase):
 
         assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
         assert result.data["viewer"]["bookedOutingDetails"] is None
+
+    async def test_booked_outings_details_unauthed(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.BOOKED
+
+            other_account = self.make_account(session)
+
+        response = await self.make_graphql_request(
+            "bookedOutingDetails",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                }
+            },
+            account_id=other_account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["bookedOutingDetails"] is None
+
+    async def test_booked_outings_no_activities(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.CONFIRMED
+            booking.activities = []
+
+        response = await self.make_graphql_request(
+            "listBookedOutings",
+            {},
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        assert result.data["viewer"]["bookedOutings"][0]["activityName"] is None
+        assert result.data["viewer"]["bookedOutings"][0]["activityStartTime"] is None
+        assert result.data["viewer"]["bookedOutings"][0]["restaurantName"] is not None
+        assert result.data["viewer"]["bookedOutings"][0]["restaurantArrivalTime"] is not None
+
+    async def test_booked_outings_no_reservations(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.CONFIRMED
+            booking.reservations = []
+
+        response = await self.make_graphql_request(
+            "listBookedOutings",
+            {},
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        assert result.data["viewer"]["bookedOutings"][0]["activityName"] is not None
+        assert result.data["viewer"]["bookedOutings"][0]["activityStartTime"] is not None
+        assert result.data["viewer"]["bookedOutings"][0]["restaurantName"] is None
+        assert result.data["viewer"]["bookedOutings"][0]["restaurantArrivalTime"] is None
+
+    async def test_booked_outings_with_activity_photo(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.CONFIRMED
+            booking.activities[0].photo_uri = self.anyurl("activity photo uri")
+            booking.reservations[0].photo_uri = self.anyurl("reservation photo url")
+
+        response = await self.make_graphql_request(
+            "listBookedOutings",
+            {},
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        assert result.data["viewer"]["bookedOutings"][0]["photoUri"] == self.geturl("activity photo uri")
+
+    async def test_booked_outings_no_activity_photo(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.CONFIRMED
+            booking.activities[0].photo_uri = None
+            booking.reservations[0].photo_uri = self.anyurl("reservation photo uri")
+
+        response = await self.make_graphql_request(
+            "listBookedOutings",
+            {},
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        assert result.data["viewer"]["bookedOutings"][0]["photoUri"] == self.geturl("reservation photo uri")
+
+    async def test_booked_outings_no_activity_or_reservation_photo(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+            booking.state = BookingState.CONFIRMED
+            booking.activities[0].photo_uri = None
+            booking.reservations[0].photo_uri = None
+
+        response = await self.make_graphql_request(
+            "listBookedOutings",
+            {},
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        assert result.data["viewer"]["bookedOutings"][0]["photoUri"] is None

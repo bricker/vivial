@@ -1,6 +1,8 @@
 query ListBookedOutings {
   viewer {
     ... on AuthenticatedViewerQueries {
+      __typename
+
       bookedOutings {
         id
         activityName
@@ -12,6 +14,7 @@ query ListBookedOutings {
     }
 
     ... on UnauthenticatedViewer {
+      __typename
       authFailureReason
     }
   }

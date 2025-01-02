@@ -36,10 +36,22 @@ class TestTimeHelpers(StdlibBaseTestCase):
         assert pretty_date(datetime(2025, 1, 3, 6, 27, tzinfo=UTC)) == "Friday, January 3rd"
 
     async def test_pretty_datetime(self):
-        assert pretty_datetime(datetime(2025, 1, 2, 20, 27, tzinfo=LOS_ANGELES_TIMEZONE)) == "Thursday, January 2nd at 8:27pm PST"
-        assert pretty_datetime(datetime(2025, 1, 1, 22, 27, tzinfo=LOS_ANGELES_TIMEZONE)) == "Wednesday, January 1st at 10:27pm PST"
-        assert pretty_datetime(datetime(2025, 1, 1, 22, 00, tzinfo=LOS_ANGELES_TIMEZONE)) == "Wednesday, January 1st at 10pm PST"
-        assert pretty_datetime(datetime(2025, 1, 1, 6, 00, tzinfo=LOS_ANGELES_TIMEZONE)) == "Wednesday, January 1st at 6am PST"
+        assert (
+            pretty_datetime(datetime(2025, 1, 2, 20, 27, tzinfo=LOS_ANGELES_TIMEZONE))
+            == "Thursday, January 2nd at 8:27pm PST"
+        )
+        assert (
+            pretty_datetime(datetime(2025, 1, 1, 22, 27, tzinfo=LOS_ANGELES_TIMEZONE))
+            == "Wednesday, January 1st at 10:27pm PST"
+        )
+        assert (
+            pretty_datetime(datetime(2025, 1, 1, 22, 00, tzinfo=LOS_ANGELES_TIMEZONE))
+            == "Wednesday, January 1st at 10pm PST"
+        )
+        assert (
+            pretty_datetime(datetime(2025, 1, 1, 6, 00, tzinfo=LOS_ANGELES_TIMEZONE))
+            == "Wednesday, January 1st at 6am PST"
+        )
         assert pretty_datetime(datetime(2025, 1, 3, 6, 27, tzinfo=UTC)) == "Friday, January 3rd at 6:27am UTC"
 
     async def test_pretty_time(self):
