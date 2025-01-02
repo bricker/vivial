@@ -11,7 +11,7 @@ export function useReroll(): [number, () => void] {
   const rerollCookie = cookies[CookieId.Reroll] as RerollCookie;
 
   const updateCookie = (rerollsUpdate: number, expires: Date) => {
-    setCookie(CookieId.Reroll, { rerolls: rerollsUpdate, expires }, { expires });
+    setCookie(CookieId.Reroll, { rerolls: rerollsUpdate, expires }, { expires, path: "/" });
   };
 
   const rerolled = () => {

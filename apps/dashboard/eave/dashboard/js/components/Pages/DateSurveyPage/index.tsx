@@ -114,7 +114,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const SubmitButton = styled(LoadingButton)(() => ({
-  marginTop: 8,
+  marginTop: 16,
 }));
 
 const Error = styled(Typography)(({ theme }) => ({
@@ -163,7 +163,7 @@ const DateSurveyPage = () => {
         searchAreaIds,
       },
     });
-  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
+  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime, rerolls]);
 
   const handleSubmitPreferences = useCallback(async (selections: OutingPreferencesSelections) => {
     setOutingPreferences(selections);

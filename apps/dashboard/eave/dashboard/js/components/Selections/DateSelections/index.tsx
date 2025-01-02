@@ -46,33 +46,70 @@ const BudgetSelectButton = styled(SelectButton)(() => ({
   padding: "0 10px",
 }));
 
+const SubmitButton = styled(LoadingButton)(() => ({
+  marginTop: 8,
+}));
+
+const Error = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  marginTop: 16,
+  textAlign: "left",
+}));
 
 interface DateSelectionsProps {
+  cta?: string;
   headcount: number;
   budget: OutingBudget;
   startTime: Date;
   searchAreaIds: string[];
+  onSubmit?: () => void;
   onSelectHeadcount: (value: number) => void;
   onSelectBudget: (value: OutingBudget) => void;
   onSelectStartTime: () => void;
   onSelectSearchArea: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  errorMessage?: string;
 }
 
 const DateSelections = ({
+  cta,
   headcount,
   budget,
   startTime,
   searchAreaIds,
+  loading,
+  disabled,
+  errorMessage,
+  onSubmit,
   onSelectHeadcount,
   onSelectBudget,
   onSelectStartTime,
   onSelectSearchArea,
 }: DateSelectionsProps) => {
   const { data } = useGetSearchRegionsQuery({});
+  const [rerolls, rerolled] = useReroll();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const navigate = useNavigate();
 
   const searchRegions = data?.searchRegions || [];
   const searchAreaLabel = getSearchAreaLabel(searchAreaIds, searchRegions);
   const startTimeLabel = getStartTimeLabel(startTime);
+
+  const handleSubmit = () => {
+    if (onSubmit) {
+      if (isLoggedIn) {
+        onSubmit();
+      } else {
+        if (rerolls >= MAX_REROLLS) {
+          navigate(AppRoute.signupMultiReroll);
+        } else {
+          rerolled();
+          onSubmit();
+        }
+      }
+    }
+  };
 
   return (
     <>
@@ -144,6 +181,13 @@ const DateSelections = ({
           </BudgetSelectButton>
         </RowButtons>
       </Row>
+
+      {cta && onSubmit && (
+        <SubmitButton onClick={handleSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
+          {cta}
+        </SubmitButton>
+      )}
+      {errorMessage && <Error>ERROR: {errorMessage}</Error>}
     </>
   );
 };
