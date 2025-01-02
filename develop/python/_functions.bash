@@ -101,7 +101,6 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		python -m pytest \
 			--cov \
 			--cov-report=html \
-			--cov-context=test \
 			--cov-config="${EAVE_HOME}/develop/python/configs/coverage.toml" \
 			--config-file="${EAVE_HOME}/develop/python/configs/pytest.pyproject.toml" \
 			--rootdir="${EAVE_HOME}" $exitfirst "$testfile"
