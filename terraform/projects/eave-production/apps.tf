@@ -1,6 +1,6 @@
 module "shared_kubernetes_resources" {
   source                   = "../../modules/kube_shared_resources"
-  iap_oauth_client_secret  = google_iap_client.default.secret
+  iap_oauth_client_secret  = module.iap.google_iap_client.secret
   dns_domain               = local.dns_domain
   www_public_domain_prefix = local.www_public_domain_prefix
   api_public_domain_prefix = local.api_public_domain_prefix
@@ -39,7 +39,7 @@ module "core_api_app" {
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 
   iap_enabled                       = false
-  iap_oauth_client_id               = google_iap_client.default.client_id
+  iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }
 
@@ -60,7 +60,7 @@ module "dashboard_app" {
   release_version = "latest"
 
   iap_enabled                       = false
-  iap_oauth_client_id               = google_iap_client.default.client_id
+  iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }
 
@@ -80,6 +80,6 @@ module "admin_app" {
   LOG_LEVEL       = "DEBUG"
   release_version = "latest"
 
-  iap_oauth_client_id               = google_iap_client.default.client_id
+  iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }

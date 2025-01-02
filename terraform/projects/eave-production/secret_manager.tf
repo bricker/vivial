@@ -18,13 +18,6 @@ module "app_secrets" {
         module.admin_app.service_account.member,
       ],
     },
-    EVENTBRITE_API_KEY = {
-      # DEPRECATED
-      data = var.EVENTBRITE_API_KEY
-      accessors = [
-        module.core_api_app.service_account.member,
-      ],
-    },
     EVENTBRITE_API_KEYS = {
       data = jsonencode(var.EVENTBRITE_API_KEYS)
       accessors = [

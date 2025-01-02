@@ -7,27 +7,13 @@ variable "SLACK_SYSTEM_BOT_TOKEN" {
   sensitive = true
 }
 
-variable "IAP_OAUTH_CLIENT_ID" {
-  type = string
-}
-
-variable "IAP_OAUTH_CLIENT_SECRET" {
-  type      = string
-  sensitive = true
-}
-
 variable "SENDGRID_API_KEY" {
   type      = string
   sensitive = true
 }
 
-variable "EVENTBRITE_API_KEY" {
-  type      = string
-  sensitive = true
-}
-
 variable "EVENTBRITE_API_KEYS" {
-  type      = string
+  type      = list(string)
   sensitive = true
 }
 

@@ -12,11 +12,6 @@ variable "SENDGRID_API_KEY" {
   sensitive = true
 }
 
-variable "EVENTBRITE_API_KEY" {
-  type      = string
-  sensitive = true
-}
-
 variable "EVENTBRITE_API_KEYS" {
   type      = list(string)
   sensitive = true

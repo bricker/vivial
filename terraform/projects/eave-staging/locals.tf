@@ -10,6 +10,7 @@ locals {
 
   www_public_domain_prefix = "www"
   api_public_domain_prefix = "api"
+  admin_public_domain_prefix = "api"
 
   authorized_networks = {
     "bryan-wifi" : {

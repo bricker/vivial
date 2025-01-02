@@ -14,13 +14,6 @@ module "app_secrets" {
         "group:developers@eave.fyi",
       ],
     },
-    EVENTBRITE_API_KEY = {
-      # DEPRECATED
-      data = var.EVENTBRITE_API_KEY
-      accessors = [
-        "group:developers@eave.fyi",
-      ],
-    },
     EVENTBRITE_API_KEYS = {
       data = jsonencode(var.EVENTBRITE_API_KEYS)
       accessors = [
