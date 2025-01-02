@@ -166,7 +166,7 @@ class TestConfirmBookingResolver(BaseTestCase):
                 booking_url=None,
                 coordinates=self.anycoordinates(),
                 description=self.anystr(),
-                duration_minutes=self.anyint(min=30,max=120),
+                duration_minutes=self.anyint(min=30, max=120),
                 google_place_id=self.anystr(),
                 is_bookable=False,
                 title=self.anystr(),
@@ -206,7 +206,6 @@ class TestConfirmBookingResolver(BaseTestCase):
 
         # When nothing is reservable, then the booking is immediate booked.
         self.mock_google_place.reservable = False
-
 
         response = await self.make_graphql_request(
             "confirmBooking",
