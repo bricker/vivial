@@ -1,18 +1,23 @@
 /**
- * If it's before 6:00 PM at the time that this function is called,
- * this function returns 6:00 PM the next day.
- *
- * Otherwise, this function returns 6:00 PM two days from the currrent day.
+ * Returns 6:00PM on the Saturday nearest to now, that is also
+ * at least 24 hours away.
  */
 export function getInitialStartTime(): Date {
   const now = new Date();
   const startTime = new Date(now);
+
+  // set startTime to the next saturday 6pm
   const sixPM = 18;
   startTime.setHours(sixPM, 0, 0);
-  if (now.getHours() < sixPM) {
-    startTime.setDate(now.getDate() + 1);
-  } else {
-    startTime.setDate(now.getDate() + 2);
+
+  const SATURDAY = 6;
+  const daysUntilSaturday = SATURDAY - now.getDay();
+  startTime.setDate(startTime.getDate() + daysUntilSaturday);
+
+  // if <24h until startTime, add 1 week to set startTime to following saturday
+  const oneDayInMilis = 24 * 60 * 60 * 1000;
+  if (startTime.getTime() - now.getTime() < oneDayInMilis) {
+    startTime.setDate(startTime.getDate() + 7);
   }
   return startTime;
 }
