@@ -97,7 +97,7 @@ class EventbriteUtility:
                     continue
 
                 cost_breakdown = CostBreakdown(
-                    max_base_cost_cents=base_cost["value"],
+                    base_cost_cents=base_cost["value"],
                     min_base_cost_cents=base_cost["value"],
                 )
 

@@ -4,7 +4,7 @@ query Outing($input: OutingInput!) {
     id
     costBreakdown {
       minBaseCostCents
-      maxBaseCostCents
+      baseCostCents
       feeCents
       taxCents
       totalCostCents
@@ -69,7 +69,7 @@ query Outing($input: OutingInput!) {
           notes
           costBreakdown {
             minBaseCostCents
-            maxBaseCostCents
+            baseCostCents
             feeCents
             taxCents
             totalCostCents

@@ -18,8 +18,8 @@ export function formatTotalCost(costBreakdown: CostBreakdownFieldsFragment): str
  * @param costBreakdown
  * @returns formatted currency string
  */
-export function formatMaxBaseCost(costBreakdown: CostBreakdownFieldsFragment): string {
-  return currencyFormatter.format(costBreakdown.maxBaseCostCents / 100);
+export function formatBaseCost(costBreakdown: CostBreakdownFieldsFragment): string {
+  return currencyFormatter.format(costBreakdown.baseCostCents / 100);
 }
 
 export function formatCostRange(costBreakdown: CostBreakdownFieldsFragment): string {
@@ -30,7 +30,7 @@ export function formatCostRange(costBreakdown: CostBreakdownFieldsFragment): str
     minimumFractionDigits: 0,
   });
   return `${rangeFormatter.format(costBreakdown.minBaseCostCents / 100)}-${rangeFormatter.format(
-    costBreakdown.maxBaseCostCents / 100,
+    costBreakdown.baseCostCents / 100,
   )}`;
 }
 

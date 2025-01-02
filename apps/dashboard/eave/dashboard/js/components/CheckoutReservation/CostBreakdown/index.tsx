@@ -3,7 +3,7 @@ import {
   ZERO_DOLLARS_FORMATTED,
   formatCostRange,
   formatFeesAndTaxes,
-  formatMaxBaseCost,
+  formatBaseCost,
   formatTotalCost,
   hasUnbookableCost,
 } from "$eave-dashboard/js/util/currency";
@@ -62,15 +62,15 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
     breakdown.push({
       key: "reservation",
       costName: itinerary.reservation.restaurant.name,
-      costValue: formatMaxBaseCost(itinerary.reservation.costBreakdown),
+      costValue: formatBaseCost(itinerary.reservation.costBreakdown),
     });
   }
 
   if (itinerary.activityPlan && itinerary.activityPlan.activity.source !== ActivitySource.GooglePlaces) {
-    let costValue = formatMaxBaseCost(itinerary.activityPlan.costBreakdown);
+    let costValue = formatBaseCost(itinerary.activityPlan.costBreakdown);
     if (
       !itinerary.activityPlan.activity.isBookable &&
-      itinerary.activityPlan.costBreakdown.minBaseCostCents !== itinerary.activityPlan.costBreakdown.maxBaseCostCents
+      itinerary.activityPlan.costBreakdown.minBaseCostCents !== itinerary.activityPlan.costBreakdown.baseCostCents
     ) {
       costValue = formatCostRange(itinerary.activityPlan.costBreakdown);
     }

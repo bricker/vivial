@@ -189,6 +189,7 @@ export type CostBreakdown = {
   __typename?: 'CostBreakdown';
   baseCostCents: Scalars['Int']['output'];
   feeCents: Scalars['Int']['output'];
+  minBaseCostCents: Scalars['Int']['output'];
   taxCents: Scalars['Int']['output'];
   totalCostCents: Scalars['Int']['output'];
 };
@@ -362,6 +363,7 @@ export type BookingFieldsFragment = {
 
 export type CostBreakdownFieldsFragment = {
   __typename: 'CostBreakdown',
+  minBaseCostCents: number,
   baseCostCents: number,
   feeCents: number,
   taxCents: number,
@@ -534,6 +536,7 @@ export type AdminBookingInfoQuery = {
       notes?: string | null,
       costBreakdown: {
         __typename: 'CostBreakdown',
+        minBaseCostCents: number,
         baseCostCents: number,
         feeCents: number,
         taxCents: number,
@@ -710,6 +713,7 @@ export const BookingFieldsFragmentDoc = new TypedDocumentString(`
 export const CostBreakdownFieldsFragmentDoc = new TypedDocumentString(`
     fragment CostBreakdownFields on CostBreakdown {
   __typename
+  minBaseCostCents
   baseCostCents
   feeCents
   taxCents
@@ -964,6 +968,7 @@ export const AdminBookingInfoDocument = new TypedDocumentString(`
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
+  minBaseCostCents
   baseCostCents
   feeCents
   taxCents

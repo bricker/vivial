@@ -7,7 +7,7 @@ query BookingDetails($input: GetBookingDetailsQueryInput!) {
         activityPlan {
           costBreakdown {
             minBaseCostCents
-            maxBaseCostCents
+            baseCostCents
             feeCents
             taxCents
             totalCostCents
@@ -28,7 +28,7 @@ query BookingDetails($input: GetBookingDetailsQueryInput!) {
             totalCostCents
             feeCents
             minBaseCostCents
-            maxBaseCostCents
+            baseCostCents
             taxCents
           }
           restaurant {
