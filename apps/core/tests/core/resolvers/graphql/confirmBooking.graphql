@@ -9,6 +9,7 @@ mutation ConfirmBooking($input: ConfirmBookingInput!) {
 
           booking {
             id
+            state
             reserverDetails {
               id
               firstName

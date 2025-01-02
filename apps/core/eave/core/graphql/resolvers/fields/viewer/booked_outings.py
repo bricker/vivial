@@ -3,7 +3,7 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import BookingDetails, BookingDetailsPeek
 from eave.core.graphql.types.restaurant import Reservation
@@ -125,10 +125,14 @@ async def get_booking_details_query(
 
     async with database.async_session.begin() as session:
         account = await AccountOrm.get_one(session, account_id)
+        booking_orm = account.get_booking(booking_id=input.booking_id)
 
-    booking_orm = account.get_booking(booking_id=input.booking_id)
-    if not booking_orm or not booking_orm.state.is_visible:
-        LOGGER.warning("Booking not found or invalid state", {"bookingId": str(input.booking_id)})
+    if not booking_orm:
+        LOGGER.warning("Booking not found", log_ctx(info.context), {"bookingId": str(input.booking_id)})
+        return None
+
+    if not booking_orm.state.is_visible:
+        LOGGER.warning("Booking invalid state", log_ctx(info.context), {"bookingId": str(input.booking_id)})
         return None
 
     detail = await _get_booking_details(

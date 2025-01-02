@@ -1,18 +1,19 @@
-from typing import Any, Literal, Union, override
+from collections.abc import Mapping, Sequence
+from typing import Any, Literal, override
 
 from starlette.requests import Request as _StarletteRequest
 from starlette.responses import Response as _StarletteResponse
 
-JsonScalar = str | int | float | bool | None
-JsonValue = Union[JsonScalar, "JsonObject", "JsonArray"]
-JsonObject = dict[str, JsonValue]
-JsonArray = list[JsonValue]
+type JsonScalar = str | int | float | bool | None
+type JsonValue = JsonScalar | JsonObject | JsonArray
+type JsonObject = Mapping[str, JsonValue]
+type JsonArray = Sequence[JsonValue]
 
-StarletteRequest = _StarletteRequest
-StarletteResponse = _StarletteResponse
+type StarletteRequest = _StarletteRequest
+type StarletteResponse = _StarletteResponse
 
-HTTPFrameworkRequest = StarletteRequest
-HTTPFrameworkResponse = StarletteResponse
+type HTTPFrameworkRequest = StarletteRequest
+type HTTPFrameworkResponse = StarletteResponse
 
 
 class NotSet:

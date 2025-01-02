@@ -1,0 +1,29 @@
+mutation UpdateReserverDetails($input: UpdateReserverDetailsInput!) {
+  viewer {
+    ... on AuthenticatedViewerMutations {
+      __typename
+
+      updateReserverDetails(input: $input) {
+        ... on UpdateReserverDetailsSuccess {
+          __typename
+          reserverDetails {
+            id
+            firstName
+            lastName
+            phoneNumber
+          }
+        }
+
+        ... on UpdateReserverDetailsFailure {
+          __typename
+          failureReason
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

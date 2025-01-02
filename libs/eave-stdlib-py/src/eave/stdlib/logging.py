@@ -141,7 +141,7 @@ class EaveLogger:
         kwargs.setdefault("stacklevel", 2)
         extra = kwargs.pop("extra", {})
 
-        eave_extras = {}
+        eave_extras: JsonObject = {}
 
         for a in args:
             if a:
@@ -150,14 +150,12 @@ class EaveLogger:
 
         return {
             "msg": msg,
-            "extra": JsonObject(
-                {
-                    "json_fields": {
-                        "eave": {k: _build_extra(v) for a in args if a for k, v in a.items()},
-                        **extra,
-                    },
+            "extra": {
+                "json_fields": {
+                    "eave": eave_extras,
+                    **extra,
                 },
-            ),
+            },
             **kwargs,
         }
 

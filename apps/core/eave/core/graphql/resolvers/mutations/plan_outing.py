@@ -91,7 +91,7 @@ async def plan_outing_mutation(
         account=account,
         survey=survey,
         is_reroll=input.is_reroll,
-        correlation_id=info.context.get("correlation_id"),
+        ctx=info.context,
     )
 
     return PlanOutingSuccess(outing=outing)

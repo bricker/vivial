@@ -1,15 +1,12 @@
-query ListBookedOutings {
+query Account {
   viewer {
     ... on AuthenticatedViewerQueries {
       __typename
 
-      bookedOutings {
+      account {
         id
-        activityName
-        activityStartTime
-        restaurantName
-        restaurantArrivalTime
-        photoUri
+        email
+        stripeCustomerId
       }
     }
 
