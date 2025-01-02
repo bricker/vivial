@@ -5,6 +5,8 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 function main() (
+	e.verify_clean_git_index
+
 	export EAVE_DEPLOY_TARGET
 	EAVE_DEPLOY_TARGET="$(e.gcloudproject)"
 
