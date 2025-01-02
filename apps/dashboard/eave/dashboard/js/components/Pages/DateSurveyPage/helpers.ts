@@ -17,7 +17,7 @@ export function getInitialStartTime(): Date {
   // if <24h until startTime, add 1 week to set startTime to following saturday
   const oneDayInMilis = 24 * 60 * 60 * 1000;
   if (startTime.getTime() - now.getTime() < oneDayInMilis) {
-    startTime.setDate(now.getDate() + 7);
+    startTime.setDate(startTime.getDate() + 7);
   }
   return startTime;
 }
