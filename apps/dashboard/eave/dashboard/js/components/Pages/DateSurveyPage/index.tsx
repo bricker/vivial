@@ -38,6 +38,8 @@ import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
+import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
+import LoadingButton from "../../Buttons/LoadingButton";
 import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
@@ -111,6 +113,16 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
   },
 }));
 
+const SubmitButton = styled(LoadingButton)(() => ({
+  marginTop: 16,
+}));
+
+const Error = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  marginTop: 16,
+  textAlign: "left",
+}));
+
 const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
@@ -131,8 +143,16 @@ const DateSurveyPage = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [rerolls, rerolled] = useReroll();
 
   const handleSubmit = useCallback(async () => {
+    if (!isLoggedIn) {
+      if (rerolls >= MAX_REROLLS) {
+        navigate(AppRoute.signupMultiReroll);
+        return;
+      }
+      rerolled();
+    }
     const groupPreferences = getPreferenceInputs(outingPreferences, partnerPreferences);
     await planOuting({
       input: {
@@ -143,7 +163,7 @@ const DateSurveyPage = () => {
         searchAreaIds,
       },
     });
-  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
+  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime, rerolls]);
 
   const handleSubmitPreferences = useCallback(async (selections: OutingPreferencesSelections) => {
     setOutingPreferences(selections);
@@ -287,21 +307,21 @@ const DateSurveyPage = () => {
               )}
             </>
           )}
+          <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
+            🎲 Pick my date
+          </SubmitButton>
+          {errorMessage && <Error>ERROR: {errorMessage}</Error>}
         </CopyContainer>
         <DateSurveyContainer>
           <DateSelections
-            cta="🎲 Pick my date"
             headcount={headcount}
             budget={budget}
             startTime={startTime}
             searchAreaIds={searchAreaIds}
-            onSubmit={handleSubmit}
             onSelectHeadcount={handleSelectHeadcount}
             onSelectBudget={handleSelectBudget}
             onSelectStartTime={toggleDatePickerOpen}
             onSelectSearchArea={toggleAreasOpen}
-            errorMessage={errorMessage}
-            loading={planOutingLoading}
           />
         </DateSurveyContainer>
       </PageContentContainer>

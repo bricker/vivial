@@ -57,12 +57,12 @@ const Error = styled(Typography)(({ theme }) => ({
 }));
 
 interface DateSelectionsProps {
-  cta: string;
+  cta?: string;
   headcount: number;
   budget: OutingBudget;
   startTime: Date;
   searchAreaIds: string[];
-  onSubmit: () => void;
+  onSubmit?: () => void;
   onSelectHeadcount: (value: number) => void;
   onSelectBudget: (value: OutingBudget) => void;
   onSelectStartTime: () => void;
@@ -97,14 +97,16 @@ const DateSelections = ({
   const startTimeLabel = getStartTimeLabel(startTime);
 
   const handleSubmit = () => {
-    if (isLoggedIn) {
-      onSubmit();
-    } else {
-      if (rerolls >= MAX_REROLLS) {
-        navigate(AppRoute.signupMultiReroll);
-      } else {
-        rerolled();
+    if (onSubmit) {
+      if (isLoggedIn) {
         onSubmit();
+      } else {
+        if (rerolls >= MAX_REROLLS) {
+          navigate(AppRoute.signupMultiReroll);
+        } else {
+          rerolled();
+          onSubmit();
+        }
       }
     }
   };
@@ -179,9 +181,12 @@ const DateSelections = ({
           </BudgetSelectButton>
         </RowButtons>
       </Row>
-      <SubmitButton onClick={handleSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
-        {cta}
-      </SubmitButton>
+
+      {cta && onSubmit && (
+        <SubmitButton onClick={handleSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
+          {cta}
+        </SubmitButton>
+      )}
       {errorMessage && <Error>ERROR: {errorMessage}</Error>}
     </>
   );
