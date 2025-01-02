@@ -1,8 +1,4 @@
-from eave.core.orm.account import AccountOrm
-from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 
 from ..base import BaseTestCase
 
@@ -38,7 +34,9 @@ class TestUpdateReserverDetails(BaseTestCase):
         assert data["reserverDetails"]["phoneNumber"] == self.getphonenumber("phoneNumber")
 
         async with self.db_session.begin() as session:
-            reserver_details_fetched = await ReserverDetailsOrm.get_one(session, account_id=account.id, uid=reserver_details.id)
+            reserver_details_fetched = await ReserverDetailsOrm.get_one(
+                session, account_id=account.id, uid=reserver_details.id
+            )
 
         assert reserver_details_fetched.first_name == self.getstr("firstName")
         assert reserver_details_fetched.last_name == self.getstr("lastName")
@@ -72,7 +70,9 @@ class TestUpdateReserverDetails(BaseTestCase):
         assert data["reserverDetails"]["phoneNumber"] == self.getphonenumber("phoneNumber")
 
         async with self.db_session.begin() as session:
-            reserver_details_fetched = await ReserverDetailsOrm.get_one(session, account_id=account.id, uid=reserver_details.id)
+            reserver_details_fetched = await ReserverDetailsOrm.get_one(
+                session, account_id=account.id, uid=reserver_details.id
+            )
 
         assert reserver_details_fetched.first_name == reserver_details.first_name
         assert reserver_details_fetched.last_name == reserver_details.last_name
@@ -99,10 +99,12 @@ class TestUpdateReserverDetails(BaseTestCase):
 
         result = self.parse_graphql_response(response)
         assert not result.data
-        assert result.errors # The reserver details should not be found in the database, and throw an error
+        assert result.errors  # The reserver details should not be found in the database, and throw an error
 
         async with self.db_session.begin() as session:
-            reserver_details_fetched = await ReserverDetailsOrm.get_one(session, account_id=account.id, uid=reserver_details.id)
+            reserver_details_fetched = await ReserverDetailsOrm.get_one(
+                session, account_id=account.id, uid=reserver_details.id
+            )
 
         assert reserver_details_fetched.first_name == reserver_details.first_name
         assert reserver_details_fetched.last_name == reserver_details.last_name

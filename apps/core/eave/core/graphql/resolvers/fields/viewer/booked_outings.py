@@ -10,7 +10,6 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.lib.event_helpers import resolve_activity_details, resolve_restaurant_details
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 

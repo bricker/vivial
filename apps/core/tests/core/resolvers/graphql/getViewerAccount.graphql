@@ -1,6 +1,6 @@
 query Account {
   viewer {
-    ...on AuthenticatedViewerQueries {
+    ... on AuthenticatedViewerQueries {
       __typename
 
       account {
@@ -10,7 +10,7 @@ query Account {
       }
     }
 
-    ...on UnauthenticatedViewer {
+    ... on UnauthenticatedViewer {
       __typename
       authFailureReason
     }

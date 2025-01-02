@@ -1,10 +1,10 @@
 mutation UpdateReserverDetails($input: UpdateReserverDetailsInput!) {
   viewer {
-    ...on AuthenticatedViewerMutations {
+    ... on AuthenticatedViewerMutations {
       __typename
 
       updateReserverDetails(input: $input) {
-        ...on UpdateReserverDetailsSuccess {
+        ... on UpdateReserverDetailsSuccess {
           __typename
           reserverDetails {
             id
@@ -14,14 +14,14 @@ mutation UpdateReserverDetails($input: UpdateReserverDetailsInput!) {
           }
         }
 
-        ...on UpdateReserverDetailsFailure {
+        ... on UpdateReserverDetailsFailure {
           __typename
           failureReason
         }
       }
     }
 
-    ...on UnauthenticatedViewer {
+    ... on UnauthenticatedViewer {
       __typename
       authFailureReason
     }

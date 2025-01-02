@@ -1,4 +1,5 @@
 from eave.core.shared.enums import ActivitySource, BookingState, OutingBudget, RestaurantSource
+
 from ..base import BaseTestCase
 
 

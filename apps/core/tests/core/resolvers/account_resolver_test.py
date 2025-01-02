@@ -1,4 +1,3 @@
-from eave.stdlib.config import SHARED_CONFIG
 
 from ..base import BaseTestCase
 
