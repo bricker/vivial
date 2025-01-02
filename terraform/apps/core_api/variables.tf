@@ -105,6 +105,15 @@ variable "bastion_accessors" {
   default = []
 }
 
+variable "JWS_SIGNING_KEY_VERSION_PATH" {
+  type = string
+}
+
+variable "iap_enabled" {
+  type    = bool
+  default = false
+}
+
 variable "iap_oauth_client_id" {
   type     = string
   nullable = false
@@ -115,11 +124,7 @@ variable "iap_oauth_client_kube_secret_name" {
   nullable = false
 }
 
-variable "iap_enabled" {
-  type    = bool
-  default = false
-}
-
-variable "JWS_SIGNING_KEY_VERSION_PATH" {
-  type = string
+variable "iap_jwt_aud" {
+  type=string
+  nullable = false
 }

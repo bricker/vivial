@@ -41,6 +41,7 @@ module "core_api_app" {
   iap_enabled                       = false
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+  iap_jwt_aud = "/projects/${data.google_project.default.number}/global/backendServices/${local.iap_gateways["core_iap"]}"
 }
 
 module "dashboard_app" {
@@ -82,4 +83,5 @@ module "admin_app" {
 
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+  iap_jwt_aud = "/projects/${data.google_project.default.number}/global/backendServices/${local.iap_gateways["admin"]}"
 }

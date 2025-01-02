@@ -64,12 +64,15 @@ variable "LOG_LEVEL" {
 
 variable "iap_oauth_client_id" {
   type     = string
-  nullable = true
-  default  = null
+  nullable = false
 }
 
 variable "iap_oauth_client_kube_secret_name" {
   type     = string
-  nullable = true
-  default  = null
+  nullable = false
+}
+
+variable "iap_jwt_aud" {
+  type=string
+  nullable = false
 }

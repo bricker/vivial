@@ -10,5 +10,6 @@ resource "kubernetes_config_map" "app" {
 
   data = {
     LOG_LEVEL = var.LOG_LEVEL
+    EAVE_DASHBOARD_IAP_JWT_AUD         = var.iap_jwt_aud
   }
 }

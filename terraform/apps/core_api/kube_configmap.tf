@@ -11,6 +11,6 @@ resource "kubernetes_config_map" "app" {
   data = {
     LOG_LEVEL                    = var.LOG_LEVEL
     JWS_SIGNING_KEY_VERSION_PATH = var.JWS_SIGNING_KEY_VERSION_PATH
-    EAVE_API_IAP_JWT_AUD         = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.api_iap_gw.generated_id}"
+    EAVE_API_IAP_JWT_AUD         = var.iap_jwt_aud
   }
 }
