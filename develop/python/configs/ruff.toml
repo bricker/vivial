@@ -99,7 +99,7 @@ ignore = [
   "ANN", # Tests have lots of functions without return types, Any, etc.
   "FBT", # boolean args used in test util functions for brevity
 ]
-"libs/eave-stdlib-py/src/eave/stdlib/test_helpers/**/*.py" = [
+"**/test_helpers/**/*.py" = [
   "S", # Disable security checks in test files
 ]
 

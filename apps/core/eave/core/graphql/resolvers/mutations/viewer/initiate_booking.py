@@ -28,7 +28,6 @@ from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.analytics import AnalyticsContext
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -225,6 +224,7 @@ async def initiate_booking_mutation(
 
                 # Get the defauilt payment method
                 # FIXME: This actually just chooses the first one, is that ok for "default"?
+                # Also, for OCB this _should_ never be empty.
                 payment_methods = await stripe.Customer.list_payment_methods_async(
                     customer=account_orm.stripe_customer_id
                 )
@@ -349,5 +349,5 @@ def _fire_analytics_booking_initiated(
             if booking.outing and booking.outing.survey
             else None,
         },
-        ctx=analytics_ctx(ctx)
+        ctx=analytics_ctx(ctx),
     )

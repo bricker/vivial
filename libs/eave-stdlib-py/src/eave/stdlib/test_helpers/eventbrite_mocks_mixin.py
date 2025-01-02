@@ -1,6 +1,6 @@
+import unittest.mock
 from collections.abc import AsyncIterator
 from typing import Any, override
-import unittest.mock
 
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.logo import Logo

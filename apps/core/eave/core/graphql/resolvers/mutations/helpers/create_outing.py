@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
+from eave.core.graphql.context import GraphQLContext, analytics_ctx
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.survey import Survey
@@ -87,7 +87,6 @@ async def create_outing(
             "survey_info": gql_survey.build_analytics_properties(),
         },
         ctx=analytics_ctx(ctx),
-
     )
 
     return outing

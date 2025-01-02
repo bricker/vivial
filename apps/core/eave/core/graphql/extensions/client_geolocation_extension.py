@@ -1,8 +1,10 @@
 from collections.abc import Iterator
 from typing import cast, override
+
+from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from strawberry.extensions import SchemaExtension
-from asgiref.typing import HTTPScope
+
 from eave.core.graphql.context import GraphQLContext
 from eave.stdlib.api_util import get_header_value
 from eave.stdlib.logging import LOGGER

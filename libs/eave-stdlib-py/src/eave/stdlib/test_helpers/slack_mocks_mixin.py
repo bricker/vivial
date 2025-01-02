@@ -1,5 +1,6 @@
-from typing import override
 import unittest.mock
+from typing import override
+
 from eave.stdlib.test_helpers.mocking_mixin import MockingMixin
 
 

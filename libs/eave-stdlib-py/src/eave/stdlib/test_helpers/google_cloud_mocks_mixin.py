@@ -1,8 +1,16 @@
-from typing import Any, override
 import unittest.mock
+from typing import Any, override
 
-from google.cloud.kms import CryptoKeyVersion, GetCryptoKeyVersionRequest, MacSignRequest, MacSignResponse, MacVerifyRequest, MacVerifyResponse
+from google.cloud.kms import (
+    CryptoKeyVersion,
+    GetCryptoKeyVersionRequest,
+    MacSignRequest,
+    MacSignResponse,
+    MacVerifyRequest,
+    MacVerifyResponse,
+)
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
+
 from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.test_helpers.mocking_mixin import MockingMixin
 from eave.stdlib.test_helpers.random_data_mixin import RandomDataMixin

@@ -198,13 +198,9 @@ class OutingPlanner:
         self.group_activity_category_preferences = _combine_activity_categories(individual_preferences)
         self.group_open_to_bars = _combine_bar_openness(individual_preferences)
 
-        self.excluded_google_place_ids = excluded_google_place_ids if excluded_google_place_ids is not None else []
-        self.excluded_eventbrite_event_ids = (
-            excluded_eventbrite_event_ids if excluded_eventbrite_event_ids is not None else []
-        )
-        self.excluded_evergreen_activity_ids = (
-            excluded_evergreen_activity_ids if excluded_evergreen_activity_ids is not None else []
-        )
+        self.excluded_google_place_ids = excluded_google_place_ids or []
+        self.excluded_eventbrite_event_ids = excluded_eventbrite_event_ids or []
+        self.excluded_evergreen_activity_ids = excluded_evergreen_activity_ids or []
 
         self.ctx = ctx
 
@@ -534,4 +530,6 @@ class OutingPlanner:
             if self.restaurant_arrival_time_local
             else None,
             "excluded_eventbrite_event_ids": self.excluded_eventbrite_event_ids,
+            "excluded_google_place_ids": self.excluded_google_place_ids,
+            "excluded_evergreen_activity_ids": [x.hex for x in self.excluded_evergreen_activity_ids],
         }

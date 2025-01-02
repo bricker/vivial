@@ -1,12 +1,14 @@
-from typing import Any, override
 import unittest.mock
+from typing import Any, override
+
 from google.maps.places import PhotoMedia, Place, SearchNearbyResponse
 from google.maps.routing import ComputeRoutesResponse, Route
 from google.protobuf.duration_pb2 import Duration
+
 from eave.core.lib.google_places import GeocodeGeometry, GeocodeLocation, GeocodeResult
 from eave.stdlib.test_helpers.mocking_mixin import MockingMixin
 from eave.stdlib.test_helpers.random_data_mixin import RandomDataMixin
-from eave.stdlib.testing_util import UtilityBaseTestCase
+
 
 class GooglePlacesMocksMixin(MockingMixin, RandomDataMixin):
     mock_google_place: Place  # pyright: ignore [reportUninitializedInstanceVariable]

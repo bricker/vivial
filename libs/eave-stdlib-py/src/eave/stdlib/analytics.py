@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import logging
 from typing import TypedDict
 from uuid import UUID
@@ -19,6 +18,7 @@ class AnalyticsContext(TypedDict):
     correlation_id: str | None
     client_geo: JsonObject | None
     client_ip: str | None
+
 
 class AnalyticsTracker:
     def __init__(self, write_key: str) -> None:

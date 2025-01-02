@@ -1,12 +1,13 @@
-from typing import Any, Literal, TypeAlias, Union, override
+from collections.abc import Mapping, Sequence
+from typing import Any, Literal, override
 
 from starlette.requests import Request as _StarletteRequest
 from starlette.responses import Response as _StarletteResponse
 
 type JsonScalar = str | int | float | bool | None
 type JsonValue = JsonScalar | JsonObject | JsonArray
-type JsonObject = dict[str, JsonValue]
-type JsonArray = list[JsonValue]
+type JsonObject = Mapping[str, JsonValue]
+type JsonArray = Sequence[JsonValue]
 
 type StarletteRequest = _StarletteRequest
 type StarletteResponse = _StarletteResponse

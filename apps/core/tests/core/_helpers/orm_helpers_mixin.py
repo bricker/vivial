@@ -1,11 +1,12 @@
-from datetime import timedelta
 import random
+from datetime import timedelta
 from typing import Protocol
 from uuid import UUID
-from sqlalchemy import literal_column, select
+
 import sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy.sql.functions as safunc
+from sqlalchemy import literal_column, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from eave.core.lib.address import Address
 from eave.core.orm.account import AccountOrm
@@ -22,11 +23,14 @@ from eave.core.shared.geo import GeoPoint
 from eave.stdlib.test_helpers.eventbrite_mocks_mixin import EventbriteMocksMixin
 from eave.stdlib.test_helpers.random_data_mixin import RandomDataMixin
 from eave.stdlib.time import ONE_DAY_IN_SECONDS
+
 from .google_places_mocks_mixin import GooglePlacesMocksMixin
 from .stripe_mocks_mixin import StripeMocksMixin
 
+
 class AnyStandardOrm(Protocol):
     id: sqlalchemy.orm.Mapped[UUID]
+
 
 class OrmHelpersMixin(GooglePlacesMocksMixin, StripeMocksMixin, EventbriteMocksMixin, RandomDataMixin):
     def make_account(
@@ -45,7 +49,7 @@ class OrmHelpersMixin(GooglePlacesMocksMixin, StripeMocksMixin, EventbriteMocksM
         survey = SurveyOrm(
             session,
             account=account,
-            budget=self.random_outing_budget(),
+            budget=self.random_outing_budget_above_free(),
             headcount=self.anyint(min=1, max=2),
             search_area_ids=[s.id for s in self.random_search_areas(k=3)],
             start_time_utc=self.anydatetime(
@@ -187,8 +191,9 @@ class OrmHelpersMixin(GooglePlacesMocksMixin, StripeMocksMixin, EventbriteMocksM
     def random_activity_categories(self, k: int = 3) -> list[ActivityCategoryOrm]:
         return random.choices(ActivityCategoryOrm.all(), k=k)
 
-    def random_outing_budget(self) -> OutingBudget:
-        return random.choice(list(OutingBudget))
+    def random_outing_budget_above_free(self) -> OutingBudget:
+        # We remove FREE because it's treated differently in most of the app.
+        return random.choice([b for b in list(OutingBudget) if b != OutingBudget.FREE])
 
     async def reload[T: AnyStandardOrm](self, session: AsyncSession, /, obj: T) -> T | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)

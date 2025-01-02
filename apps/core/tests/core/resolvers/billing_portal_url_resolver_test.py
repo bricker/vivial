@@ -30,9 +30,24 @@ class TestBillingPortalUrlQuery(BaseTestCase):
         assert data == self.geturl("billing portal url")
 
         assert self.get_mock("stripe.billing_portal.Configuration.create_async").call_count == 1
-        assert self.get_mock("stripe.billing_portal.Configuration.create_async").call_args_list[0].kwargs["features"]["invoice_history"]["enabled"] is False
-        assert self.get_mock("stripe.billing_portal.Configuration.create_async").call_args_list[0].kwargs["features"]["customer_update"]["enabled"] is False
-        assert self.get_mock("stripe.billing_portal.Configuration.create_async").call_args_list[0].kwargs["features"]["payment_method_update"]["enabled"] is True
+        assert (
+            self.get_mock("stripe.billing_portal.Configuration.create_async")
+            .call_args_list[0]
+            .kwargs["features"]["invoice_history"]["enabled"]
+            is False
+        )
+        assert (
+            self.get_mock("stripe.billing_portal.Configuration.create_async")
+            .call_args_list[0]
+            .kwargs["features"]["customer_update"]["enabled"]
+            is False
+        )
+        assert (
+            self.get_mock("stripe.billing_portal.Configuration.create_async")
+            .call_args_list[0]
+            .kwargs["features"]["payment_method_update"]["enabled"]
+            is True
+        )
 
         assert self.get_mock("stripe.billing_portal.Session.create_async").call_count == 1
         assert self.get_mock("stripe.billing_portal.Session.create_async").call_args_list[0].kwargs[

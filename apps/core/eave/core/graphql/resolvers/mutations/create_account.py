@@ -6,7 +6,7 @@ import strawberry
 
 import eave.core.database
 from eave.core.auth_cookies import set_new_auth_cookies
-from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
+from eave.core.graphql.context import GraphQLContext, analytics_ctx
 from eave.core.graphql.types.account import Account
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.mail import send_welcome_email

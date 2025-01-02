@@ -168,7 +168,9 @@ async def perform_post_confirm_actions(
             itinerary=itinerary,
             ctx=ctx,
         )
-        await _notify_slack_booking_confirmed(booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary, ctx=ctx)
+        await _notify_slack_booking_confirmed(
+            booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary, ctx=ctx
+        )
     except Exception as e:
         LOGGER.exception(e, log_ctx(ctx))
 
@@ -195,7 +197,7 @@ def _fire_analytics_booking_confirmed(
             if booking_orm.outing and booking_orm.outing.survey
             else None,
         },
-        ctx=analytics_ctx(ctx)
+        ctx=analytics_ctx(ctx),
     )
 
 

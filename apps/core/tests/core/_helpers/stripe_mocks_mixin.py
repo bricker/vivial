@@ -1,9 +1,10 @@
-from typing import Any, override
 import unittest.mock
+from typing import Any, override
+
 import stripe
+
 from eave.stdlib.test_helpers.mocking_mixin import MockingMixin
 from eave.stdlib.test_helpers.random_data_mixin import RandomDataMixin
-from eave.stdlib.testing_util import UtilityBaseTestCase
 
 
 class StripeMocksMixin(MockingMixin, RandomDataMixin):
@@ -73,7 +74,9 @@ class StripeMocksMixin(MockingMixin, RandomDataMixin):
             ),
         )
 
-        async def _mock_customer_list_payment_methods(*args: Any, **kwargs: Any) -> stripe.ListObject[stripe.PaymentMethod]:
+        async def _mock_customer_list_payment_methods(
+            *args: Any, **kwargs: Any
+        ) -> stripe.ListObject[stripe.PaymentMethod]:
             return self.mock_stripe_customer_payment_methods
 
         self.patch(

@@ -4,13 +4,14 @@ from uuid import UUID
 
 from httpx import Response
 from strawberry.types import ExecutionResult
+
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.jwt import JWTPurpose, create_jws
-from eave.stdlib.test_helpers.base_mixin import BaseMixin
 from eave.stdlib.test_helpers.random_data_mixin import RandomDataMixin
 from eave.stdlib.time import ONE_YEAR_IN_MINUTES
+
 from .http_client_mixin import HTTPClientMixin
 
 

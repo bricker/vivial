@@ -7,14 +7,14 @@ day_seconds = 60 * 60 * 24
 
 class TestPaymentMethodsResolvers(BaseTestCase):
     async def test_payment_methods_not_empty(self) -> None:
-        self.mock_stripe_customer_payment_methods = [
+        self.mock_stripe_customer_payment_methods.data = [
             stripe.PaymentMethod(
                 id=self.anystr("payment method id"),
             ),
         ]
 
         setattr(
-            self.mock_stripe_customer_payment_methods[0],
+            self.mock_stripe_customer_payment_methods.data[0],
             "card",
             stripe.Card(
                 brand="visa",
@@ -44,7 +44,7 @@ class TestPaymentMethodsResolvers(BaseTestCase):
         assert data[0]["id"] == self.getstr("payment method id")
 
     async def test_payment_methods_empty(self) -> None:
-        self.mock_stripe_customer_payment_methods = []
+        self.mock_stripe_customer_payment_methods.data = []
 
         async with self.db_session.begin() as session:
             account = self.make_account(session)
