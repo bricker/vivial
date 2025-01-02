@@ -199,7 +199,6 @@ export const coreApiSlice = createApi({
     planOuting: builder.mutation<PlanOutingMutation, PlanOutingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         appendOutingMemory(variables);
-        console.info("Planning outing with the following inputs:", variables.input);
         const data = await executeOperation({ query: PlanOutingDocument, variables });
         updateOutingMemory(data);
         return { data };
