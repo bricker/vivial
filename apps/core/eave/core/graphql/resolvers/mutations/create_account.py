@@ -6,7 +6,7 @@ import strawberry
 
 import eave.core.database
 from eave.core.auth_cookies import set_new_auth_cookies
-from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
 from eave.core.graphql.types.account import Account
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.mail import send_welcome_email
@@ -81,6 +81,7 @@ async def create_account_mutation(
         event_name="signup",
         account_id=new_account_orm.id,
         visitor_id=visitor_id,
+        ctx=analytics_ctx(info.context),
     )
 
     set_new_auth_cookies(response=info.context["response"], account_id=new_account_orm.id)

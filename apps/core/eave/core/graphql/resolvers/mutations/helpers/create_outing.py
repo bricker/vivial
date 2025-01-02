@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from eave.core import database
+from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.survey import Survey
@@ -20,7 +21,7 @@ async def create_outing(
     account: AccountOrm | None,
     survey: SurveyOrm,
     is_reroll: bool,
-    correlation_id: str | None,
+    ctx: GraphQLContext,
 ) -> Outing:
     plan = await OutingPlanner(
         individual_preferences=individual_preferences,
@@ -28,7 +29,7 @@ async def create_outing(
         excluded_google_place_ids=excluded_google_place_ids,
         excluded_evergreen_activity_ids=excluded_evergreen_activity_ids,
         survey=survey,
-        correlation_id=correlation_id,
+        ctx=ctx,
     ).plan()
 
     async with database.async_session.begin() as db_session:
@@ -85,6 +86,8 @@ async def create_outing(
             "activity_info": plan.activity_plan.build_analytics_properties() if plan.activity_plan else None,
             "survey_info": gql_survey.build_analytics_properties(),
         },
+        ctx=analytics_ctx(ctx),
+
     )
 
     return outing

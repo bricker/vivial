@@ -6,7 +6,7 @@ import strawberry
 import stripe
 
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext, log_ctx
+from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
 from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
     perform_post_confirm_actions,
 )
@@ -28,6 +28,7 @@ from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.analytics import AnalyticsContext
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -304,6 +305,7 @@ async def initiate_booking_mutation(
             account_orm=account_orm,
             visitor_id=visitor_id,
             itinerary=itinerary,
+            ctx=info.context,
         )
 
     else:
@@ -313,9 +315,10 @@ async def initiate_booking_mutation(
                 itinerary=itinerary,
                 account_id=account_orm.id,
                 visitor_id=visitor_id,
+                ctx=info.context,
             )
         except Exception as e:
-            LOGGER.exception(e)
+            LOGGER.exception(e, log_ctx(info.context))
 
     return InitiateBookingSuccess(
         booking=itinerary,
@@ -330,6 +333,7 @@ def _fire_analytics_booking_initiated(
     itinerary: Itinerary,
     account_id: UUID,
     visitor_id: str | None,
+    ctx: GraphQLContext,
 ) -> None:
     ANALYTICS.track(
         event_name="booking_initiated",
@@ -345,4 +349,5 @@ def _fire_analytics_booking_initiated(
             if booking.outing and booking.outing.survey
             else None,
         },
+        ctx=analytics_ctx(ctx)
     )

@@ -1,9 +1,11 @@
+from dataclasses import dataclass
 from typing import NotRequired, TypedDict
 from uuid import UUID
 
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.stdlib.analytics import AnalyticsContext
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonObject, JsonValue
 
@@ -46,3 +48,14 @@ def log_ctx(context: GraphQLContext) -> JsonObject:
         return {
             "source": "graphql",
         }
+
+def analytics_ctx(context: GraphQLContext) -> AnalyticsContext:
+    authenticated_account_id = context.get("authenticated_account_id")
+
+    return AnalyticsContext({
+        "authenticated_account_id": str(authenticated_account_id) if authenticated_account_id else None,
+        "visitor_id": context.get("visitor_id"),
+        "correlation_id": context.get("correlation_id"),
+        "client_geo": context.get("client_geo"),
+        "client_ip": context.get("client_ip"),
+    })
