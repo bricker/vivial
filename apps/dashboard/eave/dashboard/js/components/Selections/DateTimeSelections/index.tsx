@@ -2,7 +2,7 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import { DateCalendar } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -108,6 +108,12 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
   const [timeOptions, setTimeOptions] = useState(getTimeOptions(defaultValue));
   const [timeDropdownOpen, setTimeDropdownOpen] = useState(false);
 
+  useEffect(() => {
+    if (timeDropdownOpen) {
+      document.getElementById(selectedTime.label)?.scrollIntoView();
+    }
+  }, [timeDropdownOpen]);
+
   const handleDayChange = useCallback((value: Dayjs) => {
     setSelectedDay(value);
     setTimeOptions(getTimeOptions(value));
@@ -124,12 +130,45 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
     onSubmit(selectedDateTime);
   }, [selectedTime, selectedDay]);
 
+  const timeSelectorId = "time-selector-menu";
+  const timeSelectorMenuClickOffHandler = (target: HTMLElement) => {
+    /* We want to close the dropdown selector if the clicked `target`
+    element is not a child of the selector (i.e. click was outside it).
+    However, the dropdown component swaps the up/down chevron icon completely
+    into or out of the DOM whenever it is clicked. So, if the icon SVG 
+    element is clicked directly, it will no longer be part of the DOM 
+    by the time we're handling this event, which would cause us to incorrectly
+    conclude that a click on the dropdown icon itself is outside the selector
+    menu, closing the menu as soon as it opens.
+    To prevent that, I make the assumption that any element that is not
+    part contained in the DOM was likely to have been the swapped chevron
+    dropdown icon.
+    Therefore: only clicked elements that are still part of the DOM are
+    considered when checking to see if the click was outside the dropdown.
+    */
+    const targetIsStillPartOfDOM = document.contains(target);
+
+    // close dropdown if the clicked element is not a child of
+    // the time selector dropdown element (i.e. click was outside timeSelectorId)
+    if (targetIsStillPartOfDOM && !target.closest(`#${timeSelectorId}`)) {
+      setTimeDropdownOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("click", (event: MouseEvent) => {
+      if (event.target) {
+        timeSelectorMenuClickOffHandler(event.target as HTMLElement);
+      }
+    });
+  }, []);
+
   return (
     <DateTimeContainer>
       <TimeRow>
         <TooltipButton info="Recommended plans will be within roughly a 4 hour window from selected start time." />
         <TimeTitle>Date Start Time:</TimeTitle>
-        <TimePicker>
+        <TimePicker id={timeSelectorId}>
           <DropdownButtonContainer onClick={() => setTimeDropdownOpen(!timeDropdownOpen)}>
             <Time data-selected>{selectedTime.label}</Time>
             <DropdownButton open={timeDropdownOpen} />
@@ -137,7 +176,7 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
           {timeDropdownOpen && (
             <TimeOptions>
               {timeOptions.map((timeObj) => (
-                <TimeButton key={timeObj.label} onClick={() => handleTimeChange(timeObj)}>
+                <TimeButton id={timeObj.label} key={timeObj.label} onClick={() => handleTimeChange(timeObj)}>
                   {timeObj.label === selectedTime.label ? (
                     <Time data-selected>
                       {timeObj.label} <CheckIcon />
