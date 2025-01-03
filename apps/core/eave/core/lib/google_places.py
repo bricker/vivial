@@ -35,7 +35,10 @@ from eave.stdlib.logging import LOGGER
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
 _PLACE_FIELDS = [
     "id",
+    "name",
     "displayName",
+    "editorialSummary",
+    "generativeSummary",
     "accessibilityOptions",
     "addressComponents",
     "formattedAddress",
@@ -123,7 +126,7 @@ class GooglePlacesUtility:
             rating=place.rating,
             primary_type_name=place.primary_type_display_name.text,
             website_uri=place.website_uri,
-            description=place.editorial_summary,
+            description=place.editorial_summary.text or place.generative_summary.overview.text,
             parking_tips=None,
             customer_favorites=None,
         )
