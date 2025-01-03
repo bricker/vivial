@@ -1,12 +1,18 @@
 import { type SearchRegion } from "$eave-dashboard/js/graphql/generated/graphql";
-import { getDayOfMonth, getMonth, getTimeOfDay, isTomorrow } from "$eave-dashboard/js/util/date";
+import { getDayOfMonth, getDayOfWeek, getMonth, getTimeOfDay, isTomorrow } from "$eave-dashboard/js/util/date";
 
 export function getStartTimeLabel(startTime: Date): string {
   const timeOfDay = getTimeOfDay(startTime);
   if (isTomorrow(startTime)) {
     return `Tomorrow @ ${timeOfDay}`;
   }
-  return `${getMonth(startTime)} ${getDayOfMonth(startTime)} @ ${timeOfDay}`;
+
+  const dow = getDayOfWeek(startTime);
+  const month = getMonth(startTime);
+  const dom = getDayOfMonth(startTime);
+
+  const str = `${dow}, ${month} ${dom} @ ${timeOfDay}`;
+  return str;
 }
 
 export function getSearchAreaLabel(searchAreaIds: string[], searchRegions: SearchRegion[]): string {

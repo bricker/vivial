@@ -22,18 +22,18 @@ function getOutingMemoryCookie(): OutingMemoryCookie | null {
   return null;
 }
 
-function overwriteOutingMemoryCookie(value: OutingMemoryCookie) {
-  document.cookie = `${CookieId.OutingMemory}=${JSON.stringify(value)}`;
+function setOutingMemoryCookie(value: OutingMemoryCookie) {
+  const expires = in1Year().toUTCString();
+  document.cookie = `${CookieId.OutingMemory}=${JSON.stringify(value)}; expires=${expires}; path=/`;
 }
 
-function initOutingMemoryCookie(): OutingMemoryCookie {
+function initOutingMemory(): OutingMemoryCookie {
   const outingMemory: OutingMemoryCookie = {
     excludedEventbriteEventSegments: [],
     excludedEvergreenActivitySegments: [],
     excludedGooglePlaceSegments: [],
   };
-  const expires = in1Year().toUTCString();
-  document.cookie = `${CookieId.OutingMemory}=${JSON.stringify(outingMemory)}; expires=${expires}; path=/`;
+
   return outingMemory;
 }
 
@@ -47,7 +47,7 @@ function purgeOutingMemory(outingMemory: OutingMemoryCookie) {
   outingMemory.excludedGooglePlaceSegments = outingMemory.excludedGooglePlaceSegments.filter(
     (s) => !isExpired(new Date(s.expires)),
   );
-  overwriteOutingMemoryCookie(outingMemory);
+  setOutingMemoryCookie(outingMemory);
 }
 
 export function appendOutingMemory(variables: PlanOutingMutationVariables) {
@@ -64,7 +64,7 @@ export function appendOutingMemory(variables: PlanOutingMutationVariables) {
 }
 
 export function updateOutingMemory(mutation: PlanOutingMutation) {
-  const outingMemory = getOutingMemoryCookie() || initOutingMemoryCookie();
+  const outingMemory = getOutingMemoryCookie() || initOutingMemory();
   if (mutation.planOuting.__typename === "PlanOutingSuccess") {
     const restaurant = mutation.planOuting.outing.reservation?.restaurant;
     if (restaurant) {
@@ -94,5 +94,5 @@ export function updateOutingMemory(mutation: PlanOutingMutation) {
       }
     }
   }
-  overwriteOutingMemoryCookie(outingMemory);
+  setOutingMemoryCookie(outingMemory);
 }
