@@ -1,6 +1,7 @@
 import {
   SubmitReserverDetailsFailureReason,
-  UpdateReserverDetailsAccountFailureReason,
+  UpdateAccountFailureReason,
+  UpdateReserverDetailsFailureReason,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -15,7 +16,7 @@ import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Button, CircularProgress, Typography, styled } from "@mui/material";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
@@ -99,6 +100,10 @@ const InfoDisplay = ({ name, email, phoneNumber }: { name?: string; email?: stri
 };
 
 const EditableContainer = () => {
+  const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
+  const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+
+  const [reserverDetails, setReserverDetails] = useState(localReserverDetails);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
@@ -107,32 +112,38 @@ const EditableContainer = () => {
     useUpdateReserverDetailsAccountMutation();
   const [submitReserverDetails, { isLoading: submitReserverDetailsIsLoading }] = useSubmitReserverDetailsMutation();
 
-  const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
-  const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
-
   const infoEditIsLoading = updateDetailsIsLoading || submitReserverDetailsIsLoading;
 
-  const { data, isLoading: listDetailsIsLoading, isError: listDetailsIsError } = useListReserverDetailsQuery({});
-  let reserverDetails = localReserverDetails;
-  switch (data?.viewer.__typename) {
-    case "AuthenticatedViewerQueries": {
-      // always prefer in-memory data (if available) over cached network resp
-      if (!reserverDetails) {
+  const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
+
+  useEffect(() => {
+    switch (data?.viewer.__typename) {
+      case "AuthenticatedViewerQueries": {
         // NOTE: extracting and showing only the first one since we currently only
         // allow 1 reserverDetails row to be created
-        reserverDetails = data?.viewer?.reserverDetails[0] || null;
+        const remoteDetails = data?.viewer?.reserverDetails[0] || null;
+        if (remoteDetails) {
+          setReserverDetails(remoteDetails);
+        }
+        break;
       }
-      break;
+      case "UnauthenticatedViewer": {
+        dispatch(loggedOut());
+        window.location.assign(AppRoute.logout);
+        break;
+      }
+      default: {
+        break;
+      }
     }
-    case "UnauthenticatedViewer": {
-      dispatch(loggedOut());
-      window.location.assign(AppRoute.logout);
-      break;
+  }, [data]);
+
+  useEffect(() => {
+    // update state when new detail values are dispatched
+    if (localReserverDetails) {
+      setReserverDetails(localReserverDetails);
     }
-    default: {
-      break;
-    }
-  }
+  }, [localReserverDetails]);
 
   const handleCancel = () => setIsEditing(false);
   const handleSubmit = useCallback(
@@ -153,7 +164,7 @@ const EditableContainer = () => {
 
       try {
         // if reserverDetails doesnt have a db ID, create a db entry
-        if (reserverDetails?.id === undefined) {
+        if (detailsId === undefined) {
           const detailsResp = await submitReserverDetails({
             input: {
               firstName,
@@ -202,38 +213,66 @@ const EditableContainer = () => {
         }
 
         const resp = await updateReserverDetailsAccount({
-          input: {
+          reserverInput: {
             id: detailsId!,
             firstName,
             lastName,
             phoneNumber,
+          },
+          accountInput: {
             email,
           },
         });
         switch (resp.data?.viewer.__typename) {
           case "AuthenticatedViewerMutations": {
-            const updatedData = resp.data?.viewer.updateReserverDetailsAccount;
-            switch (updatedData?.__typename) {
-              case "UpdateReserverDetailsAccountSuccess":
-                dispatch(storeReserverDetails({ details: updatedData.reserverDetails }));
-                dispatch(updateEmail({ email: updatedData.account.email }));
-                // exit edit mode
-                handleCancel();
+            let updateCompletelySuccessful = true;
+            const updatedReserverData = resp.data?.viewer.updateReserverDetails;
+            switch (updatedReserverData?.__typename) {
+              case "UpdateReserverDetailsSuccess":
+                dispatch(storeReserverDetails({ details: updatedReserverData.reserverDetails }));
                 break;
-              case "UpdateReserverDetailsAccountFailure":
-                switch (updatedData.failureReason) {
-                  case UpdateReserverDetailsAccountFailureReason.ValidationErrors: {
-                    const invalidFields = updatedData.validationErrors?.map((e) => e.field).join(", ");
+              case "UpdateReserverDetailsFailure":
+                updateCompletelySuccessful = false;
+                switch (updatedReserverData.failureReason) {
+                  case UpdateReserverDetailsFailureReason.ValidationErrors: {
+                    const invalidFields = updatedReserverData.validationErrors?.map((e) => e.field).join(", ");
                     setError(`The following fields are invalid: ${invalidFields}`);
                     break;
                   }
                   default:
-                    console.error("Unexpected case for UpdateReserverDetailsAccountFailure");
+                    console.error("Unexpected case for UpdateReserverDetailsFailure");
                     break;
                 }
                 break;
               default:
                 throw new Error("Unexected Graphql result");
+            }
+
+            const updatedAccountData = resp.data?.viewer.updateAccount;
+            switch (updatedAccountData?.__typename) {
+              case "UpdateAccountSuccess":
+                dispatch(updateEmail({ email: updatedAccountData.account.email }));
+                break;
+              case "UpdateAccountFailure":
+                updateCompletelySuccessful = false;
+                switch (updatedAccountData.failureReason) {
+                  case UpdateAccountFailureReason.ValidationErrors: {
+                    const invalidFields = updatedAccountData.validationErrors?.map((e) => e.field).join(", ");
+                    setError(`The following fields are invalid: ${invalidFields}`);
+                    break;
+                  }
+                  default:
+                    console.error("Unexpected case for UpdateAccountFailure");
+                    break;
+                }
+                break;
+              default:
+                throw new Error("Unexected Graphql result");
+            }
+
+            if (updateCompletelySuccessful) {
+              // exit edit mode
+              handleCancel();
             }
             break;
           }
@@ -253,21 +292,23 @@ const EditableContainer = () => {
         setError("Unable to update your booking info. Please try again later.");
       }
     },
-    [data],
+    [data, reserverDetails],
   );
+
+  const dataIsAvailable = reserverDetails || reserverEmail;
 
   return (
     <MainContainer>
       <TitleContainer>
         <Typography variant="h2">Booking info</Typography>
-        {!isEditing && reserverDetails && (
+        {!isEditing && dataIsAvailable && (
           <ShiftedButton onClick={() => setIsEditing(true)}>
             <EditIcon />
           </ShiftedButton>
         )}
       </TitleContainer>
 
-      {reserverDetails ? (
+      {dataIsAvailable ? (
         // we have details to display; show them
         <InfoContainer>
           {isEditing ? (
@@ -291,13 +332,9 @@ const EditableContainer = () => {
         </InfoContainer>
       ) : (
         <StateContainer>
-          {listDetailsIsLoading ? (
+          {listDetailsIsLoading && (
             // loading state
             <CircularProgress color="secondary" />
-          ) : (
-            listDetailsIsError &&
-            // error state
-            "Oops! We encountered a problem, please try again later."
           )}
         </StateContainer>
       )}
