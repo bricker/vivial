@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import Typography from "@mui/material/Typography";
-import Header from "../../Shared/Header";
+import Header, { HeaderVariant } from "../../Shared/Header";
 
 const BookButton = styled(PrimaryButton)(() => ({
   height: 35,
@@ -41,7 +41,7 @@ const ItineraryVariant = () => {
   const cost = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(outing.costBreakdown);
 
   return (
-    <Header>
+    <Header variant={HeaderVariant.Sticky}>
       <VivialLogo hideText />
       <Typography variant="subtitle1">
         {costHeader}: <Cost>{cost}</Cost>
