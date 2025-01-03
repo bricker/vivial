@@ -3,7 +3,9 @@ variable "application_title" {
 }
 
 variable "gateways" {
-  type = map(string)
+  type = map(object({
+    name = string
+  }))
 }
 
 variable "dns_domain" {

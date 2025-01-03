@@ -2,7 +2,7 @@ module "iap" {
   source = "../../modules/iap"
   dns_domain = local.dns_domain
   application_title = "Eave"
-  gateways = local.iap_gateways
+  gateways = data.google_compute_backend_service.gateways
 }
 
 moved {
@@ -17,10 +17,10 @@ moved {
 
 moved {
   from = google_iap_settings.admin_gw
-  to = module.iap.google_iap_settings.gateway["admin_gw"]
+  to = module.iap.google_iap_settings.gateways["admin"]
 }
 
 moved {
   from = google_iap_settings.core_gw
-  to = module.iap.google_iap_settings.gateway["core_iap_gw"]
+  to = module.iap.google_iap_settings.gateways["core_api_iap"]
 }

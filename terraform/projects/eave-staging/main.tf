@@ -32,16 +32,16 @@ provider "google" {
   user_project_override = true
 }
 
-provider "kubernetes" {
-  host                   = "https://${module.gke_primary.cluster.endpoint}"
-  token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(module.gke_primary.cluster.master_auth[0].cluster_ca_certificate)
+# provider "kubernetes" {
+#   host                   = "https://${module.gke_primary.cluster.endpoint}"
+#   token                  = data.google_client_config.default.access_token
+#   cluster_ca_certificate = base64decode(module.gke_primary.cluster.master_auth[0].cluster_ca_certificate)
 
-  # config_path = "~/.kube/config"
-  # config_context = "eave-staging"
+#   # config_path = "~/.kube/config"
+#   # config_context = "eave-staging"
 
-  ignore_annotations = [
-    "^autopilot\\.gke\\.io\\/.*",
-    "^cloud\\.google\\.com\\/.*",
-  ]
-}
+#   ignore_annotations = [
+#     "^autopilot\\.gke\\.io\\/.*",
+#     "^cloud\\.google\\.com\\/.*",
+#   ]
+# }

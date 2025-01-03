@@ -1,9 +1,9 @@
 // https://cloud.google.com/kubernetes-engine/docs/quickstarts/create-cluster-using-terraform
 
 resource "google_container_cluster" "default" {
-  lifecycle {
-    prevent_destroy = true
-  }
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 
   name             = var.cluster_name
   location         = var.location
@@ -13,11 +13,11 @@ resource "google_container_cluster" "default" {
 
   # Set `deletion_protection` to `true` will ensure that one cannot
   # accidentally delete this instance by use of Terraform.
-  deletion_protection = true
+  deletion_protection = false
 
-  # node_config {
-  #   service_account = google_service_account.gke_node.id
-  # }
+  node_config {
+    service_account = var.use_default_service_account ? null : google_service_account.gke_node.id
+  }
 
   master_authorized_networks_config {
     gcp_public_cidrs_access_enabled = false
