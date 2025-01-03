@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	python-activate-venv
+	cd "$(e.parentpath)"
+
+	python ./bin/src/cli.py "$@"
+)

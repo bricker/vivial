@@ -23,7 +23,7 @@ class EaveEnvironment(enum.StrEnum):
     production = "production"
 
 
-_SLACK_CHANNEL_ID_BOT_TESTING = "C04GDPU3B5Z"
+SLACK_CHANNEL_ID_BOT_TESTING = "C04GDPU3B5Z"
 
 
 class ConfigBase:
@@ -257,16 +257,23 @@ class _EaveConfig(ConfigBase):
     @property
     def eave_slack_alerts_signups_channel_id(self) -> str:
         if self.is_local:
-            return _SLACK_CHANNEL_ID_BOT_TESTING
+            return SLACK_CHANNEL_ID_BOT_TESTING
         else:
             return "C04HH2N08LD"  # alerts-signups
 
     @property
     def eave_slack_alerts_bookings_channel_id(self) -> str:
         if self.is_local:
-            return _SLACK_CHANNEL_ID_BOT_TESTING
+            return SLACK_CHANNEL_ID_BOT_TESTING
         else:
             return "C085C89U211"  # alerts-bookings
+
+    @property
+    def eave_deployment_notifications_channel_id(self) -> str:
+        if self.is_local:
+            return SLACK_CHANNEL_ID_BOT_TESTING
+        else:
+            return "C086TDX5079"  # notif-deployments
 
     @cached_property
     def send_grid_api_key(self) -> str:
