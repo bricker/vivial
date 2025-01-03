@@ -1,9 +1,13 @@
-import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  SubmitReserverDetailsFailureReason,
+  UpdateReserverDetailsAccountFailureReason,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut, updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
 import {
   useListReserverDetailsQuery,
+  useSubmitReserverDetailsMutation,
   useUpdateReserverDetailsAccountMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
@@ -70,12 +74,17 @@ const StateContainer = styled("div")(() => ({
   padding: 32,
 }));
 
-const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string; phoneNumber: string }) => {
-  const displayContent: Array<{ label: string; value: string }> = [
-    { label: "Name", value: name },
-    { label: "Email", value: email },
-    { label: "Phone #", value: phoneNumber },
-  ];
+const InfoDisplay = ({ name, email, phoneNumber }: { name?: string; email?: string; phoneNumber?: string }) => {
+  const displayContent: Array<{ label: string; value: string }> = [];
+  if (name) {
+    displayContent.push({ label: "Name", value: name });
+  }
+  if (email) {
+    displayContent.push({ label: "Email", value: email });
+  }
+  if (phoneNumber) {
+    displayContent.push({ label: "Phone #", value: phoneNumber });
+  }
 
   return (
     <>
@@ -96,9 +105,12 @@ const EditableContainer = () => {
   const dispatch = useDispatch();
   const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
     useUpdateReserverDetailsAccountMutation();
+  const [submitReserverDetails, { isLoading: submitReserverDetailsIsLoading }] = useSubmitReserverDetailsMutation();
 
   const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+
+  const infoEditIsLoading = updateDetailsIsLoading || submitReserverDetailsIsLoading;
 
   const { data, isLoading: listDetailsIsLoading, isError: listDetailsIsError } = useListReserverDetailsQuery({});
   let reserverDetails = localReserverDetails;
@@ -137,10 +149,61 @@ const EditableContainer = () => {
     }) => {
       setError(undefined);
 
+      let detailsId = reserverDetails?.id;
+
       try {
+        // if reserverDetails doesnt have a db ID, create a db entry
+        if (reserverDetails?.id === undefined) {
+          const detailsResp = await submitReserverDetails({
+            input: {
+              firstName,
+              lastName,
+              phoneNumber,
+            },
+          });
+          switch (detailsResp.data?.viewer.__typename) {
+            case "AuthenticatedViewerMutations": {
+              const createdData = detailsResp.data.viewer.submitReserverDetails;
+              switch (createdData.__typename) {
+                case "SubmitReserverDetailsSuccess": {
+                  dispatch(storeReserverDetails({ details: createdData.reserverDetails }));
+                  detailsId = createdData.reserverDetails.id;
+                  break;
+                }
+                case "SubmitReserverDetailsFailure": {
+                  switch (createdData.failureReason) {
+                    case SubmitReserverDetailsFailureReason.ValidationErrors: {
+                      const invalidFields = createdData.validationErrors?.map((e) => e.field).join(", ");
+                      setError(`The following fields are invalid: ${invalidFields}`);
+                      break;
+                    }
+                    default:
+                      console.error("Unexpected case for SubmitReserverDetailsFailureReason");
+                      break;
+                  }
+                  return;
+                }
+                default:
+                  throw new Error("Unexected Graphql result");
+              }
+              break;
+            }
+            case "UnauthenticatedViewer":
+              dispatch(loggedOut());
+              window.location.assign(AppRoute.logout);
+              return;
+            default:
+              if (detailsResp.error) {
+                // 500 error
+                throw new Error("Graphql error");
+              }
+              break;
+          }
+        }
+
         const resp = await updateReserverDetailsAccount({
           input: {
-            id: reserverDetails?.id || "reserverDetails should never be null here",
+            id: detailsId!,
             firstName,
             lastName,
             phoneNumber,
@@ -215,14 +278,14 @@ const EditableContainer = () => {
               initPhoneNumber={reserverDetails?.phoneNumber || ""}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
-              isLoading={updateDetailsIsLoading}
+              isLoading={infoEditIsLoading}
               externalError={error}
             />
           ) : (
             <InfoDisplay
-              name={[reserverDetails?.firstName, reserverDetails?.lastName].filter((x) => x).join(" ") || "(none)"}
-              email={reserverEmail || "(none)"}
-              phoneNumber={reserverDetails?.phoneNumber || "(none)"}
+              name={[reserverDetails?.firstName, reserverDetails?.lastName].filter((x) => x).join(" ")}
+              email={reserverEmail}
+              phoneNumber={reserverDetails?.phoneNumber}
             />
           )}
         </InfoContainer>
@@ -231,11 +294,10 @@ const EditableContainer = () => {
           {listDetailsIsLoading ? (
             // loading state
             <CircularProgress color="secondary" />
-          ) : listDetailsIsError ? (
+          ) : (
+            listDetailsIsError &&
             // error state
             "Oops! We encountered a problem, please try again later."
-          ) : (
-            "There is no booking info to display."
           )}
         </StateContainer>
       )}
