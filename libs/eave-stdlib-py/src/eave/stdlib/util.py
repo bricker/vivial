@@ -275,18 +275,14 @@ def istr_eq(a: str, b: str) -> bool:
 
 def num_with_english_suffix(num: int) -> str:
     strnum = str(num)
-    if strnum.endswith(("11", "12", "13")):
+    if strnum.endswith(("11", "12", "13", "4", "5", "6", "7", "8", "9", "0")):
         return f"{num}th"
 
-    lastnum = strnum[-1]
-    match lastnum:
-        case "1":
-            return f"{num}st"
-        case "2":
-            return f"{num}nd"
-        case "3":
-            return f"{num}rd"
-        case "4" | "5" | "6" | "7" | "8" | "9" | "0":
-            return f"{num}th"
-        case _:
-            return f"{num}"
+    elif strnum.endswith("1"):
+        return f"{num}st"
+    elif strnum.endswith("2"):
+        return f"{num}nd"
+    elif strnum.endswith("3"):
+        return f"{num}rd"
+    else:
+        return f"{num}"

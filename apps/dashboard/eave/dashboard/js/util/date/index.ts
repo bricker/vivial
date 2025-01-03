@@ -1,4 +1,5 @@
-import { LOCALE, MONTH_DAY_LABELS, WEEKDAY_LABELS } from "./constant";
+import { numWithEnglishSuffix } from "../string";
+import { LOCALE } from "./constant";
 
 /**
  * 6:00 PM -> 6pm
@@ -19,11 +20,11 @@ export function getTimeOfDay(date: Date, stripZeroes: boolean = true): string {
 }
 
 export function getDayOfMonth(date: Date): string {
-  return MONTH_DAY_LABELS[date.getDate()] || "";
+  return numWithEnglishSuffix(date.getDate());
 }
 
 export function getDayOfWeek(date: Date): string {
-  return WEEKDAY_LABELS[date.getDay()] || "";
+  return date.toLocaleDateString(LOCALE, { weekday: "short" });
 }
 
 export function getMonth(date: Date): string {

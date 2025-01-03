@@ -77,6 +77,7 @@ function main() (
 	if e.confirm; then
 		if test -z "$label"; then
 			kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
+			kubectl --context="$gcloudproject" -n eave rollout status deployment/"$service"
 		else
 			kubectl --context="$gcloudproject" -n eave rollout restart deployment --selector="$label"
 		fi
