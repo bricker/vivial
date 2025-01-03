@@ -13,6 +13,7 @@ const LayoutContainer = styled(Box)<BoxProps>(() => ({
   justifyContent: "space-between",
   minHeight: "100vh",
   overflowX: "hidden",
+  overflowY: "auto",
 }));
 
 const MainContent = styled("main")(() => ({

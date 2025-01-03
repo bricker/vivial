@@ -21,6 +21,7 @@ const Header = styled("header", { shouldForwardProp: (prop) => prop !== "variant
           return "static";
       }
     })(),
+    top: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
