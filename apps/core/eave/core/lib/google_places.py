@@ -137,7 +137,7 @@ class GooglePlacesUtility:
         activity = Activity(
             source_id=place.id,
             source=ActivitySource.GOOGLE_PLACES,
-            is_bookable=place.reservable,
+            is_bookable=False,  # For now, any activity from Google Places is treated as non-bookable.
             name=place.display_name.text,
             description=place.editorial_summary,
             photos=photos,

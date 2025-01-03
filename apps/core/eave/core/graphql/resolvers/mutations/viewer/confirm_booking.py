@@ -17,11 +17,10 @@ from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.lib.event_helpers import resolve_itinerary
-from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.mail import send_booking_status_email
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
-from eave.core.shared.enums import ActivitySource, BookingState
+from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
@@ -217,15 +216,11 @@ async def _notify_slack_booking_confirmed(
     msg = f"<{dashboard_url}|Outing Booked for {total_cost_formatted}> - "
     elements: list[str] = []
 
-    if len(booking_orm.reservations) > 0:
-        places = GooglePlacesUtility()
-        rez = await places.get_google_place(place_id=booking_orm.reservations[0].source_id)
-        if rez and rez.reservable:
-            elements.append("Restaurant Reservation Required")
+    if itinerary.reservation and itinerary.reservation.restaurant.reservable:
+        elements.append("Restaurant Reservation Required")
 
-    if len(booking_orm.activities) > 0:
-        if booking_orm.activities[0].source == ActivitySource.EVENTBRITE:
-            elements.append("Activity Tickets Required")
+    if itinerary.activity_plan and itinerary.activity_plan.activity.is_bookable:
+        elements.append("Activity Tickets Required")
 
     if len(elements) > 0:
         msg += ", ".join(elements)
