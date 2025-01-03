@@ -42,7 +42,7 @@ const Ellipses = styled(Typography)(() => ({
 }));
 
 const LongDescription = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const isLong = (children as string).length > 320;
   const height = isExpanded || !isLong ? "auto" : "68px";
   const cta = isExpanded ? "Read less" : "Read more";
