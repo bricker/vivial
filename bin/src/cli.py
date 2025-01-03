@@ -63,7 +63,7 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
             slack_response = await slack_client.chat_postMessage(
                 channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
                 link_names=True,
-                text=f"Deployment to **{app}** has started. ({lines[-1]})",
+                text=f"Deployment to *{app}* has started. ({lines[-1]})",
                 unfurl_links=False,
                 unfurl_media=False,
             )

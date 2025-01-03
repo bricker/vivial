@@ -15,7 +15,6 @@ function _print_help() (
 
 function deploy() (
 	set -e
-	e.verify_clean_git_index
 
 	local service=""
 	local dockerfile=""
@@ -88,12 +87,26 @@ function deploy() (
 )
 
 function main() (
-	local service=""
+	e.verify_clean_git_index
 
-	while getopts "s:" argname; do
+	local service=""
+	local dockerfile=""
+	local label=""
+
+	while getopts "s:f:l:h" argname; do
 		case "$argname" in
-		s) service=$OPTARG ;;
-		*) ;;
+		s) echo ">>s"; service=$OPTARG ;;
+		f) dockerfile=$OPTARG ;;
+		l) label=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
+			;;
 		esac
 	done
 
@@ -104,12 +117,12 @@ function main() (
 	fi
 
 	local slackts
-	slackts="${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service"
+	slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
 
 	set +e
-	deploy "$@"
+	deploy -s "$service" -f "$dockerfile" -l "$label"
 
-	if $? -eq 0; then
+	if test "$?" -eq 0; then
 		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=completed --app="$service" --msg-timestamp="$slackts"
 	else
 		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
