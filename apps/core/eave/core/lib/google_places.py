@@ -139,7 +139,7 @@ class GooglePlacesUtility:
             source=ActivitySource.GOOGLE_PLACES,
             is_bookable=place.reservable,
             name=place.display_name.text,
-            description=place.editorial_summary,
+            description=place.editorial_summary.text or place.generative_summary.overview.text,
             photos=photos,
             ticket_info=None,  # No tickets for activity from Google Places
             venue=ActivityVenue(name=place.display_name.text, location=self.location_from_google_place(place)),
