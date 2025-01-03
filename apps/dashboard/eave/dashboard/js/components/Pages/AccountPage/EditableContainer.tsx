@@ -101,9 +101,8 @@ const InfoDisplay = ({ name, email, phoneNumber }: { name?: string; email?: stri
 
 const EditableContainer = () => {
   const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
-  const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+  const reserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
 
-  const [reserverDetails, setReserverDetails] = useState(localReserverDetails);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
@@ -121,9 +120,9 @@ const EditableContainer = () => {
       case "AuthenticatedViewerQueries": {
         // NOTE: extracting and showing only the first one since we currently only
         // allow 1 reserverDetails row to be created
-        const remoteDetails = data?.viewer?.reserverDetails[0] || null;
-        if (remoteDetails) {
-          setReserverDetails(remoteDetails);
+        const details = data?.viewer?.reserverDetails[0] || null;
+        if (details) {
+          dispatch(storeReserverDetails({ details }));
         }
         break;
       }
@@ -137,13 +136,6 @@ const EditableContainer = () => {
       }
     }
   }, [data]);
-
-  useEffect(() => {
-    // update state when new detail values are dispatched
-    if (localReserverDetails) {
-      setReserverDetails(localReserverDetails);
-    }
-  }, [localReserverDetails]);
 
   const handleCancel = () => setIsEditing(false);
   const handleSubmit = useCallback(
