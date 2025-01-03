@@ -1,19 +1,31 @@
-mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
+mutation UpdateReserverDetailsAccount($accountInput: UpdateAccountInput!, $reserverInput: UpdateReserverDetailsInput!) {
   viewer {
     __typename
     ... on AuthenticatedViewerMutations {
       __typename
-      updateReserverDetailsAccount(input: $input) {
+      updateAccount(input: $accountInput) {
         __typename
-        ... on UpdateReserverDetailsAccountSuccess {
-          reserverDetails {
-            ...ReserverDetailsFields
-          }
+        ... on UpdateAccountSuccess {
           account {
             ...AccountFields
           }
         }
-        ... on UpdateReserverDetailsAccountFailure {
+        ... on UpdateAccountFailure {
+          failureReason
+          validationErrors {
+            field
+          }
+        }
+      }
+
+      updateReserverDetails(input: $reserverInput) {
+        __typename
+        ... on UpdateReserverDetailsSuccess {
+          reserverDetails {
+            ...ReserverDetailsFields
+          }
+        }
+        ... on UpdateReserverDetailsFailure {
           failureReason
           validationErrors {
             field
