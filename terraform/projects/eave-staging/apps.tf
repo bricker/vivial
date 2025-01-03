@@ -1,11 +1,11 @@
-# module "shared_kubernetes_resources" {
-#   source                   = "../../modules/kube_shared_resources"
-#   iap_oauth_client_secret  = module.iap.google_iap_client.secret
-#   dns_domain               = local.dns_domain
-#   www_public_domain_prefix = local.www_public_domain_prefix
-#   api_public_domain_prefix = local.api_public_domain_prefix
-#   STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
-# }
+module "shared_kubernetes_resources" {
+  source                   = "../../modules/kube_shared_resources"
+  iap_oauth_client_secret  = module.iap.google_iap_client.secret
+  dns_domain               = local.dns_domain
+  www_public_domain_prefix = local.www_public_domain_prefix
+  api_public_domain_prefix = local.api_public_domain_prefix
+  STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
+}
 
 # module "core_api_app" {
 #   source               = "../../apps/core_api"

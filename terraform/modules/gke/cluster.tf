@@ -17,6 +17,10 @@ resource "google_container_cluster" "default" {
 
   node_config {
     service_account = var.use_default_service_account ? null : google_service_account.gke_node.id
+
+    gvnic {
+      enabled = true
+    }
   }
 
   master_authorized_networks_config {
