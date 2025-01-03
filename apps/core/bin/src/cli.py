@@ -1,6 +1,5 @@
 # isort: off
 
-import os
 import sys
 
 sys.path.append(".")
@@ -15,6 +14,7 @@ load_standard_dotenv_files()
 
 import asyncio
 import logging
+import os
 
 import alembic
 import alembic.command
