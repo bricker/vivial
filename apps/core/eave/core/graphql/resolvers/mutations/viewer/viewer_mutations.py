@@ -8,7 +8,6 @@ from eave.core.graphql.resolvers.mutations.viewer.update_outing_preferences impo
 from eave.core.graphql.resolvers.mutations.viewer.update_reserver_details import update_reserver_details_mutation
 
 
-
 @strawberry.type
 class AuthenticatedViewerMutations:
     submit_reserver_details = strawberry.mutation(resolver=submit_reserver_details_mutation)

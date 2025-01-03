@@ -15,6 +15,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** Date with time (isoformat) */
   DateTime: { input: string; output: string; }
   UUID: { input: string; output: string; }
 };
@@ -99,7 +100,6 @@ export type AuthenticatedViewerMutations = {
   updateOutingPreferences: UpdateOutingPreferencesResult;
   updatePreferences: UpdateOutingPreferencesResult;
   updateReserverDetails: UpdateReserverDetailsResult;
-  updateReserverDetailsAccount: UpdateReserverDetailsAccountResult;
 };
 
 
@@ -135,11 +135,6 @@ export type AuthenticatedViewerMutationsUpdatePreferencesArgs = {
 
 export type AuthenticatedViewerMutationsUpdateReserverDetailsArgs = {
   input: UpdateReserverDetailsInput;
-};
-
-
-export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
-  input: UpdateReserverDetailsAccountInput;
 };
 
 export type AuthenticatedViewerQueries = {
@@ -621,32 +616,6 @@ export type UpdateOutingPreferencesResult = UpdateOutingPreferencesFailure | Upd
 export type UpdateOutingPreferencesSuccess = {
   __typename?: 'UpdateOutingPreferencesSuccess';
   outingPreferences: OutingPreferences;
-};
-
-export type UpdateReserverDetailsAccountFailure = {
-  __typename?: 'UpdateReserverDetailsAccountFailure';
-  failureReason: UpdateReserverDetailsAccountFailureReason;
-  validationErrors?: Maybe<Array<ValidationError>>;
-};
-
-export enum UpdateReserverDetailsAccountFailureReason {
-  ValidationErrors = 'VALIDATION_ERRORS'
-}
-
-export type UpdateReserverDetailsAccountInput = {
-  email: Scalars['String']['input'];
-  firstName: Scalars['String']['input'];
-  id: Scalars['UUID']['input'];
-  lastName: Scalars['String']['input'];
-  phoneNumber: Scalars['String']['input'];
-};
-
-export type UpdateReserverDetailsAccountResult = UpdateReserverDetailsAccountFailure | UpdateReserverDetailsAccountSuccess;
-
-export type UpdateReserverDetailsAccountSuccess = {
-  __typename?: 'UpdateReserverDetailsAccountSuccess';
-  account: Account;
-  reserverDetails: ReserverDetails;
 };
 
 export type UpdateReserverDetailsFailure = {
