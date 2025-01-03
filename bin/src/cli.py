@@ -1,7 +1,5 @@
 # isort: off
 
-from enum import Enum, StrEnum
-import enum
 import sys
 
 sys.path.append(".")
@@ -16,6 +14,7 @@ load_standard_dotenv_files()
 # ruff: noqa: E402
 
 import os
+import enum
 from subprocess import PIPE, Popen
 
 from slack_sdk.models.blocks import HeaderBlock, RichTextBlock, RichTextElementParts, RichTextListElement, RichTextSectionElement
@@ -39,7 +38,7 @@ def cli() -> None:
 def deploy() -> None:
     pass
 
-class DeploymentStatus(StrEnum):
+class DeploymentStatus(enum.StrEnum):
     IN_PROGRESS = enum.auto()
     COMPLETE = enum.auto()
     FAILED = enum.auto()
