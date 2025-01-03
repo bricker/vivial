@@ -115,3 +115,5 @@ function main() (
 		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
 	fi
 )
+
+main "$@"
