@@ -3,7 +3,7 @@ export function capitalize(str: string) {
 }
 
 export function numWithEnglishSuffix(num: number) {
-  const strnum = String(num)
+  const strnum = String(num);
   if (["11", "12", "13", "0", "4", "5", "6", "7", "8", "9"].some((n) => strnum.endsWith(n))) {
     return `${num}th`;
   } else if (strnum.endsWith("1")) {
