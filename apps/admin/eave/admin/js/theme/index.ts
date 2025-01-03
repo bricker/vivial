@@ -55,7 +55,6 @@ export const theme = createTheme({
     h1: {
       fontFamily: fontFamilies.quicksand,
       color: colors.vivialYellow,
-      textTransform: "uppercase",
       fontSize: rem(40),
       lineHeight: rem(50),
       fontWeight: 600,

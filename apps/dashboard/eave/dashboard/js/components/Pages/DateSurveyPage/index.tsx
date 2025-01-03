@@ -111,6 +111,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
     padding: "64px",
     marginTop: 0,
     marginLeft: 60,
+    minWidth: 415,
     alignSelf: "center",
   },
 }));
@@ -293,10 +294,10 @@ const DateSurveyPage = () => {
     <PageContainer>
       <PageContentContainer>
         <CopyContainer>
-          <TitleCopy variant="h1">One Click Date Picked</TitleCopy>
+          <TitleCopy variant="h1">Your Free Date Planner</TitleCopy>
           <CityCopy>🌴 Los Angeles, California</CityCopy>
           <Typography variant="subtitle1">
-            Your free date planner. We cover all the details, and you only pay for experiences you book.
+            We handle all the details, and you only pay for experiences you want to book.
           </Typography>
           {isLoggedIn && (
             <>

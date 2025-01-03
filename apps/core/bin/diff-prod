@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	_live_version=$(bin/status | jq -r .version)
+
+	statusmsg -a "Diff since last deployment:"
+	git log --oneline "$_live_version"..HEAD "$EAVE_HOME"/apps/dashboard "$EAVE_HOME"/libs/eave-stdlib-py
+)
