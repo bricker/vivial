@@ -5,7 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 function main() (
-	e.verify_clean_git_index
+	e.verify-clean-git-index
 
 	export EAVE_DEPLOY_TARGET
 	EAVE_DEPLOY_TARGET="$(e.gcloudproject)"
@@ -13,10 +13,8 @@ function main() (
 	cd "$(e.parentpath)"
 	bin/lint
 
-	_live_version=$(curl -s https://admin.vivialapp.com/status | jq -r .version)
-
 	statusmsg -a "Diff since last deployment:"
-	git log --oneline "$_live_version"..HEAD
+	e.diff-prod
 
 	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
 

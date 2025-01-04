@@ -152,12 +152,17 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		return 0
 	)
 
-	function e.verify_clean_git_index() {
+	function e.verify-clean-git-index() {
 		if ! test -z "$(git status --porcelain)"; then
 			statusmsg -e "Dirty git index!"
 			exit 1
 		fi
 	}
+
+	function e.diff-prod () (
+		_live_version=$(bin/status | jq -r .version)
+		git log --oneline --reverse "$_live_version"..HEAD . "$EAVE_HOME"/libs/eave-stdlib-py
+	)
 
 	function e.shellname() {
 		echo -n "$(basename "$SHELL")"

@@ -87,7 +87,7 @@ function deploy() (
 )
 
 function main() (
-	e.verify_clean_git_index
+	e.verify-clean-git-index
 
 	local service=""
 	local dockerfile=""
