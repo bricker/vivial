@@ -13,8 +13,8 @@ function _print_help() (
 	statusmsg -o "  -h : Print this message."
 )
 
-function main() (
-	e.verify_clean_git_index
+function deploy() (
+	set -e
 
 	local service=""
 	local dockerfile=""
@@ -49,8 +49,10 @@ function main() (
 
 	local gcloudproject
 	gcloudproject="$(e.gcloudproject)"
+
 	local gitsha
 	gitsha="$(git rev-parse --short HEAD)"
+
 	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${service}"
 	local release_date
 	release_date=$(date --utc --iso-8601=seconds)
@@ -81,6 +83,52 @@ function main() (
 		else
 			kubectl --context="$gcloudproject" -n eave rollout restart deployment --selector="$label"
 		fi
+	fi
+)
+
+function main() (
+	e.verify_clean_git_index
+
+	local service=""
+	local dockerfile=""
+	local label=""
+
+	while getopts "s:f:l:h" argname; do
+		case "$argname" in
+		s)
+			echo ">>s"
+			service=$OPTARG
+			;;
+		f) dockerfile=$OPTARG ;;
+		l) label=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
+			;;
+		esac
+	done
+
+	if test -z "$service"; then
+		statusmsg -e "service is required."
+		_print_help
+		exit 1
+	fi
+
+	local slackts
+	slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
+
+	set +e
+	deploy -s "$service" -f "$dockerfile" -l "$label"
+
+	if test "$?" -eq 0; then
+		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=completed --app="$service" --msg-timestamp="$slackts"
+	else
+		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
 	fi
 )
 

@@ -6,9 +6,6 @@ from eave.core.graphql.resolvers.mutations.viewer.submit_reserver_details import
 from eave.core.graphql.resolvers.mutations.viewer.update_account import update_account_mutation
 from eave.core.graphql.resolvers.mutations.viewer.update_outing_preferences import update_outing_preferences_mutation
 from eave.core.graphql.resolvers.mutations.viewer.update_reserver_details import update_reserver_details_mutation
-from eave.core.graphql.resolvers.mutations.viewer.update_reserver_details_account import (
-    update_reserver_details_account_mutation,
-)
 
 
 @strawberry.type
@@ -19,5 +16,4 @@ class AuthenticatedViewerMutations:
     update_account = strawberry.mutation(resolver=update_account_mutation)
     update_preferences = strawberry.mutation(resolver=update_outing_preferences_mutation)
     update_reserver_details = strawberry.mutation(resolver=update_reserver_details_mutation)
-    update_reserver_details_account = strawberry.mutation(resolver=update_reserver_details_account_mutation)
     update_outing_preferences = strawberry.mutation(resolver=update_outing_preferences_mutation)

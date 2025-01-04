@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	cd "$(e.parentpath)"
+	_live_version=$(bin/status | jq -r .version)
+
+	git log --oneline --reverse "$_live_version"..HEAD "$EAVE_HOME"/apps/core "$EAVE_HOME"/libs/eave-stdlib-py
+)
