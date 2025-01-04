@@ -38,7 +38,9 @@ export function buildCodegenConfig({
             },
           },
           {
-            typescript: <TypeScriptPluginConfig>{},
+            typescript: <TypeScriptPluginConfig>{
+              disableDescriptions: true,
+            },
           },
           {
             "typescript-operations": <TypeScriptDocumentsPluginConfig>{},
