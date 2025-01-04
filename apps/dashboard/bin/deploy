@@ -13,6 +13,7 @@ function main() (
 	cd "$(e.parentpath)"
 	bin/lint
 
+	statusmsg -a "Diff since last deployment:"
 	bin/diff-prod
 
 	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"

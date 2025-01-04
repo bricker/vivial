@@ -1,0 +1,154 @@
+# isort: off
+
+import sys
+
+sys.path.append(".")
+
+from eave.dev_tooling.constants import EAVE_HOME
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
+
+load_standard_dotenv_files()
+
+# isort: on
+
+# ruff: noqa: E402
+
+import os
+import enum
+from subprocess import PIPE, Popen
+
+from slack_sdk.models.blocks import HeaderBlock, RichTextBlock, RichTextElementParts, RichTextListElement, RichTextSectionElement
+
+
+from eave.stdlib.slack import get_authenticated_eave_system_slack_client
+
+
+
+import asyncio
+import click
+
+from eave.stdlib.config import SHARED_CONFIG
+
+
+@click.group()
+def cli() -> None:
+    pass
+
+@cli.group()
+def deploy() -> None:
+    pass
+
+class DeploymentStatus(enum.StrEnum):
+    IN_PROGRESS = enum.auto()
+    COMPLETE = enum.auto()
+    FAILED = enum.auto()
+
+@deploy.command()
+@click.option("-a", "--app", required=True)
+@click.option("-s", "--status", required=True, type=click.Choice(list(DeploymentStatus), case_sensitive=False))
+@click.option("-m", "--msg-timestamp", required=False)
+def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) -> None:
+    slack_client = get_authenticated_eave_system_slack_client()
+
+    async def _post_message() -> None:
+        assert slack_client
+
+        if status == DeploymentStatus.IN_PROGRESS:
+            p = Popen(f"{EAVE_HOME}/apps/{app}/bin/diff-prod", env=os.environ, shell=False, stdout=PIPE)  # noqa: ASYNC220, S603
+            stdout, stderr = p.communicate()
+            changelog = stdout.decode()
+            lines = changelog.splitlines()
+            lines.reverse()
+
+            slack_response = await slack_client.chat_postMessage(
+                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                link_names=True,
+                text=f"Deployment to *{app}* has started. ({lines[-1]})",
+                unfurl_links=False,
+                unfurl_media=False,
+            )
+
+            await slack_client.reactions_add(
+                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                timestamp=slack_response["ts"],
+                name="clock5",
+            )
+
+            await slack_client.chat_postMessage(
+                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                thread_ts=slack_response["ts"],
+                link_names=True,
+                blocks=[
+                    HeaderBlock(
+                        text="Changelog",
+                    ),
+                    RichTextBlock(
+                        elements=[
+                            RichTextListElement(
+                                style="bullet",
+                                elements=[
+                                    RichTextSectionElement(
+                                        elements=[
+                                            RichTextElementParts.Text(
+                                                text=line,
+                                                style=RichTextElementParts.TextStyle(code=True),
+                                            )
+                                        ]
+                                    )
+                                    for line in lines
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+                text=changelog,
+            )
+
+            click.echo(slack_response["ts"])
+
+        else:
+            assert msg_timestamp
+
+            await slack_client.reactions_remove(
+                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                timestamp=msg_timestamp,
+                name="clock5",
+            )
+
+            if status == DeploymentStatus.COMPLETE:
+                await slack_client.reactions_add(
+                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    timestamp=msg_timestamp,
+                    name="white_check_mark",
+                )
+
+                await slack_client.chat_postMessage(
+                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    thread_ts=msg_timestamp,
+                    link_names=True,
+                    text="Deployment Complete!",
+                    unfurl_links=False,
+                    unfurl_media=False,
+                )
+
+            elif status == DeploymentStatus.FAILED:
+                await slack_client.reactions_add(
+                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    timestamp=msg_timestamp,
+                    name="x",
+                )
+
+                await slack_client.chat_postMessage(
+                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    thread_ts=msg_timestamp,
+                    link_names=True,
+                    text="Deployment Failed!",
+                    unfurl_links=False,
+                    unfurl_media=False,
+                )
+
+    if slack_client:
+        asyncio.run(_post_message())
+
+if __name__ == "__main__":
+    cli()

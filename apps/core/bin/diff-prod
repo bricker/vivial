@@ -5,8 +5,8 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
+	cd "$(e.parentpath)"
 	_live_version=$(bin/status | jq -r .version)
 
-	statusmsg -a "Diff since last deployment:"
-	git log --oneline "$_live_version"..HEAD "$EAVE_HOME"/apps/dashboard "$EAVE_HOME"/libs/eave-stdlib-py
+	git log --oneline --reverse "$_live_version"..HEAD "$EAVE_HOME"/apps/core "$EAVE_HOME"/libs/eave-stdlib-py
 )

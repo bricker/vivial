@@ -100,7 +100,6 @@ export type AuthenticatedViewerMutations = {
   updateOutingPreferences: UpdateOutingPreferencesResult;
   updatePreferences: UpdateOutingPreferencesResult;
   updateReserverDetails: UpdateReserverDetailsResult;
-  updateReserverDetailsAccount: UpdateReserverDetailsAccountResult;
 };
 
 
@@ -136,11 +135,6 @@ export type AuthenticatedViewerMutationsUpdatePreferencesArgs = {
 
 export type AuthenticatedViewerMutationsUpdateReserverDetailsArgs = {
   input: UpdateReserverDetailsInput;
-};
-
-
-export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
-  input: UpdateReserverDetailsAccountInput;
 };
 
 export type AuthenticatedViewerQueries = {
@@ -622,32 +616,6 @@ export type UpdateOutingPreferencesResult = UpdateOutingPreferencesFailure | Upd
 export type UpdateOutingPreferencesSuccess = {
   __typename?: 'UpdateOutingPreferencesSuccess';
   outingPreferences: OutingPreferences;
-};
-
-export type UpdateReserverDetailsAccountFailure = {
-  __typename?: 'UpdateReserverDetailsAccountFailure';
-  failureReason: UpdateReserverDetailsAccountFailureReason;
-  validationErrors?: Maybe<Array<ValidationError>>;
-};
-
-export enum UpdateReserverDetailsAccountFailureReason {
-  ValidationErrors = 'VALIDATION_ERRORS'
-}
-
-export type UpdateReserverDetailsAccountInput = {
-  email: Scalars['String']['input'];
-  firstName: Scalars['String']['input'];
-  id: Scalars['UUID']['input'];
-  lastName: Scalars['String']['input'];
-  phoneNumber: Scalars['String']['input'];
-};
-
-export type UpdateReserverDetailsAccountResult = UpdateReserverDetailsAccountFailure | UpdateReserverDetailsAccountSuccess;
-
-export type UpdateReserverDetailsAccountSuccess = {
-  __typename?: 'UpdateReserverDetailsAccountSuccess';
-  account: Account;
-  reserverDetails: ReserverDetails;
 };
 
 export type UpdateReserverDetailsFailure = {
@@ -2188,7 +2156,8 @@ export type UpdateReserverDetailsMutation = {
 };
 
 export type UpdateReserverDetailsAccountMutationVariables = Exact<{
-  input: UpdateReserverDetailsAccountInput;
+  accountInput: UpdateAccountInput;
+  reserverInput: UpdateReserverDetailsInput;
 }>;
 
 
@@ -2196,27 +2165,37 @@ export type UpdateReserverDetailsAccountMutation = {
   __typename: 'Mutation',
   viewer: {
     __typename: 'AuthenticatedViewerMutations',
-    updateReserverDetailsAccount: {
-      __typename: 'UpdateReserverDetailsAccountFailure',
-      failureReason: UpdateReserverDetailsAccountFailureReason,
+    updateAccount: {
+      __typename: 'UpdateAccountFailure',
+      failureReason: UpdateAccountFailureReason,
       validationErrors?: Array<{
         __typename: 'ValidationError',
         field: string
       }> | null
     } | {
-      __typename: 'UpdateReserverDetailsAccountSuccess',
+      __typename: 'UpdateAccountSuccess',
+      account: {
+        __typename: 'Account',
+        id: string,
+        email: string,
+        stripeCustomerId?: string | null
+      }
+    },
+    updateReserverDetails: {
+      __typename: 'UpdateReserverDetailsFailure',
+      failureReason: UpdateReserverDetailsFailureReason,
+      validationErrors?: Array<{
+        __typename: 'ValidationError',
+        field: string
+      }> | null
+    } | {
+      __typename: 'UpdateReserverDetailsSuccess',
       reserverDetails: {
         __typename: 'ReserverDetails',
         id: string,
         firstName: string,
         lastName: string,
         phoneNumber: string
-      },
-      account: {
-        __typename: 'Account',
-        id: string,
-        email: string,
-        stripeCustomerId?: string | null
       }
     }
   } | {
@@ -4287,26 +4266,40 @@ export const UpdateReserverDetailsDocument = new TypedDocumentString(`
   phoneNumber
 }`) as unknown as TypedDocumentString<UpdateReserverDetailsMutation, UpdateReserverDetailsMutationVariables>;
 export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
-    mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
+    mutation UpdateReserverDetailsAccount($accountInput: UpdateAccountInput!, $reserverInput: UpdateReserverDetailsInput!) {
   __typename
   viewer {
     __typename
     ... on AuthenticatedViewerMutations {
       __typename
-      updateReserverDetailsAccount(input: $input) {
+      updateAccount(input: $accountInput) {
         __typename
-        ... on UpdateReserverDetailsAccountSuccess {
+        ... on UpdateAccountSuccess {
           __typename
-          reserverDetails {
-            __typename
-            ...ReserverDetailsFields
-          }
           account {
             __typename
             ...AccountFields
           }
         }
-        ... on UpdateReserverDetailsAccountFailure {
+        ... on UpdateAccountFailure {
+          __typename
+          failureReason
+          validationErrors {
+            __typename
+            field
+          }
+        }
+      }
+      updateReserverDetails(input: $reserverInput) {
+        __typename
+        ... on UpdateReserverDetailsSuccess {
+          __typename
+          reserverDetails {
+            __typename
+            ...ReserverDetailsFields
+          }
+        }
+        ... on UpdateReserverDetailsFailure {
           __typename
           failureReason
           validationErrors {
