@@ -95,7 +95,10 @@ function main() (
 
 	while getopts "s:f:l:h" argname; do
 		case "$argname" in
-		s) echo ">>s"; service=$OPTARG ;;
+		s)
+			echo ">>s"
+			service=$OPTARG
+			;;
 		f) dockerfile=$OPTARG ;;
 		l) label=$OPTARG ;;
 		h)
