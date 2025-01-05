@@ -12,8 +12,8 @@ resource "kubernetes_manifest" "gateway" {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "Gateway"
     metadata = {
-      name      = var.service_name
-      namespace = var.namespace
+      name      = var.kubernetes_service.name
+      namespace = var.kubernetes_namespace_name
 
       annotations = {
         "networking.gke.io/certmap" : var.google_certificate_manager_certificate_map.name
@@ -48,7 +48,7 @@ resource "kubernetes_manifest" "gateway" {
       ]
 
       addresses = [
-        for addr in data.google_compute_global_address.given :
+        for addr in var.google_compute_global_addresses :
         {
           type  = "NamedAddress"
           value = addr.name
@@ -68,8 +68,8 @@ resource "kubernetes_manifest" "gateway_policy" {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPGatewayPolicy"
     metadata = {
-      name      = var.service_name
-      namespace = var.namespace
+      name      = var.kubernetes_service.name
+      namespace = var.kubernetes_namespace_name
     }
 
     spec = {

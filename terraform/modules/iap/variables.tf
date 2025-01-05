@@ -2,7 +2,7 @@ variable "application_title" {
   type=string
 }
 
-variable "gateways" {
+variable "backend_services" {
   type = map(object({
     name = string
   }))

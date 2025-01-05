@@ -5,20 +5,12 @@ module "kubernetes_service" {
   service_port = local.service_port
   app_name     = local.app_name
   app_port     = local.app_port
+  iap_oauth_client_kube_secret_name = var.iap_oauth_client_kube_secret_name
+  iap_oauth_client_id               = var.iap_oauth_client_id
+  iap_enabled                       = var.root_iap_enabled
 }
 
 moved {
-  from = module.gateway_backend_policy
-  to   = module.service_backend_policy
-}
-
-module "service_backend_policy" {
-  source = "../../modules/backend_policy"
-
-  name                              = local.app_name
-  namespace                         = var.kube_namespace_name
-  service_name                      = module.kubernetes_service.name
-  iap_oauth_client_kube_secret_name = var.iap_oauth_client_kube_secret_name
-  iap_oauth_client_id               = var.iap_oauth_client_id
-  iap_enabled                       = var.iap_enabled
+  from = module.service_backend_policy.kubernetes_manifest.backend_policy
+  to   = module.kubernetes_service.kubernetes_manifest.backend_policy
 }

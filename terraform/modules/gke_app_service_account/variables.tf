@@ -1,5 +1,7 @@
-variable "kube_service_name" {
-  type = string
+variable "kubernetes_service" {
+  type = object({
+    name = string
+  })
 }
 
 variable "kube_namespace_name" {

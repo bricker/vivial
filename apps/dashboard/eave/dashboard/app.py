@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from http import HTTPStatus
 
 from starlette.applications import Starlette
+from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 from starlette.routing import Mount, Route
@@ -10,6 +11,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 import eave.stdlib.logging
+from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 import eave.stdlib.time
 from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
@@ -83,8 +85,10 @@ async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
 
     yield
 
-
 app = Starlette(
+    middleware=[
+        Middleware(IAPJWTValidationMiddleware, enabled=DASHBOARD_APP_CONFIG.root_iap_enabled, aud=DASHBOARD_APP_CONFIG.iap_jwt_aud),
+    ],
     routes=[
         Mount("/static", StaticFiles(directory="eave/dashboard/static")),
         Route(

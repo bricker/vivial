@@ -20,10 +20,12 @@ class IAPJWTValidationMiddleware:
 
     app: asgiref.typing.ASGI3Application
     aud: str
+    enabled: bool
 
-    def __init__(self, app: ASGIApp, *, aud: str) -> None:
+    def __init__(self, app: ASGIApp, *, aud: str, enabled: bool) -> None:
         self.app = cast(asgiref.typing.ASGI3Application, app)
         self.aud = aud
+        self.enabled = enabled
 
     async def __call__(
         self,
@@ -43,7 +45,10 @@ class IAPJWTValidationMiddleware:
             await self.app(cscope, creceive, csend)
             return
 
-        if not SHARED_CONFIG.is_local:
+        if self.enabled:
+            if not self.aud:
+                raise ForbiddenError("IAP auth failed (missing audience)")
+
             jwt_assertion_header = get_header_value_or_exception(scope=cscope, name=IAP_JWT_HEADER)
 
             decoded_token = id_token.verify_token(

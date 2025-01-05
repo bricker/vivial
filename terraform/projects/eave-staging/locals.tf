@@ -24,4 +24,5 @@ locals {
   }
 
   STRIPE_ENVIRONMENT = "test"
+  EAVE_ENV = "staging"
 }

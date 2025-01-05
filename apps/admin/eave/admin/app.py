@@ -65,6 +65,10 @@ async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
 
 
 app = Starlette(
+    middleware=[
+        # IAP validation is always installed for Admin, but disabled for local environments.
+        Middleware(IAPJWTValidationMiddleware, enabled=(not SHARED_CONFIG.is_local), aud=ADMIN_APP_CONFIG.iap_jwt_aud),
+    ],
     routes=[
         Mount("/static", StaticFiles(directory="eave/admin/static")),
         Route(
@@ -77,5 +81,4 @@ app = Starlette(
     ],
     exception_handlers=exception_handlers,
     lifespan=_app_lifespan,
-    middleware=[Middleware(IAPJWTValidationMiddleware, aud=ADMIN_APP_CONFIG.iap_jwt_aud)],
 )

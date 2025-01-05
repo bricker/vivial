@@ -13,6 +13,10 @@ class _AppConfig(ConfigBase):
     def iap_jwt_aud(self) -> str:
         return get_required_env("EAVE_API_IAP_JWT_AUD")
 
+    @property
+    def root_iap_enabled(self) -> bool:
+        return os.getenv("EAVE_API_ROOT_IAP_ENABLED") != "0"
+
     @cached_property
     def db_host(self) -> str | None:
         key = "EAVE_DB_HOST"

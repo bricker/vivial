@@ -15,11 +15,21 @@ resource "google_container_cluster" "default" {
   # accidentally delete this instance by use of Terraform.
   deletion_protection = false
 
+  cluster_autoscaling {
+    auto_provisioning_defaults {
+      service_account = var.use_default_service_account ? null : google_service_account.gke_node.email
+    }
+  }
+
   node_config {
-    service_account = var.use_default_service_account ? null : google_service_account.gke_node.id
+    service_account = var.use_default_service_account ? null : google_service_account.gke_node.email
 
     gvnic {
       enabled = true
+    }
+
+    reservation_affinity {
+        consume_reservation_type = "NO_RESERVATION"
     }
   }
 

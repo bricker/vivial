@@ -8,8 +8,13 @@ resource "google_iap_client" "default" {
   display_name = "Default IAP Client"
 }
 
-resource "google_iap_settings" "gateways" {
-  for_each = var.gateways
+moved {
+  from = google_iap_settings.gateways
+  to = google_iap_settings.backend_services
+}
+
+resource "google_iap_settings" "backend_services" {
+  for_each = var.backend_services
 
   name = "projects/${data.google_project.default.number}/iap_web/compute/services/${each.value.name}"
 

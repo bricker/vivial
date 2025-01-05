@@ -6,13 +6,13 @@
 resource "google_service_account" "bastion_sa" {
   # The service account that will be installed on the VM
   account_id   = var.name
-  display_name = "${var.target_service_account_id} bastion agent"
-  description  = "Used to impersonate ${var.target_service_account_id} through IAP."
+  display_name = "${var.target_service_account.id} bastion agent"
+  description  = "Used to impersonate ${var.target_service_account.id} through IAP."
 }
 
 resource "google_compute_instance" "bastion" {
   name                      = var.name
-  description               = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
+  description               = "IAP tunnel for impersonating ${var.target_service_account.id} from local workstations."
   machine_type              = "n2d-standard-2" # Required for confidential compute
   allow_stopping_for_update = true
   can_ip_forward            = false
@@ -43,7 +43,7 @@ resource "google_compute_instance" "bastion" {
       ./cloud-sql-proxy \
         --private-ip \
         --auto-iam-authn \
-        --impersonate-service-account ${data.google_service_account.target_service_account.email} \
+        --impersonate-service-account ${var.target_service_account.email} \
         --address 0.0.0.0 \
         --port 5432 \
         ${var.google_sql_database_instance.connection_name}

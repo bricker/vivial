@@ -2,8 +2,12 @@ variable "name" {
   type = string
 }
 
-variable "target_service_account_id" {
-  type = string
+variable "target_service_account" {
+  type = object({
+    id = string
+    name = string
+    email = string
+  })
 }
 
 variable "google_sql_database_instance" {

@@ -5,6 +5,7 @@ module "shared_kubernetes_resources" {
   www_public_domain_prefix = local.www_public_domain_prefix
   api_public_domain_prefix = local.api_public_domain_prefix
   STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
+  EAVE_ENV = "production"
 }
 
 module "core_api_app" {

@@ -33,10 +33,6 @@ output "impersonator_role_name" {
   value = module.impersonator_role.name
 }
 
-output "cloudsql_user_role_name" {
-  value = module.cloudsql_user_role.name
-}
-
 output "secret_accessor_role_name" {
   value = module.secret_accessor_role.name
 }

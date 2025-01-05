@@ -1,4 +1,6 @@
 resource "kubernetes_manifest" "backend_policy" {
+  # https://googlecloudplatform.github.io/gke-gateway-api/#gcpbackendpolicy
+
   lifecycle {
     prevent_destroy = true
   }
@@ -7,8 +9,8 @@ resource "kubernetes_manifest" "backend_policy" {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPBackendPolicy"
     metadata = {
-      name      = var.name
-      namespace = var.namespace
+      name      = kubernetes_service.default.metadata[0].name
+      namespace = kubernetes_service.default.metadata[0].namespace
     }
 
     spec = {
@@ -31,7 +33,7 @@ resource "kubernetes_manifest" "backend_policy" {
       targetRef = {
         group = ""
         kind  = "Service"
-        name  = var.service_name
+        name  = kubernetes_service.default.metadata[0].name
       }
     }
   }

@@ -109,10 +109,6 @@ variable "JWS_SIGNING_KEY_VERSION_PATH" {
   type = string
 }
 
-variable "iap_enabled" {
-  type    = bool
-}
-
 variable "iap_oauth_client_id" {
   type     = string
 }
@@ -123,4 +119,8 @@ variable "iap_oauth_client_kube_secret_name" {
 
 variable "iap_jwt_aud" {
   type=string
+}
+
+variable "root_iap_enabled" {
+  type    = bool
 }

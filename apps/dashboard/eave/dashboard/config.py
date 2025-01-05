@@ -1,9 +1,17 @@
 import os
 
-from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment
+from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment, get_required_env
 
 
 class _AppConfig(ConfigBase):
+    @property
+    def iap_jwt_aud(self) -> str:
+        return get_required_env("EAVE_WWW_IAP_JWT_AUD")
+
+    @property
+    def root_iap_enabled(self) -> bool:
+        return os.getenv("EAVE_WWW_ROOT_IAP_ENABLED") != "0"
+
     @property
     def segment_write_key(self) -> str:
         match SHARED_CONFIG.eave_env:

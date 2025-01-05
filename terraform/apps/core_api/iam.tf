@@ -1,7 +1,7 @@
 module "service_accounts" {
   # Create the app service account and KSA binding
   source              = "../../modules/gke_app_service_account"
-  kube_service_name   = local.app_name
+  kubernetes_service   = module.kubernetes_service.kubernetes_service
   kube_namespace_name = var.kube_namespace_name
 }
 

@@ -76,5 +76,4 @@ variable "iap_oauth_client_kube_secret_name" {
 
 variable "iap_jwt_aud" {
   type=string
-  nullable = true
 }

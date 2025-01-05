@@ -9,14 +9,24 @@ variable "dns_domain" {
 
 variable "www_public_domain_prefix" {
   type    = string
-  default = "www"
 }
 
 variable "api_public_domain_prefix" {
   type    = string
-  default = "api"
+}
+
+variable "admin_public_domain_prefix" {
+  type    = string
 }
 
 variable "STRIPE_ENVIRONMENT" {
   type = string
+}
+
+variable "EAVE_ENV" {
+  type=string
+  validation {
+    condition = contains(["production", "staging"], var.EAVE_ENV)
+    error_message = "EAVE_ENV must be one of production, staging"
+  }
 }

@@ -74,8 +74,39 @@ async def _app_lifespan(app: starlette.applications.Starlette) -> AsyncGenerator
     except Exception as e:
         LOGGER.exception(e)
 
+_root_middlewares = [
+    # CORS is needed only for dashboard to API communications.
+    Middleware(
+        CORSMiddleware,
+        allow_origins=[
+            SHARED_CONFIG.eave_dashboard_base_url_public,
+            SHARED_CONFIG.eave_admin_base_url_public,
+        ],
+        allow_methods=[
+            aiohttp.hdrs.METH_GET,
+            aiohttp.hdrs.METH_POST,
+            aiohttp.hdrs.METH_HEAD,
+            aiohttp.hdrs.METH_OPTIONS,
+        ],
+        allow_credentials=True,
+    ),
+]
+
+_iap_middlewares = []
+
+# If IAP validation is enabled on all paths (eg in staging), then we want to install it at the root.
+# Otherwise, we should only install it at the /iap mount path.
+# The point is to not run the request through the middleware twice when root IAP is enabled.
+if CORE_API_APP_CONFIG.root_iap_enabled:
+    # If the environment has explicitly enabled root IAP, then it is always enabled.
+    _root_middlewares.append(Middleware(IAPJWTValidationMiddleware, enabled=True, aud=CORE_API_APP_CONFIG.iap_jwt_aud))
+else:
+    # If root IAP is not enabled, add IAP validation to the /iap mount.
+    # Disable it in local environments.
+    _iap_middlewares.append(Middleware(IAPJWTValidationMiddleware, enabled=(not SHARED_CONFIG.is_local), aud=CORE_API_APP_CONFIG.iap_jwt_aud))
 
 app = starlette.applications.Starlette(
+    middleware=_root_middlewares,
     routes=[
         Route(
             path="/status",
@@ -124,7 +155,7 @@ app = starlette.applications.Starlette(
             # This path prefix matches configuration in Kubernetes and shouldn't be changed.
             # It is configured to send everything on this path through the IAP
             "/iap",
-            middleware=[Middleware(IAPJWTValidationMiddleware, aud=CORE_API_APP_CONFIG.iap_jwt_aud)],
+            middleware=_iap_middlewares,
             routes=[
                 Route(
                     path="/graphql",
@@ -140,22 +171,5 @@ app = starlette.applications.Starlette(
         ),
     ],
     exception_handlers=exception_handlers,
-    middleware=[
-        # CORS is needed only for dashboard to API communications.
-        Middleware(
-            CORSMiddleware,
-            allow_origins=[
-                SHARED_CONFIG.eave_dashboard_base_url_public,
-                SHARED_CONFIG.eave_admin_base_url_public,
-            ],
-            allow_methods=[
-                aiohttp.hdrs.METH_GET,
-                aiohttp.hdrs.METH_POST,
-                aiohttp.hdrs.METH_HEAD,
-                aiohttp.hdrs.METH_OPTIONS,
-            ],
-            allow_credentials=True,
-        ),
-    ],
     lifespan=_app_lifespan,
 )
