@@ -6,13 +6,13 @@
 resource "google_service_account" "bastion_sa" {
   # The service account that will be installed on the VM
   account_id   = var.name
-  display_name = "${var.target_service_account.id} bastion agent"
-  description  = "Used to impersonate ${var.target_service_account.id} through IAP."
+  display_name = "${var.target_service_account.account_id} bastion agent"
+  description  = "Used to impersonate ${var.target_service_account.account_id} through IAP."
 }
 
 resource "google_compute_instance" "bastion" {
   name                      = var.name
-  description               = "IAP tunnel for impersonating ${var.target_service_account.id} from local workstations."
+  description               = "IAP tunnel for impersonating ${var.target_service_account.account_id} from local workstations."
   machine_type              = "n2d-standard-2" # Required for confidential compute
   allow_stopping_for_update = true
   can_ip_forward            = false
