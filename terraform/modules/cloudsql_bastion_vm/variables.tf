@@ -5,6 +5,7 @@ variable "name" {
 variable "target_service_account" {
   type = object({
     id = string
+    account_id = string
     name = string
     email = string
   })

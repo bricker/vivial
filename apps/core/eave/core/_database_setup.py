@@ -1,3 +1,4 @@
+from sqlalchemy.ext.asyncio import AsyncEngine
 from eave.stdlib.config import SHARED_CONFIG
 
 if SHARED_CONFIG.is_local:
@@ -36,7 +37,7 @@ if SHARED_CONFIG.is_local:
 
         return _base_metadata
 
-    async def init_database(db_name: str = CORE_API_APP_CONFIG.db_name) -> None:
+    async def reset_database(engine: AsyncEngine = async_engine) -> None:
         """
         This function DROPS the database (EAVE_DB_NAME)!
 
@@ -44,84 +45,30 @@ if SHARED_CONFIG.is_local:
         """
 
         # Some attempts to prevent this script from running against the production database
-        assert os.getenv("GAE_ENV") is None
         assert os.getenv("GCLOUD_PROJECT") != "eave-production"
+        assert os.getenv("GOOGLE_CLOUD_PROJECT") != "eave-production"
+        assert os.getenv("EAVE_DEPLOY_TARGET") != "eave-production"
         assert SHARED_CONFIG.google_cloud_project != "eave-production"
         assert SHARED_CONFIG.is_local
-        assert db_name not in [None, "eave", "eave-production"]
 
         # We can't connect to the database being created because, well, it doesn't exist (or it's going to be dropped).
         # Instead, connect to the postgres database on the host.
-        postgres_uri = async_engine.url._replace(database="postgres")
         postgres_engine = create_async_engine(
-            postgres_uri,
+            engine.url._replace(database="postgres"),
             isolation_level="AUTOCOMMIT",
-            echo=False,
-            connect_args={
-                "server_settings": {
-                    "timezone": "UTC",
-                },
-            },
+            echo=engine.echo,
         )
 
         async with postgres_engine.begin() as connection:
-            await connection.execute(sqlalchemy.text(f'DROP DATABASE IF EXISTS "{db_name}"'))
-            await connection.execute(sqlalchemy.text(f'CREATE DATABASE "{db_name}"'))
-            await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{db_name}" SET timezone TO "UTC"'))
+            await connection.execute(sqlalchemy.text(f'DROP DATABASE IF EXISTS "{engine.url.database}"'))
+            await connection.execute(sqlalchemy.text(f'CREATE DATABASE "{engine.url.database}"'))
+            await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{engine.url.database}" SET timezone TO "UTC"'))
 
         await postgres_engine.dispose()
 
-        # create schema in the target db
-        target_db_uri = async_engine.url._replace(database=db_name)
-        target_engine = create_async_engine(
-            target_db_uri,
-            isolation_level="AUTOCOMMIT",
-            echo=False,
-            connect_args={
-                "server_settings": {
-                    "timezone": "UTC",
-                },
-            },
-        )
+        await install_extensions(engine)
+        await connection.run_sync(get_base_metadata().create_all)
 
-        async with target_engine.begin() as connection:
+    async def install_extensions(engine: AsyncEngine = async_engine) -> None:
+        async with engine.begin() as connection:
             await connection.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS postgis"))
-            await connection.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS address_standardizer"))
-
-        await create_database_tables(db_name)
-
-    async def create_database_tables(db_name: str = CORE_API_APP_CONFIG.db_name) -> None:
-        # create schema in the target db
-        target_db_uri = async_engine.url._replace(database=db_name)
-        target_engine = create_async_engine(
-            target_db_uri,
-            isolation_level="AUTOCOMMIT",
-            echo=False,
-            connect_args={
-                "server_settings": {
-                    "timezone": "UTC",
-                },
-            },
-        )
-
-        async with target_engine.begin() as connection:
-            # create tables in empty db
-            await connection.run_sync(get_base_metadata().create_all)
-
-    async def drop_database_tables(db_name: str) -> None:
-        # create schema in the target db
-        target_db_uri = async_engine.url._replace(database=db_name)
-        target_engine = create_async_engine(
-            target_db_uri,
-            isolation_level="AUTOCOMMIT",
-            echo=False,
-            connect_args={
-                "server_settings": {
-                    "timezone": "UTC",
-                },
-            },
-        )
-
-        async with target_engine.begin() as connection:
-            # create tables in empty db
-            await connection.run_sync(get_base_metadata().drop_all)
