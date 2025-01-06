@@ -10,8 +10,10 @@ import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreAp
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 
 import { AppRoute, SearchParam, SignUpPageVariant } from "$eave-dashboard/js/routes";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import CloseButton from "../../Buttons/CloseButton";
 import AuthForm from "../../Forms/AuthForm";
+import Link from "../../Links/Link";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -28,6 +30,13 @@ const ValuePropsImg = styled("img")(() => ({
   marginTop: 32,
   width: "100%",
   height: "auto",
+}));
+
+const LoginContainer = styled("p")(() => ({
+  margin: "32px 0 0",
+  fontSize: rem(18),
+  lineHeight: rem(18),
+  textAlign: "center",
 }));
 
 const SignUpPage = () => {
@@ -108,6 +117,12 @@ const SignUpPage = () => {
         purpose="signup"
       />
       <ValuePropsImg src={imageUrl("vivial-account-value-props.png")} />
+      <LoginContainer>
+        Already have an account?{" "}
+        <Link to={AppRoute.login} preserveQueryParams>
+          Login
+        </Link>
+      </LoginContainer>
     </PageContainer>
   );
 };
