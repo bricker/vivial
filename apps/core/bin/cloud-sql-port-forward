@@ -5,6 +5,7 @@ set -eu
 source "$EAVE_HOME"/develop/functions.bash
 
 function main() (
+	statusmsg -i "context: $(e.gcloudproject)"
 	kubectl --context="$(e.gcloudproject)" -n eave port-forward deployment/core-api 5430:5432
 )
 
