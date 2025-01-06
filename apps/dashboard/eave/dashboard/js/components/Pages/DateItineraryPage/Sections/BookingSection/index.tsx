@@ -434,7 +434,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           <ActionButtons>
             <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
             <BookButton onClick={handleBookClick} fullWidth loading={bookButtonLoading}>
-              Book
+              Checkout
             </BookButton>
           </ActionButtons>
         </>

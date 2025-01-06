@@ -14,7 +14,8 @@ import Header, { HeaderVariant } from "../../Shared/Header";
 
 const BookButton = styled(PrimaryButton)(() => ({
   height: 35,
-  width: 84,
+  paddingLeft: 22.5,
+  paddingRight: 22.5,
 }));
 
 const Cost = styled("span")(() => ({
@@ -46,7 +47,7 @@ const ItineraryVariant = () => {
       <Typography variant="subtitle1">
         {costHeader}: <Cost>{cost}</Cost>
       </Typography>
-      <BookButton onClick={handleBook}>Book</BookButton>
+      <BookButton onClick={handleBook}>Checkout</BookButton>
     </Header>
   );
 };
