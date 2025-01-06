@@ -21,6 +21,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		local url
 		url="$(jq -r ".googleCloudProjects.\"$proj\".url" eavevars.json)"
+
 		curl -s "$url/status" | jq .
 	)
 
