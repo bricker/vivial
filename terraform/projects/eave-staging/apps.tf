@@ -2,6 +2,7 @@ module "shared_kubernetes_resources" {
   depends_on = [module.gke_primary]
 
   source                     = "../../modules/kube_shared_resources"
+  google_project = data.google_project.default
   iap_oauth_client_secret    = module.iap.google_iap_client.secret
   dns_domain                 = local.dns_domain
   www_public_domain_prefix   = local.www_public_domain_prefix

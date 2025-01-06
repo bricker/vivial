@@ -2,13 +2,13 @@
 
 set -eu
 
-function main () (
+function main() (
 	local url="www.vivialapp.com"
 
 	case "$(e.gcloudproject)" in
-		"eave-staging")
-			url="www.eave.dev"
-			;;
+	"eave-staging")
+		url="www.eave.dev"
+		;;
 	esac
 
 	curl -s "https://$url/status" | jq .

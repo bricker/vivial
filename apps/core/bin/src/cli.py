@@ -54,9 +54,9 @@ def run_migrations() -> None:
     LOGGER.fprint(logging.WARNING, f"> Postgres connection URI: {async_engine.url}")
 
     LOGGER.fprint(logging.WARNING, "Running DB migrations!")
-    answer = input(LOGGER.f(logging.WARNING, "Proceed? (y/n) "))
+    answer = input(LOGGER.f(logging.WARNING, "Proceed? (y/[n]) "))
 
-    if answer != "Y":
+    if answer != "y":
         raise click.Abort()
 
     alembic.command.upgrade(
@@ -129,8 +129,8 @@ def init_cloudsql() -> None:
     LOGGER.fprint(logging.WARNING, "- creates the tables using Base.create_all (NOT using migrations)")
     LOGGER.fprint(logging.WARNING, "- stamps the alembic revision")
 
-    answer = input(LOGGER.f(logging.WARNING, "Proceed? (Y/n) "))
-    if answer != "Y":
+    answer = input(LOGGER.f(logging.WARNING, "Proceed? (y/[n]) "))
+    if answer != "y":
         print("Aborting.")
         return
 

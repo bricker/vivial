@@ -19,7 +19,7 @@ resource "kubernetes_config_map" "shared" {
   }
 
   data = {
-    GOOGLE_CLOUD_PROJECT = data.google_project.default.project_id
+    GOOGLE_CLOUD_PROJECT = var.google_project.project_id
     EAVE_ENV             = var.EAVE_ENV
 
     EAVE_BASE_URL_PUBLIC           = "https://${var.dns_domain}"

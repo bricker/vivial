@@ -14,12 +14,12 @@ function _print_help() (
 )
 
 function deploy() (
-	set -e
-
 	local service=""
 	local dockerfile=""
 	local label=""
 
+	# Unset necessary to reset global getopts memory
+	unset argname OPTARG OPTIND
 	while getopts "s:f:l:h" argname; do
 		case "$argname" in
 		s) service=$OPTARG ;;
@@ -87,18 +87,17 @@ function deploy() (
 )
 
 function main() (
-	e.verify-clean-git-index
+	# e.verify-clean-git-index
 
 	local service=""
 	local dockerfile=""
 	local label=""
 
+	# Unset necessary to reset global getopts memory
+	unset argname OPTARG OPTIND
 	while getopts "s:f:l:h" argname; do
 		case "$argname" in
-		s)
-			echo ">>s"
-			service=$OPTARG
-			;;
+		s) service=$OPTARG ;;
 		f) dockerfile=$OPTARG ;;
 		l) label=$OPTARG ;;
 		h)
@@ -119,17 +118,17 @@ function main() (
 		exit 1
 	fi
 
-	local slackts
-	slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
+	# local slackts
+	# slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
 
 	set +e
 	deploy -s "$service" -f "$dockerfile" -l "$label"
 
-	if test "$?" -eq 0; then
-		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=completed --app="$service" --msg-timestamp="$slackts"
-	else
-		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
-	fi
+	# if test "$?" -eq 0; then
+	# 	"${EAVE_HOME}"/bin/cli deploy notify-slack --status=completed --app="$service" --msg-timestamp="$slackts"
+	# else
+	# 	"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
+	# fi
 )
 
 main "$@"

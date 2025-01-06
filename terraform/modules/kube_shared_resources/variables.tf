@@ -1,3 +1,8 @@
+variable "google_project" {
+  type=object({
+    project_id = string
+  })
+}
 variable "iap_oauth_client_secret" {
   type      = string
   sensitive = true

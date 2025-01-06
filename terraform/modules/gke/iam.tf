@@ -16,7 +16,7 @@ module "custom_gke_node_role" {
   title   = "GKE Node"
   base_roles = [
     "roles/container.defaultNodeServiceAccount",
-    # "roles/artifactregistry.reader",
+    "roles/artifactregistry.reader",
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter",
     "roles/monitoring.viewer",
