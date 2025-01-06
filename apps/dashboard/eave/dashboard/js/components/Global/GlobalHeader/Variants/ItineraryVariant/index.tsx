@@ -22,6 +22,10 @@ const Cost = styled("span")(() => ({
   fontWeight: 600,
 }));
 
+const CostHeader = styled(Typography)(() => ({
+  marginRight: "auto",
+}));
+
 const ItineraryVariant = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const navigate = useNavigate();
@@ -44,9 +48,9 @@ const ItineraryVariant = () => {
   return (
     <Header variant={HeaderVariant.Sticky}>
       <VivialLogo hideText />
-      <Typography variant="subtitle1">
+      <CostHeader variant="subtitle1">
         {costHeader}: <Cost>{cost}</Cost>
-      </Typography>
+      </CostHeader>
       <BookButton onClick={handleBook}>Checkout</BookButton>
     </Header>
   );
