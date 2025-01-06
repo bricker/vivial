@@ -8,7 +8,7 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import Header from "../../Shared/Header";
 
-const CustomButton = styled(PrimaryButton)(({ theme }) => ({
+const CustomButton = styled(PrimaryButton)(() => ({
   fontSize: rem(16),
   lineHeight: rem(18),
   fontWeight: 700,
