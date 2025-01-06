@@ -10,7 +10,7 @@ resource "google_iap_client" "default" {
 
 moved {
   from = google_iap_settings.gateways
-  to = google_iap_settings.backend_services
+  to   = google_iap_settings.backend_services
 }
 
 resource "google_iap_settings" "backend_services" {

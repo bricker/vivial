@@ -5,7 +5,7 @@ module "shared_kubernetes_resources" {
   www_public_domain_prefix = local.www_public_domain_prefix
   api_public_domain_prefix = local.api_public_domain_prefix
   STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
-  EAVE_ENV = "production"
+  EAVE_ENV                 = "production"
 }
 
 module "core_api_app" {
@@ -42,7 +42,7 @@ module "core_api_app" {
   iap_enabled                       = false
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  iap_jwt_aud = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["core_api_iap"].generated_id}"
+  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["core_api_iap"].generated_id}"
 }
 
 module "dashboard_app" {
@@ -64,7 +64,7 @@ module "dashboard_app" {
   iap_enabled                       = false
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  iap_jwt_aud = null
+  iap_jwt_aud                       = null
 }
 
 module "admin_app" {
@@ -85,5 +85,5 @@ module "admin_app" {
 
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  iap_jwt_aud = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["admin"].generated_id}"
+  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["admin"].generated_id}"
 }

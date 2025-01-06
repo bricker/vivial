@@ -9,8 +9,8 @@ resource "kubernetes_config_map" "app" {
   }
 
   data = {
-    LOG_LEVEL = var.LOG_LEVEL
-    EAVE_WWW_IAP_JWT_AUD         = var.iap_jwt_aud == null ? "" : var.iap_jwt_aud
-    EAVE_WWW_ROOT_IAP_ENABLED         = var.iap_enabled ? "1" : "0"
+    LOG_LEVEL                 = var.LOG_LEVEL
+    EAVE_WWW_IAP_JWT_AUD      = var.iap_jwt_aud == null ? "" : var.iap_jwt_aud
+    EAVE_WWW_ROOT_IAP_ENABLED = var.iap_enabled ? "1" : "0"
   }
 }

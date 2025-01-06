@@ -4,10 +4,10 @@ variable "name" {
 
 variable "target_service_account" {
   type = object({
-    id = string
+    id         = string
     account_id = string
-    name = string
-    email = string
+    name       = string
+    email      = string
   })
 }
 

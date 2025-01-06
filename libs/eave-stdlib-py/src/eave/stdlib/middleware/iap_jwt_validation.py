@@ -6,7 +6,6 @@ from google.oauth2 import id_token
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from eave.stdlib.api_util import get_header_value_or_exception
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_exceptions import ForbiddenError
 from eave.stdlib.logging import LOGGER
 

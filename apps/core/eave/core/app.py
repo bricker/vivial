@@ -2,7 +2,6 @@ import contextlib
 from collections.abc import AsyncGenerator
 
 import aiohttp.hdrs
-import asgiref.typing
 import starlette.applications
 import starlette.endpoints
 import stripe
@@ -75,6 +74,7 @@ async def _app_lifespan(app: starlette.applications.Starlette) -> AsyncGenerator
     except Exception as e:
         LOGGER.exception(e)
 
+
 app = starlette.applications.Starlette(
     middleware=[
         # CORS is needed only for dashboard to API communications.
@@ -116,7 +116,11 @@ app = starlette.applications.Starlette(
             # It is configured to send everything on this path through the IAP
             "/iap",
             middleware=[
-                Middleware(IAPJWTValidationMiddleware, enabled=CORE_API_APP_CONFIG.internal_api_iap_enabled, aud=CORE_API_APP_CONFIG.internal_api_iap_jwt_aud),
+                Middleware(
+                    IAPJWTValidationMiddleware,
+                    enabled=CORE_API_APP_CONFIG.internal_api_iap_enabled,
+                    aud=CORE_API_APP_CONFIG.internal_api_iap_jwt_aud,
+                ),
             ],
             routes=[
                 Route(
@@ -134,7 +138,11 @@ app = starlette.applications.Starlette(
         Mount(
             "/",
             middleware=[
-                Middleware(IAPJWTValidationMiddleware, enabled=CORE_API_APP_CONFIG.root_iap_enabled, aud=CORE_API_APP_CONFIG.root_iap_jwt_aud),
+                Middleware(
+                    IAPJWTValidationMiddleware,
+                    enabled=CORE_API_APP_CONFIG.root_iap_enabled,
+                    aud=CORE_API_APP_CONFIG.root_iap_jwt_aud,
+                ),
             ],
             routes=[
                 Route(

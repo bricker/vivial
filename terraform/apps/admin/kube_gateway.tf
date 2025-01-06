@@ -1,11 +1,11 @@
 module "app_gateway" {
   depends_on                                 = [google_compute_global_address.a_addrs]
   source                                     = "../../modules/app_gateway"
-  name                               = local.app_name
-  kubernetes_namespace_name                                  = var.kube_namespace_name
+  name                                       = local.app_name
+  kubernetes_namespace_name                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   google_compute_ssl_policy                  = var.google_compute_ssl_policy
-  google_compute_global_addresses                       = google_compute_global_address.a_addrs
+  google_compute_global_addresses            = google_compute_global_address.a_addrs
 }
 
 module "http_route_filters" {

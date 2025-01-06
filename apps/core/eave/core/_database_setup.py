@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncEngine
+
 from eave.stdlib.config import SHARED_CONFIG
 
 if SHARED_CONFIG.is_local:
@@ -9,7 +10,6 @@ if SHARED_CONFIG.is_local:
     from sqlalchemy import MetaData
     from sqlalchemy.ext.asyncio import create_async_engine
 
-    from eave.core.config import CORE_API_APP_CONFIG
     from eave.core.database import async_engine
     from eave.core.orm.base import Base
 

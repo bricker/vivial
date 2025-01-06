@@ -63,17 +63,17 @@ variable "LOG_LEVEL" {
 }
 
 variable "iap_enabled" {
-  type    = bool
+  type = bool
 }
 
 variable "iap_oauth_client_id" {
-  type     = string
+  type = string
 }
 
 variable "iap_oauth_client_kube_secret_name" {
-  type     = string
+  type = string
 }
 
 variable "iap_jwt_aud" {
-  type=string
+  type = string
 }

@@ -27,7 +27,7 @@ resource "kubernetes_config_map" "shared" {
     EAVE_API_BASE_URL_PUBLIC       = "https://${var.api_public_domain_prefix}.${var.dns_domain}"
     EAVE_API_BASE_URL_INTERNAL     = "http://core-api.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
     EAVE_DASHBOARD_BASE_URL_PUBLIC = "https://${var.www_public_domain_prefix}.${var.dns_domain}"
-    EAVE_ADMIN_BASE_URL_PUBLIC = "https://${var.admin_public_domain_prefix}.${var.dns_domain}"
+    EAVE_ADMIN_BASE_URL_PUBLIC     = "https://${var.admin_public_domain_prefix}.${var.dns_domain}"
 
     STRIPE_ENVIRONMENT = var.STRIPE_ENVIRONMENT
   }

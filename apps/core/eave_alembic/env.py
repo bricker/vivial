@@ -9,9 +9,9 @@ load_standard_dotenv_files()
 # ruff: noqa: E402
 
 import asyncio
-from typing import Literal
 from collections.abc import MutableMapping
 from logging.config import fileConfig
+from typing import Literal
 
 from alembic import context
 from sqlalchemy import Connection

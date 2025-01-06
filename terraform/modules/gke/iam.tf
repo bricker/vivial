@@ -36,7 +36,7 @@ resource "google_project_iam_binding" "project_gke_node_role_members" {
   members = var.use_default_service_account ? [
     google_service_account.gke_node.member,
     data.google_compute_default_service_account.default.member
-  ] : [ google_service_account.gke_node.member ]
+  ] : [google_service_account.gke_node.member]
 }
 
 resource "google_artifact_registry_repository_iam_binding" "docker_repo_gke_node_role_members" {
@@ -50,5 +50,5 @@ resource "google_artifact_registry_repository_iam_binding" "docker_repo_gke_node
   members = var.use_default_service_account ? [
     google_service_account.gke_node.member,
     data.google_compute_default_service_account.default.member
-  ] : [ google_service_account.gke_node.member ]
+  ] : [google_service_account.gke_node.member]
 }

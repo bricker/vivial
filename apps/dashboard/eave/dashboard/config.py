@@ -15,7 +15,6 @@ class _AppConfig(ConfigBase):
         else:
             return None
 
-
     @property
     def segment_write_key(self) -> str:
         match SHARED_CONFIG.eave_env:

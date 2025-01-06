@@ -29,7 +29,7 @@ resource "google_container_cluster" "default" {
     }
 
     reservation_affinity {
-        consume_reservation_type = "NO_RESERVATION"
+      consume_reservation_type = "NO_RESERVATION"
     }
   }
 

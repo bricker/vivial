@@ -8,8 +8,8 @@ locals {
   dns_domain      = "eave.dev"
   resource_domain = "eave.dev"
 
-  www_public_domain_prefix = "www"
-  api_public_domain_prefix = "api"
+  www_public_domain_prefix   = "www"
+  api_public_domain_prefix   = "api"
   admin_public_domain_prefix = "admin"
 
   authorized_networks = {
@@ -24,5 +24,5 @@ locals {
   }
 
   STRIPE_ENVIRONMENT = "test"
-  EAVE_ENV = "staging"
+  EAVE_ENV           = "staging"
 }

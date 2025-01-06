@@ -11,11 +11,11 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 import eave.stdlib.logging
-from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 import eave.stdlib.time
 from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import MIME_TYPE_BINARY, MIME_TYPE_JSON
+from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 from eave.stdlib.starlette import exception_handlers
 from eave.stdlib.status import status_payload
 
@@ -85,6 +85,7 @@ async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
 
     yield
 
+
 app = Starlette(
     routes=[
         Route(
@@ -93,11 +94,14 @@ app = Starlette(
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
-
         Mount(
             path="/",
             middleware=[
-                Middleware(IAPJWTValidationMiddleware, enabled=DASHBOARD_APP_CONFIG.root_iap_enabled, aud=DASHBOARD_APP_CONFIG.iap_jwt_aud),
+                Middleware(
+                    IAPJWTValidationMiddleware,
+                    enabled=DASHBOARD_APP_CONFIG.root_iap_enabled,
+                    aud=DASHBOARD_APP_CONFIG.iap_jwt_aud,
+                ),
             ],
             routes=[
                 Mount("/static", StaticFiles(directory="eave/dashboard/static")),

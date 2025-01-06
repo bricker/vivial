@@ -67,7 +67,7 @@ module "dns_zone_run" {
 }
 
 module "dns_zone_pink" {
-  source      = "../../modules/dns_zone"
+  source     = "../../modules/dns_zone"
   dns_domain = "eave.pink"
   records = [
     {
@@ -79,7 +79,7 @@ module "dns_zone_pink" {
 }
 
 module "dns_zone_red" {
-  source      = "../../modules/dns_zone"
+  source     = "../../modules/dns_zone"
   dns_domain = "eave.red"
   records = [
     {
@@ -91,7 +91,7 @@ module "dns_zone_red" {
 }
 
 module "dns_zone_blue" {
-  source      = "../../modules/dns_zone"
+  source     = "../../modules/dns_zone"
   dns_domain = "eave.blue"
   records = [
     {

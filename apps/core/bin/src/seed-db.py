@@ -33,7 +33,7 @@ import os
 import time
 import uuid
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from eave.core.database import async_engine
 from eave.core.graphql.types.activity import ActivitySource

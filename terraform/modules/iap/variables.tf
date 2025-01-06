@@ -1,5 +1,5 @@
 variable "application_title" {
-  type=string
+  type = string
 }
 
 variable "backend_services" {
@@ -9,5 +9,5 @@ variable "backend_services" {
 }
 
 variable "dns_domain" {
-  type=string
+  type = string
 }

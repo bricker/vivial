@@ -7,6 +7,7 @@ from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment, get_r
 JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
 
+
 class _AppConfig(ConfigBase):
     @property
     def internal_api_iap_enabled(self) -> bool:

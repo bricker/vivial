@@ -16,19 +16,17 @@ import asyncio
 import logging
 import os
 
-import sqlalchemy
-from sqlalchemy.ext.asyncio import create_async_engine
-
 import alembic
 import alembic.command
 import alembic.config
 import alembic.migration
 import alembic.script
 import click
+import sqlalchemy
+from sqlalchemy.ext.asyncio import create_async_engine
 
-from eave.core.database import async_engine
 from eave.core._database_setup import get_base_metadata, install_extensions, reset_database
-from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.database import async_engine
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 
@@ -89,7 +87,11 @@ def init_dev() -> None:
     LOGGER.fprint(logging.WARNING, f"- 💥 DELETES THE '{async_engine.url.database}' DATABASE 💥 (if it exists)")
     LOGGER.fprint(logging.WARNING, f"- (RE-)CREATES THE '{async_engine.url.database}' DATABASE")
 
-    answer = input(LOGGER.f(logging.WARNING, f"Proceed to delete and (re-)create the '{async_engine.url.database}' database? (Y/n) "))
+    answer = input(
+        LOGGER.f(
+            logging.WARNING, f"Proceed to delete and (re-)create the '{async_engine.url.database}' database? (Y/n) "
+        )
+    )
     if answer != "Y":
         print("Aborting.")
         return
@@ -109,6 +111,7 @@ def init_dev() -> None:
         revision="head",
     )
 
+
 @db.command()
 def init_cloudsql() -> None:
     LOGGER.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
@@ -118,7 +121,10 @@ def init_cloudsql() -> None:
         logging.WARNING,
         f"\nThis script will perform the following operations on the '{async_engine.url.database}' database:",
     )
-    LOGGER.fprint(logging.WARNING, f"- Grants owner permission on the '{async_engine.url.database}' database to the app service account")
+    LOGGER.fprint(
+        logging.WARNING,
+        f"- Grants owner permission on the '{async_engine.url.database}' database to the app service account",
+    )
     LOGGER.fprint(logging.WARNING, "- Installs the necessary Postgres extensions")
     LOGGER.fprint(logging.WARNING, "- creates the tables using Base.create_all (NOT using migrations)")
     LOGGER.fprint(logging.WARNING, "- stamps the alembic revision")
@@ -152,13 +158,23 @@ def init_cloudsql() -> None:
 
         async with cloudsql_tunnel_root_user_engine.begin() as connection:
             # Temporarily give the 'postgres' root user the app service account role, so that it can manage its permissions
-            await connection.execute(sqlalchemy.text(f'GRANT "{async_engine.url.username}" TO "{cloudsql_tunnel_root_user_engine.url.username}"'))
+            await connection.execute(
+                sqlalchemy.text(
+                    f'GRANT "{async_engine.url.username}" TO "{cloudsql_tunnel_root_user_engine.url.username}"'
+                )
+            )
 
             # Grant the app service account ownership of the primary database
-            await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{async_engine.url.database}" OWNER TO "{async_engine.url.username}"'))
+            await connection.execute(
+                sqlalchemy.text(f'ALTER DATABASE "{async_engine.url.database}" OWNER TO "{async_engine.url.username}"')
+            )
 
             # Undo the first command for least privileges policy
-            await connection.execute(sqlalchemy.text(f'REVOKE "{async_engine.url.username}" FROM "{cloudsql_tunnel_root_user_engine.url.username}"'))
+            await connection.execute(
+                sqlalchemy.text(
+                    f'REVOKE "{async_engine.url.username}" FROM "{cloudsql_tunnel_root_user_engine.url.username}"'
+                )
+            )
 
         await cloudsql_tunnel_root_user_engine.dispose()
 
@@ -223,7 +239,9 @@ def drop_tables() -> None:
     )
     LOGGER.fprint(logging.WARNING, "- DROPS ALL TABLES using Base.metadata")
 
-    answer = input(LOGGER.f(logging.WARNING, f"Proceed to DROP ALL TABLES from the '{async_engine.url.database}' database? (Y/n) "))
+    answer = input(
+        LOGGER.f(logging.WARNING, f"Proceed to DROP ALL TABLES from the '{async_engine.url.database}' database? (Y/n) ")
+    )
     if answer != "Y":
         print("Aborting.")
         return
@@ -237,6 +255,7 @@ def drop_tables() -> None:
         await async_engine.dispose()
 
     asyncio.run(_run())
+
 
 if __name__ == "__main__":
     cli()

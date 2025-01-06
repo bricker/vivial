@@ -159,7 +159,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	}
 
-	function e.diff-prod () (
+	function e.diff-prod() (
 		_live_version=$(bin/status | jq -r .version)
 		git log --oneline --reverse "$_live_version"..HEAD . "$EAVE_HOME"/libs/eave-stdlib-py
 	)
