@@ -5,7 +5,7 @@ const ShareIcon = (props: IconProps) => {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="1.5" y="7.5" width="15" height="10" rx="1.5" fill="black" stroke={props.color} />
-      <rect x="6" y="4" width="6" height="5" rx="1" fill="black" />
+      {/* <rect x="6" y="4" width="6" height="5" rx="1" fill="black" /> */}
       <path
         fillRule="evenodd"
         clipRule="evenodd"
