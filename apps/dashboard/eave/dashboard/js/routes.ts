@@ -51,3 +51,7 @@ export function routePath(route: AppRoute, pathParams?: { [key: string]: string 
 
   return filledRoute;
 }
+
+export interface NavigationState {
+  scrollBehavior: ScrollBehavior;
+}
