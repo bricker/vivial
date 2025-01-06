@@ -20,6 +20,8 @@ function deploy() (
 	local dockerfile=""
 	local label=""
 
+	# Reset getopts global memory
+	unset argname OPTARG OPTIND
 	while getopts "s:f:l:h" argname; do
 		case "$argname" in
 		s) service=$OPTARG ;;
@@ -93,6 +95,8 @@ function main() (
 	local dockerfile=""
 	local label=""
 
+	# Reset getopts global memory
+	unset argname OPTARG OPTIND
 	while getopts "s:f:l:h" argname; do
 		case "$argname" in
 		s)
