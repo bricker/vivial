@@ -1,7 +1,7 @@
 module "app_gateway" {
   depends_on                                 = [google_compute_global_address.a_addrs]
   source                                     = "../../modules/app_gateway"
-  kubernetes_service                         = module.kubernetes_service.kubernetes_service
+  name                         = local.app_name
   kubernetes_namespace_name                                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   google_compute_ssl_policy                  = var.google_compute_ssl_policy

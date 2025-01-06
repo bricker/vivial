@@ -124,3 +124,8 @@ variable "iap_jwt_aud" {
 variable "root_iap_enabled" {
   type    = bool
 }
+
+variable "root_iap_jwt_aud" {
+  type=string
+  nullable = true
+}

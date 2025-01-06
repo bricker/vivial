@@ -12,7 +12,7 @@ resource "kubernetes_manifest" "gateway" {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "Gateway"
     metadata = {
-      name      = var.kubernetes_service.name
+      name      = var.name
       namespace = var.kubernetes_namespace_name
 
       annotations = {
@@ -68,7 +68,7 @@ resource "kubernetes_manifest" "gateway_policy" {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPGatewayPolicy"
     metadata = {
-      name      = var.kubernetes_service.name
+      name      = var.name
       namespace = var.kubernetes_namespace_name
     }
 

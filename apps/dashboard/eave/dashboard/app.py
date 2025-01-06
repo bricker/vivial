@@ -86,24 +86,30 @@ async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
     yield
 
 app = Starlette(
-    middleware=[
-        Middleware(IAPJWTValidationMiddleware, enabled=DASHBOARD_APP_CONFIG.root_iap_enabled, aud=DASHBOARD_APP_CONFIG.iap_jwt_aud),
-    ],
     routes=[
-        Mount("/static", StaticFiles(directory="eave/dashboard/static")),
         Route(
             path="/status",
             methods=["GET"],
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
-        Route(
-            path="/.well-known/apple-developer-merchantid-domain-association",
-            methods=["GET"],
-            endpoint=apple_domain_verification_file,
+
+        Mount(
+            path="/",
+            middleware=[
+                Middleware(IAPJWTValidationMiddleware, enabled=DASHBOARD_APP_CONFIG.root_iap_enabled, aud=DASHBOARD_APP_CONFIG.iap_jwt_aud),
+            ],
+            routes=[
+                Mount("/static", StaticFiles(directory="eave/dashboard/static")),
+                Route(
+                    path="/.well-known/apple-developer-merchantid-domain-association",
+                    methods=["GET"],
+                    endpoint=apple_domain_verification_file,
+                ),
+                Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
+                Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
+            ],
         ),
-        Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
-        Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
     exception_handlers=exception_handlers,
     lifespan=_app_lifespan,

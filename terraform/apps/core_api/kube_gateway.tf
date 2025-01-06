@@ -1,7 +1,7 @@
 module "app_gateway" {
   depends_on                                 = [google_compute_global_address.a_addrs]
   source                                     = "../../modules/app_gateway"
-  kubernetes_service                               = module.kubernetes_service.kubernetes_service
+  name                               = local.app_name
   kubernetes_namespace_name                                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   google_compute_global_addresses                       = google_compute_global_address.a_addrs
@@ -37,9 +37,8 @@ resource "kubernetes_manifest" "app_httproute" {
       ]
 
       rules = [
+        # Healthcheck endpoints
         {
-          # These are the only path prefixes that can be accessed through the load balancer.
-          # All other path prefixes are considered internal-only and can only be accessed within the cluster.
           matches = [
             {
               path = {
@@ -53,6 +52,24 @@ resource "kubernetes_manifest" "app_httproute" {
                 value = "/healthz"
               }
             },
+          ]
+
+          backendRefs = [
+            {
+              name = module.kubernetes_services["healthchecks"].kubernetes_service.name
+              port = module.kubernetes_services["healthchecks"].kubernetes_service.port.number
+            }
+          ]
+
+          filters = [
+            module.http_route_filters.request_header_modifier_standard,
+            module.http_route_filters.response_header_modifier_standard
+          ]
+        },
+
+        # App endpoints
+        {
+          matches = [
             {
               path = {
                 type  = "PathPrefix"
@@ -75,8 +92,8 @@ resource "kubernetes_manifest" "app_httproute" {
 
           backendRefs = [
             {
-              name = module.kubernetes_service.kubernetes_service.name
-              port = module.kubernetes_service.kubernetes_service.port.number
+              name = module.kubernetes_services["default"].kubernetes_service.name
+              port = module.kubernetes_services["default"].kubernetes_service.port.number
             }
           ]
 
@@ -85,8 +102,9 @@ resource "kubernetes_manifest" "app_httproute" {
             module.http_route_filters.response_header_modifier_standard
           ]
         },
+
+        # IAP-only endpoints
         {
-          # Anything matching these rules go through the IAP-enabled service
           matches = [
             {
               path = {
@@ -98,8 +116,8 @@ resource "kubernetes_manifest" "app_httproute" {
 
           backendRefs = [
             {
-              name = module.iap_app_kubernetes_service.kubernetes_service.name
-              port = module.iap_app_kubernetes_service.kubernetes_service.port.number
+              name = module.kubernetes_services["iap"].kubernetes_service.name
+              port = module.kubernetes_services["iap"].kubernetes_service.port.number
             }
           ]
 

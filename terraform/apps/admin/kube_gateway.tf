@@ -1,7 +1,7 @@
 module "app_gateway" {
   depends_on                                 = [google_compute_global_address.a_addrs]
   source                                     = "../../modules/app_gateway"
-  kubernetes_service                               = module.kubernetes_service
+  name                               = local.app_name
   kubernetes_namespace_name                                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   google_compute_ssl_policy                  = var.google_compute_ssl_policy
@@ -41,8 +41,8 @@ resource "kubernetes_manifest" "app_httproute" {
           # No path matching is specified, so all traffic is routed to this backend.
           backendRefs = [
             {
-              name = module.healthchecks_kubernetes_service.name
-              port = module.healthchecks_kubernetes_service.port.number
+              name = module.kubernetes_services["healthchecks"].kubernetes_service.name
+              port = module.kubernetes_services["healthchecks"].kubernetes_service.port.number
             }
           ]
           matches = [
@@ -68,8 +68,8 @@ resource "kubernetes_manifest" "app_httproute" {
           # No path matching is specified, so all traffic is routed to this backend.
           backendRefs = [
             {
-              name = module.kubernetes_service.name
-              port = module.kubernetes_service.port.number
+              name = module.kubernetes_services["default"].kubernetes_service.name
+              port = module.kubernetes_services["default"].kubernetes_service.port.number
             }
           ]
 

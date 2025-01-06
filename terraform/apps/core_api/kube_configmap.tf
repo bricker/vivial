@@ -13,5 +13,6 @@ resource "kubernetes_config_map" "app" {
     JWS_SIGNING_KEY_VERSION_PATH = var.JWS_SIGNING_KEY_VERSION_PATH
     EAVE_API_IAP_JWT_AUD         = var.iap_jwt_aud
     EAVE_API_ROOT_IAP_ENABLED    = var.root_iap_enabled ? "1" : "0"
+    EAVE_API_ROOT_IAP_JWT_AUD    = var.root_iap_jwt_aud
   }
 }

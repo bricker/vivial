@@ -19,10 +19,10 @@ class IAPJWTValidationMiddleware:
     """
 
     app: asgiref.typing.ASGI3Application
-    aud: str
+    aud: str | None
     enabled: bool
 
-    def __init__(self, app: ASGIApp, *, aud: str, enabled: bool) -> None:
+    def __init__(self, app: ASGIApp, *, enabled: bool, aud: str | None) -> None:
         self.app = cast(asgiref.typing.ASGI3Application, app)
         self.aud = aud
         self.enabled = enabled
@@ -39,11 +39,6 @@ class IAPJWTValidationMiddleware:
 
         if cscope["type"] != "http":
             raise Exception(f"only HTTP requests are allowed ({cscope["type"]})")
-
-        if cscope["path"] == "/healthz" or cscope["path"] == "/status":
-            # Healthcheck endpoints always allowed
-            await self.app(cscope, creceive, csend)
-            return
 
         if self.enabled:
             if not self.aud:
