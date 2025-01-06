@@ -2,4 +2,16 @@
 
 set -eu
 
-curl -s https://www.vivialapp.com/status | jq .
+function main () (
+	local url="admin.vivialapp.com"
+
+	case "$(e.gcloudproject)" in
+		"eave-staging")
+			url="admin.eave.dev"
+			;;
+	esac
+
+	curl -s "https://$url/status" | jq .
+)
+
+main "$@"
