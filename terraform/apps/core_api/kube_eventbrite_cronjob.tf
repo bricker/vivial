@@ -223,7 +223,7 @@ resource "kubernetes_cron_job_v1" "eventbrite_filler" {
 
   spec {
     concurrency_policy = "Replace"
-    schedule           = "0 20 * * *"
+    schedule           = "0 12 * * *"
 
     job_template {
       metadata {
