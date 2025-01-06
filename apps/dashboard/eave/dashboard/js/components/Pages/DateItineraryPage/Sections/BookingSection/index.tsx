@@ -325,7 +325,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           dispatch(plannedOuting({ outing: newOuting }));
 
           const navigationState: NavigationState = { scrollBehavior: "smooth" };
-          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }), {state: navigationState});
+          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }), { state: navigationState });
           break;
         }
         default: {

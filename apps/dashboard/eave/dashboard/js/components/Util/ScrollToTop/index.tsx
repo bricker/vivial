@@ -1,4 +1,4 @@
-import { ITINERARY_PREFIX, type NavigationState } from "$eave-dashboard/js/routes";
+import { type NavigationState } from "$eave-dashboard/js/routes";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
