@@ -117,7 +117,7 @@ variable "iap_oauth_client_kube_secret_name" {
   type = string
 }
 
-variable "iap_jwt_aud" {
+variable "internal_iap_jwt_aud" {
   type = string
 }
 

@@ -5,12 +5,12 @@ from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment, get_r
 
 class _AppConfig(ConfigBase):
     @property
-    def root_iap_enabled(self) -> bool:
-        return os.getenv("EAVE_WWW_ROOT_IAP_ENABLED") != "0"
+    def iap_enabled(self) -> bool:
+        return os.getenv("EAVE_WWW_IAP_ENABLED") == "1"
 
     @property
     def iap_jwt_aud(self) -> str | None:
-        if self.root_iap_enabled:
+        if self.iap_enabled:
             return get_required_env("EAVE_WWW_IAP_JWT_AUD")
         else:
             return None

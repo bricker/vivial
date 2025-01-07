@@ -17,13 +17,13 @@ class _AppConfig(ConfigBase):
     @property
     def internal_iap_jwt_aud(self) -> str | None:
         if self.internal_iap_enabled:
-            return get_required_env("EAVE_API_IAP_JWT_AUD")
+            return get_required_env("EAVE_API_INTERNAL_IAP_JWT_AUD")
         else:
             return None
 
     @property
     def root_iap_enabled(self) -> bool:
-        return os.getenv("EAVE_API_ROOT_IAP_ENABLED") != "0"
+        return os.getenv("EAVE_API_ROOT_IAP_ENABLED") == "1"
 
     @property
     def root_iap_jwt_aud(self) -> str | None:

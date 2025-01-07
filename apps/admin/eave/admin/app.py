@@ -77,7 +77,7 @@ app = Starlette(
             middleware=[
                 Middleware(
                     IAPJWTValidationMiddleware,
-                    enabled=ADMIN_APP_CONFIG.root_iap_enabled,
+                    enabled=ADMIN_APP_CONFIG.iap_enabled,
                     aud=ADMIN_APP_CONFIG.iap_jwt_aud,
                 ),
             ],
