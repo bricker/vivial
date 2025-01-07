@@ -63,24 +63,12 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
             slack_response = await slack_client.chat_postMessage(
                 channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
                 link_names=True,
-                text=f"Deployment to *{app}* has started. ({lines[-1]})",
                 unfurl_links=False,
                 unfurl_media=False,
-            )
-
-            await slack_client.reactions_add(
-                channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
-                timestamp=slack_response["ts"],
-                name="clock5",
-            )
-
-            await slack_client.chat_postMessage(
-                channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
-                thread_ts=slack_response["ts"],
-                link_names=True,
+                text=f"Deployment to *{app}* has started.\n\n{changelog}",
                 blocks=[
                     HeaderBlock(
-                        text="Changelog",
+                        text=f"Deployment to {app} has started.",
                     ),
                     RichTextBlock(
                         elements=[
@@ -91,7 +79,7 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
                                         elements=[
                                             RichTextElementParts.Text(
                                                 text=line,
-                                                style=RichTextElementParts.TextStyle(code=True),
+                                                # style=RichTextElementParts.TextStyle(),
                                             )
                                         ]
                                     )
@@ -101,7 +89,12 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
                         ],
                     ),
                 ],
-                text=changelog,
+            )
+
+            await slack_client.reactions_add(
+                channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
+                timestamp=slack_response["ts"],
+                name="clock5",
             )
 
             click.echo(slack_response["ts"])

@@ -130,7 +130,7 @@ function main() (
 	deploy -s "$service" -f "$dockerfile" -l "$label"
 
 	if test "$?" -eq 0; then
-		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=completed --app="$service" --msg-timestamp="$slackts"
+		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=complete --app="$service" --msg-timestamp="$slackts"
 	else
 		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
 	fi
