@@ -7,14 +7,14 @@ source "${EAVE_HOME}"/develop/functions.bash
 function _print_help() (
 	statusmsg -o "Build and deploy a service."
 	statusmsg -o "Usage: deploy-service -s service [-f dockerfile]"
-	statusmsg -o "  -s service : Required. The name of the kubernertes service to build and deploy. eg 'core-api' or 'dashboard'"
 	statusmsg -o "  -f dockerfile : Optional. The path to the Dockerfile relative to EAVE_HOME. If omitted, uses the Dockerfile in the current directory or fails if it doesn't exist."
-	statusmsg -o "	-l label : Optional. A k8s selector to select a label of  deploy to. e.g. 'app_group=core-api'"
+	statusmsg -o "	-l label : Optional. A k8s selector to select a label of deploy to. e.g. 'app_group=core-api'"
 	statusmsg -o "  -h : Print this message."
 )
 
 function deploy() (
-	local service=""
+	local service
+	service="$(jq -r ".kubeService" eavevars.json)"
 	local dockerfile=""
 	local label=""
 
@@ -22,7 +22,6 @@ function deploy() (
 	unset argname OPTARG OPTIND
 	while getopts "s:f:l:h" argname; do
 		case "$argname" in
-		s) service=$OPTARG ;;
 		f) dockerfile=$OPTARG ;;
 		l) label=$OPTARG ;;
 		h)
