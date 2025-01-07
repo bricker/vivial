@@ -210,11 +210,11 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [outing]);
 
   useEffect(() => {
-    let outing = undefined;
+    let updatedOuting = undefined;
 
     switch (planOutingAnonData?.planOuting?.__typename) {
       case "PlanOutingSuccess": {
-        outing = planOutingAnonData.planOuting.outing;
+        updatedOuting = planOutingAnonData.planOuting.outing;
         break;
       }
       case "PlanOutingFailure": {
@@ -228,7 +228,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       case "AuthenticatedViewerMutations":
         switch (planOutingAuthData.viewer.planOuting.__typename) {
           case "PlanOutingSuccess": {
-            outing = planOutingAuthData.viewer.planOuting.outing;
+            updatedOuting = planOutingAuthData.viewer.planOuting.outing;
             break;
           }
           case "PlanOutingFailure": {
@@ -249,11 +249,11 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         break;
     }
 
-    if (outing) {
+    if (updatedOuting) {
       setDetailsOpen(false);
-      dispatch(plannedOuting({ outing }));
+      dispatch(plannedOuting({ outing: updatedOuting }));
       dispatch(chosePreferences({ user: userPreferences }));
-      navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
+      navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }));
     }
   }, [planOutingAnonData, planOutingAuthData, userPreferences, partnerPreferences]);
 

@@ -325,11 +325,11 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [isLoggedIn, outing, oneClickEligible, defaultPaymentMethod]);
 
   useEffect(() => {
-    let outing = undefined;
+    let newOuting = undefined;
 
     switch (planOutingAnonData?.planOuting?.__typename) {
       case "PlanOutingSuccess": {
-        outing = planOutingAnonData.planOuting.outing;
+        newOuting = planOutingAnonData.planOuting.outing;
         break;
       }
       case "PlanOutingFailure": {
@@ -343,7 +343,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       case "AuthenticatedViewerMutations":
         switch (planOutingAuthData.viewer.planOuting.__typename) {
           case "PlanOutingSuccess": {
-            outing = planOutingAuthData.viewer.planOuting.outing;
+            newOuting = planOutingAuthData.viewer.planOuting.outing;
             break;
           }
           case "PlanOutingFailure": {
@@ -364,12 +364,12 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         break;
     }
 
-    if (outing) {
+    if (newOuting) {
       setBookingOpen(false);
-      dispatch(plannedOuting({ outing }));
+      dispatch(plannedOuting({ outing: newOuting }));
 
       const navigationState: NavigationState = { scrollBehavior: "smooth" };
-      navigate(routePath(AppRoute.itinerary, { outingId: outing.id }), { state: navigationState });
+      navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }), { state: navigationState });
     }
   }, [planOutingAnonData, planOutingAuthData]);
 
