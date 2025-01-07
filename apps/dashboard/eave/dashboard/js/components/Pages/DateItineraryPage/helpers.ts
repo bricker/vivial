@@ -4,15 +4,6 @@ import {
   type ItineraryFieldsFragment,
   type PhotosFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
-
-export function getTimeLabel(startTime: Date): string {
-  const weekday = getDayOfWeek(startTime);
-  const month = getMonth(startTime);
-  const date = startTime.getDate();
-  const time = getTimeOfDay(startTime);
-  return `${weekday}, ${month} ${date} @${time}`;
-}
 
 export function getImgUrls(photos: PhotosFieldsFragment): string[] {
   let imgUrls: string[] = [];
