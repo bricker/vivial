@@ -217,8 +217,8 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         text: "Check out this itinerary from Vivial!",
         url: window.location.href,
       });
-    } catch (error) {
-      // fallback to copy to clipboard
+    } catch {
+      // share API likely not supported by browser; fallback to copy to clipboard
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
     }
