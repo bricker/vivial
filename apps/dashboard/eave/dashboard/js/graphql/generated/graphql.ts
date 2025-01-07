@@ -94,6 +94,7 @@ export type AuthenticatedViewerMutations = {
   __typename?: 'AuthenticatedViewerMutations';
   confirmBooking: ConfirmBookingResult;
   initiateBooking: InitiateBookingResult;
+  planOuting: PlanOutingResult;
   submitReserverDetails: SubmitReserverDetailsResult;
   updateAccount: UpdateAccountResult;
   updateOutingPreferences: UpdateOutingPreferencesResult;
@@ -109,6 +110,11 @@ export type AuthenticatedViewerMutationsConfirmBookingArgs = {
 
 export type AuthenticatedViewerMutationsInitiateBookingArgs = {
   input: InitiateBookingInput;
+};
+
+
+export type AuthenticatedViewerMutationsPlanOutingArgs = {
+  input: PlanOutingInput;
 };
 
 
@@ -1809,12 +1815,12 @@ export type LoginMutation = {
   }
 };
 
-export type PlanOutingMutationVariables = Exact<{
+export type PlanOutingAnonymousMutationVariables = Exact<{
   input: PlanOutingInput;
 }>;
 
 
-export type PlanOutingMutation = {
+export type PlanOutingAnonymousMutation = {
   __typename: 'Mutation',
   planOuting: {
     __typename: 'PlanOutingFailure',
@@ -2016,6 +2022,222 @@ export type PlanOutingMutation = {
         durationMinutes: number
       } | null
     }
+  }
+};
+
+export type PlanOutingAuthenticatedMutationVariables = Exact<{
+  input: PlanOutingInput;
+}>;
+
+
+export type PlanOutingAuthenticatedMutation = {
+  __typename: 'Mutation',
+  viewer: {
+    __typename: 'AuthenticatedViewerMutations',
+    planOuting: {
+      __typename: 'PlanOutingFailure',
+      failureReason: PlanOutingFailureReason
+    } | {
+      __typename: 'PlanOutingSuccess',
+      outing: {
+        __typename: 'Outing',
+        id: string,
+        startTime: string,
+        headcount: number,
+        survey?: {
+          __typename: 'Survey',
+          id: string,
+          budget: OutingBudget,
+          headcount: number,
+          startTime: string,
+          searchRegions: Array<{
+            __typename: 'SearchRegion',
+            id: string,
+            name: string
+          }>
+        } | null,
+        searchRegions: Array<{
+          __typename: 'SearchRegion',
+          id: string,
+          name: string
+        }>,
+        costBreakdown: {
+          __typename: 'CostBreakdown',
+          baseCostCents: number,
+          feeCents: number,
+          taxCents: number,
+          totalCostCents: number
+        },
+        activityPlan?: {
+          __typename: 'ActivityPlan',
+          startTime: string,
+          headcount: number,
+          costBreakdown: {
+            __typename: 'CostBreakdown',
+            baseCostCents: number,
+            feeCents: number,
+            taxCents: number,
+            totalCostCents: number
+          },
+          activity: {
+            __typename: 'Activity',
+            sourceId: string,
+            source: ActivitySource,
+            isBookable: boolean,
+            name: string,
+            description?: string | null,
+            websiteUri?: string | null,
+            doorTips?: string | null,
+            insiderTips?: string | null,
+            parkingTips?: string | null,
+            primaryTypeName?: string | null,
+            categoryGroup?: {
+              __typename: 'ActivityCategoryGroup',
+              id: string,
+              name: string,
+              activityCategories: Array<{
+                __typename: 'ActivityCategory',
+                id: string,
+                name: string,
+                isDefault: boolean
+              }>
+            } | null,
+            ticketInfo?: {
+              __typename: 'TicketInfo',
+              name?: string | null,
+              notes?: string | null,
+              costBreakdown: {
+                __typename: 'CostBreakdown',
+                baseCostCents: number,
+                feeCents: number,
+                taxCents: number,
+                totalCostCents: number
+              }
+            } | null,
+            venue: {
+              __typename: 'ActivityVenue',
+              name: string,
+              location: {
+                __typename: 'Location',
+                directionsUri?: string | null,
+                coordinates: {
+                  __typename: 'GeoPoint',
+                  lat: number,
+                  lon: number
+                },
+                address: {
+                  __typename: 'Address',
+                  address1?: string | null,
+                  address2?: string | null,
+                  city?: string | null,
+                  state?: string | null,
+                  zipCode?: string | null,
+                  country?: string | null,
+                  formattedMultiline: string,
+                  formattedSingleline: string
+                },
+                searchRegion: {
+                  __typename: 'SearchRegion',
+                  id: string,
+                  name: string
+                }
+              }
+            },
+            photos: {
+              __typename: 'Photos',
+              coverPhoto?: {
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              } | null,
+              supplementalPhotos: Array<{
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              }>
+            }
+          }
+        } | null,
+        reservation?: {
+          __typename: 'Reservation',
+          arrivalTime: string,
+          headcount: number,
+          costBreakdown: {
+            __typename: 'CostBreakdown',
+            baseCostCents: number,
+            feeCents: number,
+            taxCents: number,
+            totalCostCents: number
+          },
+          restaurant: {
+            __typename: 'Restaurant',
+            sourceId: string,
+            source: RestaurantSource,
+            name: string,
+            reservable: boolean,
+            rating: number,
+            primaryTypeName: string,
+            websiteUri?: string | null,
+            description: string,
+            parkingTips?: string | null,
+            customerFavorites?: string | null,
+            location: {
+              __typename: 'Location',
+              directionsUri?: string | null,
+              coordinates: {
+                __typename: 'GeoPoint',
+                lat: number,
+                lon: number
+              },
+              address: {
+                __typename: 'Address',
+                address1?: string | null,
+                address2?: string | null,
+                city?: string | null,
+                state?: string | null,
+                zipCode?: string | null,
+                country?: string | null,
+                formattedMultiline: string,
+                formattedSingleline: string
+              },
+              searchRegion: {
+                __typename: 'SearchRegion',
+                id: string,
+                name: string
+              }
+            },
+            photos: {
+              __typename: 'Photos',
+              coverPhoto?: {
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              } | null,
+              supplementalPhotos: Array<{
+                __typename: 'Photo',
+                id: string,
+                src: string,
+                alt?: string | null,
+                attributions: Array<string>
+              }>
+            }
+          }
+        } | null,
+        travel?: {
+          __typename: 'TravelInfo',
+          durationMinutes: number
+        } | null
+      }
+    }
+  } | {
+    __typename: 'UnauthenticatedViewer',
+    authFailureReason: AuthenticationFailureReason
   }
 };
 
@@ -3873,8 +4095,8 @@ export const LoginDocument = new TypedDocumentString(`
   email
   stripeCustomerId
 }`) as unknown as TypedDocumentString<LoginMutation, LoginMutationVariables>;
-export const PlanOutingDocument = new TypedDocumentString(`
-    mutation PlanOuting($input: PlanOutingInput!) {
+export const PlanOutingAnonymousDocument = new TypedDocumentString(`
+    mutation PlanOutingAnonymous($input: PlanOutingInput!) {
   __typename
   planOuting(input: $input) {
     __typename
@@ -4092,7 +4314,237 @@ fragment SurveyFields on Survey {
     ...SearchRegionFields
   }
   startTime
-}`) as unknown as TypedDocumentString<PlanOutingMutation, PlanOutingMutationVariables>;
+}`) as unknown as TypedDocumentString<PlanOutingAnonymousMutation, PlanOutingAnonymousMutationVariables>;
+export const PlanOutingAuthenticatedDocument = new TypedDocumentString(`
+    mutation PlanOutingAuthenticated($input: PlanOutingInput!) {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerMutations {
+      __typename
+      planOuting(input: $input) {
+        __typename
+        ... on PlanOutingSuccess {
+          __typename
+          outing {
+            __typename
+            ...ItineraryFields
+            ...TravelFields
+          }
+        }
+        ... on PlanOutingFailure {
+          __typename
+          failureReason
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    fragment ActivityFields on Activity {
+  __typename
+  categoryGroup {
+    __typename
+    id
+    name
+    activityCategories {
+      __typename
+      ...ActivityCategoryFields
+    }
+  }
+  sourceId
+  source
+  isBookable
+  name
+  description
+  websiteUri
+  doorTips
+  insiderTips
+  parkingTips
+  primaryTypeName
+  ticketInfo {
+    __typename
+    name
+    notes
+    costBreakdown {
+      __typename
+      ...CostBreakdownFields
+    }
+  }
+  venue {
+    __typename
+    name
+    location {
+      __typename
+      ...LocationFields
+    }
+  }
+  photos {
+    __typename
+    ...PhotosFields
+  }
+}
+fragment ActivityPlanFields on ActivityPlan {
+  __typename
+  startTime
+  headcount
+  costBreakdown {
+    __typename
+    ...CostBreakdownFields
+  }
+  activity {
+    __typename
+    ...ActivityFields
+  }
+}
+fragment AddressFields on Address {
+  __typename
+  address1
+  address2
+  city
+  state
+  zipCode
+  country
+  formattedMultiline
+  formattedSingleline
+}
+fragment ActivityCategoryFields on ActivityCategory {
+  __typename
+  id
+  name
+  isDefault
+}
+fragment CostBreakdownFields on CostBreakdown {
+  __typename
+  baseCostCents
+  feeCents
+  taxCents
+  totalCostCents
+}
+fragment ItineraryFields on Itinerary {
+  __typename
+  id
+  startTime
+  headcount
+  survey {
+    __typename
+    ...SurveyFields
+  }
+  searchRegions {
+    __typename
+    ...SearchRegionFields
+  }
+  costBreakdown {
+    __typename
+    ...CostBreakdownFields
+  }
+  activityPlan {
+    __typename
+    ...ActivityPlanFields
+  }
+  reservation {
+    __typename
+    ...ReservationFields
+  }
+}
+fragment TravelFields on Itinerary {
+  __typename
+  travel {
+    __typename
+    durationMinutes
+  }
+}
+fragment LocationFields on Location {
+  __typename
+  directionsUri
+  coordinates {
+    __typename
+    lat
+    lon
+  }
+  address {
+    __typename
+    ...AddressFields
+  }
+  searchRegion {
+    __typename
+    ...SearchRegionFields
+  }
+}
+fragment PhotosFields on Photos {
+  __typename
+  coverPhoto {
+    __typename
+    ...PhotoFields
+  }
+  supplementalPhotos {
+    __typename
+    ...PhotoFields
+  }
+}
+fragment PhotoFields on Photo {
+  __typename
+  id
+  src
+  alt
+  attributions
+}
+fragment ReservationFields on Reservation {
+  __typename
+  arrivalTime
+  headcount
+  costBreakdown {
+    __typename
+    ...CostBreakdownFields
+  }
+  restaurant {
+    __typename
+    sourceId
+    source
+    name
+    reservable
+    rating
+    primaryTypeName
+    websiteUri
+    description
+    parkingTips
+    customerFavorites
+    location {
+      __typename
+      ...LocationFields
+    }
+    photos {
+      __typename
+      coverPhoto {
+        __typename
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        __typename
+        ...PhotoFields
+      }
+    }
+  }
+}
+fragment SearchRegionFields on SearchRegion {
+  __typename
+  id
+  name
+}
+fragment SurveyFields on Survey {
+  __typename
+  id
+  budget
+  headcount
+  searchRegions {
+    __typename
+    ...SearchRegionFields
+  }
+  startTime
+}`) as unknown as TypedDocumentString<PlanOutingAuthenticatedMutation, PlanOutingAuthenticatedMutationVariables>;
 export const SubmitReserverDetailsDocument = new TypedDocumentString(`
     mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   __typename

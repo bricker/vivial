@@ -1,7 +1,8 @@
 import {
   useGetOneClickBookingCriteriaQuery,
   useInitiateAndConfirmBookingMutation,
-  usePlanOutingMutation,
+  usePlanOutingAnonymousMutation,
+  usePlanOutingAuthenticatedMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import React, { useCallback, useEffect, useState } from "react";
@@ -157,7 +158,11 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+  const [planOutingAnon, { data: planOutingAnonData, isLoading: planOutingAnonLoading }] =
+    usePlanOutingAnonymousMutation();
+  const [planOutingAuth, { data: planOutingAuthData, isLoading: planOutingAuthLoading }] =
+    usePlanOutingAuthenticatedMutation();
+  const planOutingLoading = planOutingAnonLoading || planOutingAuthLoading;
 
   const { isLoggedIn, account } = useSelector((state: RootState) => state.auth);
   const outing = useSelector((state: RootState) => state.outing.details);
@@ -232,16 +237,19 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const handleReroll = useCallback(async () => {
     if (outing) {
       const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
-      await planOuting({
-        input: {
-          startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
-          searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
-          budget: outing.survey?.budget || OutingBudget.Expensive,
-          headcount: outing.survey?.headcount || outing.headcount,
-          groupPreferences,
-          isReroll: true,
-        },
-      });
+      const input = {
+        startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
+        searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
+        budget: outing.survey?.budget || OutingBudget.Expensive,
+        headcount: outing.survey?.headcount || outing.headcount,
+        groupPreferences,
+        isReroll: true,
+      };
+      if (isLoggedIn) {
+        await planOutingAuth({ input });
+      } else {
+        await planOutingAnon({ input });
+      }
     }
   }, [userPreferences, partnerPreferences, outing]);
 
@@ -317,25 +325,53 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [isLoggedIn, outing, oneClickEligible, defaultPaymentMethod]);
 
   useEffect(() => {
-    if (planOutingData) {
-      switch (planOutingData.planOuting?.__typename) {
-        case "PlanOutingSuccess": {
-          const newOuting = planOutingData.planOuting.outing;
-          setBookingOpen(false);
-          dispatch(plannedOuting({ outing: newOuting }));
+    let outing = undefined;
 
-          const navigationState: NavigationState = { scrollBehavior: "smooth" };
-          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }), { state: navigationState });
-          break;
-        }
-        default: {
-          setErrorMessage(
-            "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
-          );
-        }
+    switch (planOutingAnonData?.planOuting?.__typename) {
+      case "PlanOutingSuccess": {
+        outing = planOutingAnonData.planOuting.outing;
+        break;
       }
+      case "PlanOutingFailure": {
+        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+        break;
+      }
+      default:
+        break;
     }
-  }, [planOutingData]);
+    switch (planOutingAuthData?.viewer?.__typename) {
+      case "AuthenticatedViewerMutations":
+        switch (planOutingAuthData.viewer.planOuting.__typename) {
+          case "PlanOutingSuccess": {
+            outing = planOutingAuthData.viewer.planOuting.outing;
+            break;
+          }
+          case "PlanOutingFailure": {
+            setErrorMessage(
+              "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
+            );
+            break;
+          }
+          default:
+            break;
+        }
+        break;
+      case "UnauthenticatedViewer":
+        dispatch(loggedOut());
+        window.location.assign(AppRoute.logout);
+        break;
+      default:
+        break;
+    }
+
+    if (outing) {
+      setBookingOpen(false);
+      dispatch(plannedOuting({ outing }));
+
+      const navigationState: NavigationState = { scrollBehavior: "smooth" };
+      navigate(routePath(AppRoute.itinerary, { outingId: outing.id }), { state: navigationState });
+    }
+  }, [planOutingAnonData, planOutingAuthData]);
 
   if (!outing) {
     return null;

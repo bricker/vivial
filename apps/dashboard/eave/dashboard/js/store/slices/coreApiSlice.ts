@@ -15,7 +15,12 @@ import {
   OutingPreferencesDocument,
   OutingQuery,
   OutingQueryVariables,
-  PlanOutingDocument,
+  PlanOutingAnonymousDocument,
+  PlanOutingAnonymousMutation,
+  PlanOutingAnonymousMutationVariables,
+  PlanOutingAuthenticatedDocument,
+  PlanOutingAuthenticatedMutation,
+  PlanOutingAuthenticatedMutationVariables,
   ReserverDetailsDocument,
   SearchRegionsDocument,
   SubmitReserverDetailsDocument,
@@ -47,8 +52,6 @@ import {
   type OneClickBookingCriteriaQueryVariables,
   type OutingPreferencesQuery,
   type OutingPreferencesQueryVariables,
-  type PlanOutingMutation,
-  type PlanOutingMutationVariables,
   type ReserverDetailsQuery,
   type ReserverDetailsQueryVariables,
   type SearchRegionsQuery,
@@ -185,7 +188,6 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    // TODO: combine + rm server
     updateReserverDetailsAccount: builder.mutation<
       UpdateReserverDetailsAccountMutation,
       UpdateReserverDetailsAccountMutationVariables
@@ -196,11 +198,30 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    planOuting: builder.mutation<PlanOutingMutation, PlanOutingMutationVariables>({
+    planOutingAnonymous: builder.mutation<PlanOutingAnonymousMutation, PlanOutingAnonymousMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        appendOutingMemory(variables);
-        const data = await executeOperation({ query: PlanOutingDocument, variables });
-        updateOutingMemory(data);
+        appendOutingMemory(variables.input);
+        const data = await executeOperation({ query: PlanOutingAnonymousDocument, variables });
+        if (data.planOuting.__typename === "PlanOutingSuccess") {
+          updateOutingMemory(data.planOuting.outing);
+        }
+        return { data };
+      },
+    }),
+
+    planOutingAuthenticated: builder.mutation<
+      PlanOutingAuthenticatedMutation,
+      PlanOutingAuthenticatedMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        appendOutingMemory(variables.input);
+        const data = await executeOperation({ query: PlanOutingAuthenticatedDocument, variables });
+        if (
+          data.viewer.__typename === "AuthenticatedViewerMutations" &&
+          data.viewer.planOuting.__typename === "PlanOutingSuccess"
+        ) {
+          updateOutingMemory(data.viewer.planOuting.outing);
+        }
         return { data };
       },
     }),
@@ -246,7 +267,8 @@ export const {
   useGetBillingPortalUrlQuery,
 
   // Core API GraphQL Mutation Hooks
-  usePlanOutingMutation,
+  usePlanOutingAnonymousMutation,
+  usePlanOutingAuthenticatedMutation,
   useCreateAccountMutation,
   useLoginMutation,
   useUpdateReserverDetailsAccountMutation,

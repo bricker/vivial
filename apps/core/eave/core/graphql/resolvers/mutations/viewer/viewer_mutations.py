@@ -1,5 +1,6 @@
 import strawberry
 
+from eave.core.graphql.resolvers.mutations.plan_outing import plan_outing_mutation
 from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import confirm_booking_mutation
 from eave.core.graphql.resolvers.mutations.viewer.initiate_booking import initiate_booking_mutation
 from eave.core.graphql.resolvers.mutations.viewer.submit_reserver_details import submit_reserver_details_mutation
@@ -17,3 +18,4 @@ class AuthenticatedViewerMutations:
     update_preferences = strawberry.mutation(resolver=update_outing_preferences_mutation)
     update_reserver_details = strawberry.mutation(resolver=update_reserver_details_mutation)
     update_outing_preferences = strawberry.mutation(resolver=update_outing_preferences_mutation)
+    plan_outing = strawberry.mutation(resolver=plan_outing_mutation)
