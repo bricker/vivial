@@ -1,10 +1,18 @@
-import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  ActivityCategoryFieldsFragment,
+  OutingBudget,
+  RestaurantCategoryFieldsFragment,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
-import { usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useGetOutingPreferencesQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
-import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
+import {
+  OutingPreferencesSelections,
+  chosePreferences,
+  plannedOuting,
+} from "$eave-dashboard/js/store/slices/outingSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -114,6 +122,7 @@ const Error = styled(Typography)(({ theme }) => ({
 }));
 
 const DateSurveyPage = () => {
+  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const [searchParams, _] = useSearchParams();
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
   const budget = OutingBudget.Expensive;
@@ -121,6 +130,7 @@ const DateSurveyPage = () => {
   const searchAreaIds: string[] = [];
   const startTime = getInitialStartTime();
   const [errorMessage, setErrorMessage] = useState("");
+  const [outingPreferences, setOutingPreferences] = useState<OutingPreferencesSelections | null>(null);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -134,7 +144,7 @@ const DateSurveyPage = () => {
       }
       rerolled();
     }
-    const groupPreferences = getPreferenceInputs(null, null);
+    const groupPreferences = getPreferenceInputs(outingPreferences, null);
     await planOuting({
       input: {
         startTime: startTime.toISOString(),
@@ -147,10 +157,28 @@ const DateSurveyPage = () => {
   }, [budget, headcount, searchAreaIds, startTime, rerolls]);
 
   useEffect(() => {
+    const viewer = outingPreferencesData?.viewer;
+    if (viewer?.__typename === "AuthenticatedViewerQueries") {
+      const preferences = viewer.outingPreferences;
+      if (preferences.activityCategories || preferences.restaurantCategories) {
+        setOutingPreferences({
+          restaurantCategories: preferences.restaurantCategories as RestaurantCategoryFieldsFragment[],
+          activityCategories: preferences.activityCategories as ActivityCategoryFieldsFragment[],
+        });
+      }
+    }
+  }, [outingPreferencesData]);
+
+  useEffect(() => {
     if (planOutingData) {
       if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
         const outing = planOutingData.planOuting.outing;
         dispatch(plannedOuting({ outing }));
+        dispatch(
+          chosePreferences({
+            user: outingPreferences,
+          }),
+        );
         navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
