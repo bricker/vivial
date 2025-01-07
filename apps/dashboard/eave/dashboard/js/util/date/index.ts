@@ -23,12 +23,12 @@ export function getDayOfMonth(date: Date): string {
   return numWithEnglishSuffix(date.getDate());
 }
 
-export function getDayOfWeek(date: Date): string {
-  return date.toLocaleDateString(LOCALE, { weekday: "short" });
+export function getDayOfWeek(date: Date, format: "short" | "long" = "short"): string {
+  return date.toLocaleDateString(LOCALE, { weekday: format });
 }
 
-export function getMonth(date: Date): string {
-  return date.toLocaleDateString(LOCALE, { month: "short" });
+export function getMonth(date: Date, format: "numeric" | "short" | "long" = "short"): string {
+  return date.toLocaleDateString(LOCALE, { month: format });
 }
 
 export function getDate(date: Date): number | null {
@@ -60,4 +60,27 @@ export function in1Year(): Date {
   const oneYearFromNow = new Date();
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
   return oneYearFromNow;
+}
+export function getDateTimeLabelAbbreviated(date: Date): string {
+  const timeOfDay = getTimeOfDay(date);
+  if (isTomorrow(date)) {
+    return `Tomorrow @ ${timeOfDay}`;
+  }
+
+  const dow = getDayOfWeek(date, "short");
+  const month = getMonth(date, "short");
+  const dom = getDayOfMonth(date);
+
+  const str = `${dow}, ${month} ${dom} @ ${timeOfDay}`;
+  return str;
+}
+
+export function getDateTimeLabelExtended(date: Date): string {
+  const timeOfDay = getTimeOfDay(date);
+  const dow = getDayOfWeek(date, "long");
+  const month = getMonth(date, "short");
+  const dom = getDayOfMonth(date);
+
+  const str = `${dow}, ${month} ${dom} @ ${timeOfDay}`;
+  return str;
 }
