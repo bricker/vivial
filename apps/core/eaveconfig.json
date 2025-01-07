@@ -1,8 +1,0 @@
-{
-  "eave-production": {
-    "url": "https://api.vivialapp.com"
-  },
-  "eave-staging": {
-    "url": "https://api.eave.dev"
-  }
-}

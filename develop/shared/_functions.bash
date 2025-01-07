@@ -18,9 +18,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	function e.status() (
 		local proj
 		proj="$(e.gcloudproject)"
-		local url
-		url="$(jq -r ".\"$proj\".url" eaveconfig.json)"
 
+		local url
+		url="$(jq -r ".googleCloudProjects.\"$proj\".url" eavevars.json)"
 		curl -s "$url/status" | jq .
 	)
 

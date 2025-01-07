@@ -19,7 +19,7 @@ function main() (
 	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
 
 	if e.confirm; then
-		"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s dashboard
+		"${EAVE_HOME}"/develop/deploy/bin/deploy-service
 	fi
 )
 

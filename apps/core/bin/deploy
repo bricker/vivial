@@ -20,7 +20,7 @@ function main() (
 
 	if e.confirm; then
 		# bin/run-db-migration
-		"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s core-api
+		"${EAVE_HOME}"/develop/deploy/bin/deploy-service
 	fi
 )
 
