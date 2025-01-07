@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, routePath } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath, type NavigationState } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { useGetSearchRegionsQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
@@ -186,6 +186,8 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [datePickerOpen]);
 
   useEffect(() => {
+    setCopied(false);
+
     if (outing) {
       setStartTime(new Date(outing.startTime));
       setHeadcount(outing.headcount);
@@ -203,7 +205,9 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         setDetailsOpen(false);
         dispatch(plannedOuting({ outing: updatedOuting }));
         dispatch(chosePreferences({ user: userPreferences }));
-        navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }));
+
+        const navigationState: NavigationState = { scrollBehavior: "smooth" };
+        navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }), { state: navigationState });
       } else {
         setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
       }
@@ -221,6 +225,9 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       // share API likely not supported by browser; fallback to copy to clipboard
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 5000);
     }
   }, []);
 
