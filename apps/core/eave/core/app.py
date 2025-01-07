@@ -118,8 +118,8 @@ app = starlette.applications.Starlette(
             middleware=[
                 Middleware(
                     IAPJWTValidationMiddleware,
-                    enabled=CORE_API_APP_CONFIG.internal_api_iap_enabled,
-                    aud=CORE_API_APP_CONFIG.internal_api_iap_jwt_aud,
+                    enabled=CORE_API_APP_CONFIG.internal_iap_enabled,
+                    aud=CORE_API_APP_CONFIG.internal_iap_jwt_aud,
                 ),
             ],
             routes=[

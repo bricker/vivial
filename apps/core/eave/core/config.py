@@ -10,13 +10,13 @@ JWT_AUDIENCE = "core-api"
 
 class _AppConfig(ConfigBase):
     @property
-    def internal_api_iap_enabled(self) -> bool:
+    def internal_iap_enabled(self) -> bool:
         # IAP at /iap is always enabled in non-local environments
         return not SHARED_CONFIG.is_local
 
     @property
-    def internal_api_iap_jwt_aud(self) -> str | None:
-        if self.internal_api_iap_enabled:
+    def internal_iap_jwt_aud(self) -> str | None:
+        if self.internal_iap_enabled:
             return get_required_env("EAVE_API_IAP_JWT_AUD")
         else:
             return None
