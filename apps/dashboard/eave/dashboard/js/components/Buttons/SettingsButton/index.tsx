@@ -1,6 +1,6 @@
 import IconButton, { IconButtonProps } from "@mui/material/IconButton";
 import React from "react";
-import SettingsIcon from "../../Icons/SettingsIcon";
+import SearchIcon from "../../Icons/SearchIcon";
 
 interface SettingsButtonProps extends IconButtonProps {
   iconColor?: string;
@@ -9,7 +9,7 @@ interface SettingsButtonProps extends IconButtonProps {
 const SettingsButton = ({ iconColor, ...props }: SettingsButtonProps) => {
   return (
     <IconButton {...props}>
-      <SettingsIcon color={iconColor} />
+      <SearchIcon color={iconColor} />
     </IconButton>
   );
 };
