@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { OutingBudget, PlanOutingInput } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, routePath } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath, type NavigationState } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import {
   useGetSearchRegionsQuery,
@@ -199,6 +199,8 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [datePickerOpen]);
 
   useEffect(() => {
+    setCopied(false);
+
     if (outing) {
       setStartTime(new Date(outing.startTime));
       setHeadcount(outing.headcount);
@@ -253,7 +255,9 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       setDetailsOpen(false);
       dispatch(plannedOuting({ outing: updatedOuting }));
       dispatch(chosePreferences({ user: userPreferences }));
-      navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }));
+
+      const navigationState: NavigationState = { scrollBehavior: "smooth" };
+      navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }), { state: navigationState });
     }
   }, [planOutingAnonData, planOutingAuthData, userPreferences, partnerPreferences]);
 
@@ -268,6 +272,9 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       // share API likely not supported by browser; fallback to copy to clipboard
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 5000);
     }
   }, []);
 
