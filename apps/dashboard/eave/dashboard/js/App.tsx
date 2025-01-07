@@ -1,6 +1,7 @@
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import mixpanel from "mixpanel-browser";
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
@@ -32,6 +33,11 @@ import store, { RootState } from "./store";
 import { theme } from "./theme";
 
 const fireAnalyticsPageView = (_path: string) => pageView({});
+
+
+mixpanel.init("TOKEN", {
+  debug: false,
+});
 
 const App = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
