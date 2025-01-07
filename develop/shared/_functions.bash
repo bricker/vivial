@@ -15,6 +15,21 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		grep -qE "node_modules|\.venv|vendor" <<<"$1"
 	)
 
+	function e.status() (
+		local proj
+		proj="$(e.gcloudproject)"
+		local url
+		url="$(jq -r ".\"$proj\".url" eaveconfig.json)"
+
+		curl -s "$url/status" | jq .
+	)
+
+	function e.diff-deployed() (
+		local liveversion
+		liveversion="$(e.status | jq -r .version)"
+		git log --oneline --reverse "$liveversion"..HEAD . "$EAVE_HOME"/libs/eave-stdlib-py
+	)
+
 	function statusmsg() (
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE
@@ -158,11 +173,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			exit 1
 		fi
 	}
-
-	function e.diff-prod() (
-		_live_version=$(bin/status | jq -r .version)
-		git log --oneline --reverse "$_live_version"..HEAD . "$EAVE_HOME"/libs/eave-stdlib-py
-	)
 
 	function e.shellname() {
 		echo -n "$(basename "$SHELL")"

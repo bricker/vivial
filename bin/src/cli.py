@@ -54,7 +54,7 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
         assert slack_client
 
         if status == DeploymentStatus.IN_PROGRESS:
-            p = Popen(f"{EAVE_HOME}/apps/{app}/bin/diff-prod", env=os.environ, shell=False, stdout=PIPE)  # noqa: ASYNC220, S603
+            p = Popen(f"{EAVE_HOME}/apps/{app}/bin/func e.diff-deployed", env=os.environ, shell=False, stdout=PIPE)  # noqa: ASYNC220, S603
             stdout, stderr = p.communicate()
             changelog = stdout.decode()
             lines = changelog.splitlines()
@@ -63,9 +63,32 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
             slack_response = await slack_client.chat_postMessage(
                 channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
                 link_names=True,
-                text=f"Deployment to *{app}* has started. ({lines[-1]})",
                 unfurl_links=False,
                 unfurl_media=False,
+                text=f"Deployment to *{app}* has started.\n{changelog}",
+                blocks=[
+                    HeaderBlock(
+                        text=f"Deployment to *{app}* has started.",
+                    ),
+                    RichTextBlock(
+                        elements=[
+                            RichTextListElement(
+                                style="bullet",
+                                elements=[
+                                    RichTextSectionElement(
+                                        elements=[
+                                            RichTextElementParts.Text(
+                                                text=line,
+                                                style=RichTextElementParts.TextStyle(code=True),
+                                            )
+                                        ]
+                                    )
+                                    for line in lines
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
             )
 
             await slack_client.reactions_add(
