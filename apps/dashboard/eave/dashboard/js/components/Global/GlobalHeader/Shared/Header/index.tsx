@@ -22,7 +22,7 @@ const Header = styled("header", { shouldForwardProp: (prop) => prop !== "variant
       }
     })(),
     top: 0,
-    zIndex: 2,
+    zIndex: 4,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
