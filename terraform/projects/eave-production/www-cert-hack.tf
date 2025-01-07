@@ -5,9 +5,9 @@ resource "google_certificate_manager_dns_authorization" "dashboard" {
 }
 
 resource "google_certificate_manager_certificate" "dashboard" {
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
+  lifecycle {
+    prevent_destroy = true
+  }
 
   name = "dashboard"
   managed {
@@ -17,9 +17,9 @@ resource "google_certificate_manager_certificate" "dashboard" {
 }
 
 resource "google_certificate_manager_certificate_map_entry" "dashboard" {
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
+  lifecycle {
+    prevent_destroy = true
+  }
 
   map          = module.project_base.google_certificate_manager_certificate_map.name
   name         = "dashboard"

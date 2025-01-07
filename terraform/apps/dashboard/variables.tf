@@ -78,4 +78,3 @@ variable "iap_oauth_client_id" {
 variable "iap_oauth_client_kube_secret_name" {
   type = string
 }
-
