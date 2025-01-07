@@ -1,5 +1,5 @@
 variable "google_project" {
-  type=object({
+  type = object({
     project_id = string
   })
 }

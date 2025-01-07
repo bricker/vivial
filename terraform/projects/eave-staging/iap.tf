@@ -1,6 +1,6 @@
 moved {
   from = module.iap.google_iap_settings.backend_services["api"]
-  to = module.iap.google_iap_settings.backend_services["core-api"]
+  to   = module.iap.google_iap_settings.backend_services["core-api"]
 }
 module "iap" {
   source            = "../../modules/iap"
