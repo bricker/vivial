@@ -1,3 +1,8 @@
+moved {
+  from = module.project_base.module.cloudsql_user_role
+  to   = module.cloudsql_eave_core.module.cloudsql_user_role
+}
+
 module "cloudsql_eave_core" {
   source                 = "../../modules/cloudsql_instance"
   instance_name          = "eave-pg-core"
@@ -5,7 +10,6 @@ module "cloudsql_eave_core" {
   environment            = local.environment
   global_address_name    = module.project_base.private_ip_range_name
 
-  cloudsql_user_role_name = module.project_base.cloudsql_user_role_name
   cloudsql_user_role_members = [
     module.core_api_app.service_account.member,
   ]

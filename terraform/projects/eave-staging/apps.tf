@@ -41,9 +41,9 @@ module "core_api_app" {
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 
-  root_iap_enabled = true
-  root_iap_jwt_aud = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core-api"].generated_id}"
-  iap_jwt_aud      = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core-api-iap"].generated_id}"
+  root_iap_enabled                = true
+  root_iap_jwt_aud                = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core-api"].generated_id}"
+  iap_jwt_aud                     = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core-api-iap"].generated_id}"
   eventbrite_filler_cron_schedule = "0 10 * * 1" # Mondays at 2/3am PT
 }
 

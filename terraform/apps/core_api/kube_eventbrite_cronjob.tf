@@ -224,7 +224,7 @@ resource "kubernetes_cron_job_v1" "eventbrite_filler" {
   spec {
     concurrency_policy = "Replace"
     schedule           = var.eventbrite_filler_cron_schedule
-    timezone = "Etc/UTC"
+    timezone           = "Etc/UTC"
 
     job_template {
       metadata {

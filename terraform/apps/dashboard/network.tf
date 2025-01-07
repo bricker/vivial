@@ -1,7 +1,7 @@
 resource "google_compute_global_address" "a_addrs" {
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
+  lifecycle {
+    prevent_destroy = true
+  }
 
   count        = 1
   name         = "${local.app_name}-${count.index}"
@@ -9,9 +9,9 @@ resource "google_compute_global_address" "a_addrs" {
 }
 
 resource "google_dns_record_set" "default" {
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
+  lifecycle {
+    prevent_destroy = true
+  }
 
   managed_zone = var.google_dns_managed_zone.name
   name         = "${var.public_domain_prefix}.${var.google_dns_managed_zone.dns_name}"
