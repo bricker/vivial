@@ -71,7 +71,7 @@ function _deploy() (
 )
 
 function main() (
-	# e.verify-clean-git-index
+	e.verify-clean-git-index
 
 	local service
 	service="$(jq -r ".kubeService" eavevars.json)"
