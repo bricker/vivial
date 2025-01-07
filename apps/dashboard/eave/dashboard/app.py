@@ -58,8 +58,8 @@ def web_app_endpoint(request: Request) -> Response:
         context={
             "asset_base": SHARED_CONFIG.asset_base,
             "api_base": SHARED_CONFIG.eave_api_base_url_public,
-            "analytics_enabled": _python_bool_to_js(SHARED_CONFIG.analytics_enabled),
-            "monitoring_enabled": _python_bool_to_js(SHARED_CONFIG.monitoring_enabled),
+            "analytics_enabled": SHARED_CONFIG.analytics_enabled,
+            "monitoring_enabled": SHARED_CONFIG.monitoring_enabled,
             "datadog_application_id": DASHBOARD_APP_CONFIG.datadog_application_id,
             "datadog_client_token": DASHBOARD_APP_CONFIG.datadog_client_token,
             "app_env": SHARED_CONFIG.eave_env,
@@ -118,7 +118,3 @@ app = Starlette(
     exception_handlers=exception_handlers,
     lifespan=_app_lifespan,
 )
-
-
-def _python_bool_to_js(v: bool) -> str:  # noqa
-    return "true" if v else "false"

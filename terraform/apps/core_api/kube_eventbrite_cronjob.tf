@@ -223,7 +223,7 @@ resource "kubernetes_cron_job_v1" "eventbrite_filler" {
 
   spec {
     concurrency_policy = "Replace"
-    schedule           = "0 20 * * *"
+    schedule           = "0 12 * * *"
 
     job_template {
       metadata {
@@ -307,7 +307,7 @@ resource "kubernetes_cron_job_v1" "eventbrite_filler" {
                 value = local.cloudsql_proxy_port.number
               }
 
-              command = ["python", "-m", "eave/core/eventbrite_filler.py"]
+              command = ["python", "eave/core/eventbrite_filler.py"]
 
               # Necessary to prevent perpetual diff
               # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380

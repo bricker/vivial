@@ -14,11 +14,16 @@ import Header, { HeaderVariant } from "../../Shared/Header";
 
 const BookButton = styled(PrimaryButton)(() => ({
   height: 35,
-  width: 84,
+  paddingLeft: 22.5,
+  paddingRight: 22.5,
 }));
 
 const Cost = styled("span")(() => ({
   fontWeight: 600,
+}));
+
+const CostHeader = styled(Typography)(() => ({
+  marginRight: "auto",
 }));
 
 const ItineraryVariant = () => {
@@ -43,10 +48,10 @@ const ItineraryVariant = () => {
   return (
     <Header variant={HeaderVariant.Sticky}>
       <VivialLogo hideText />
-      <Typography variant="subtitle1">
+      <CostHeader variant="subtitle1">
         {costHeader}: <Cost>{cost}</Cost>
-      </Typography>
-      <BookButton onClick={handleBook}>Book</BookButton>
+      </CostHeader>
+      <BookButton onClick={handleBook}>Checkout</BookButton>
     </Header>
   );
 };

@@ -14,13 +14,11 @@ function make-cert() (
 
 	local domain
 	local name
-	local subdomains=()
 
 	while getopts "n:d:s:" argname; do
 		case "$argname" in
 		n) name=$OPTARG ;;
 		d) domain=$OPTARG ;;
-		s) subdomains+=("$OPTARG") ;;
 		*)
 			statusmsg -e "Unrecognized argument: $argname"
 			exit 1
@@ -43,7 +41,6 @@ function make-cert() (
 		-days 36500 \
 		-subj "/CN=$domain/O=$organization/organizationalUnitName=$organizationalUnitName" \
 		-addext "subjectAltName=$subjectAltName"
-	# -addext "basicConstraints=CA:FALSE" # Is this needed?
 
 	cat "$dest/$name.key" "$dest/$name.crt" >"$dest/$name.pem"
 )

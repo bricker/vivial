@@ -14,7 +14,7 @@ import {
   type Itinerary,
   type PaymentMethodFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, routePath } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath, type NavigationState } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -323,7 +323,9 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           const newOuting = planOutingData.planOuting.outing;
           setBookingOpen(false);
           dispatch(plannedOuting({ outing: newOuting }));
-          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }));
+
+          const navigationState: NavigationState = { scrollBehavior: "smooth" };
+          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }), { state: navigationState });
           break;
         }
         default: {
@@ -434,7 +436,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           <ActionButtons>
             <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
             <BookButton onClick={handleBookClick} fullWidth loading={bookButtonLoading}>
-              Book
+              Checkout
             </BookButton>
           </ActionButtons>
         </>

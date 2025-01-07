@@ -11,8 +11,9 @@ function main() (
 	cd "$(e.parentpath)/projects/$project"
 
 	if test -f ".auto.tfvars"; then
+		mkdir -p .tmp
 		local backup
-		backup="/tmp/${project}.auto.tfvars.$(date +%s)"
+		backup=".tmp/${project}.auto.tfvars.$(date +%s)"
 		mv .auto.tfvars "$backup"
 		echo "Backup moved to $backup"
 	fi
