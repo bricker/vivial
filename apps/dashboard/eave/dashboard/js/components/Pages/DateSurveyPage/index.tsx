@@ -34,7 +34,7 @@ const PageContainer = styled("div")(({ theme }) => ({
   },
 }));
 
-const PageContentContainer = styled("div")(({ theme }) => ({
+const PageContentContainer = styled("div")(() => ({
   height: "100%",
   display: "flex",
   justifyContent: "center",
