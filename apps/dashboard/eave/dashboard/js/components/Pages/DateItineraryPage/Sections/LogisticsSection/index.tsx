@@ -1,6 +1,6 @@
 import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { Button, styled } from "@mui/material";
+import { Button, IconButton, styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -16,16 +16,17 @@ import {
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { getMultiRegionLabel, getRegionImage } from "$eave-dashboard/js/util/region";
-import { getTimeLabel } from "../../helpers";
 
-import SettingsButton from "$eave-dashboard/js/components/Buttons/SettingsButton";
 import CheckIcon from "$eave-dashboard/js/components/Icons/CheckIcon";
+import SearchIcon from "$eave-dashboard/js/components/Icons/SearchIcon";
 import ShareIcon from "$eave-dashboard/js/components/Icons/ShareIcon";
 import Modal from "$eave-dashboard/js/components/Modal";
 import DateAreaSelections from "$eave-dashboard/js/components/Selections/DateAreaSelections";
 import DateSelections from "$eave-dashboard/js/components/Selections/DateSelections";
 import DateTimeSelections from "$eave-dashboard/js/components/Selections/DateTimeSelections";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { colors } from "$eave-dashboard/js/theme/colors";
+import { getDateTimeLabelExtended } from "$eave-dashboard/js/util/date";
 import Typography from "@mui/material/Typography";
 import LogisticsBadge from "./LogisticsBadge";
 
@@ -75,6 +76,17 @@ const Logistics = styled("div")<{ viewOnly?: boolean }>(({ theme, viewOnly }) =>
   height: 58,
   width: "calc(100% - 4px)",
   borderRadius: 40,
+  cursor: viewOnly ? "auto" : "pointer",
+  transition: "background-color 0.1s",
+  "&:hover, &:focus": viewOnly
+    ? undefined
+    : {
+        backgroundColor: colors.fieldBackground.primary,
+      },
+}));
+
+const SearchButton = styled(IconButton)(() => ({
+  backgroundColor: colors.fieldBackground.primary,
 }));
 
 const TimeAndPlace = styled("div")(() => ({
@@ -128,7 +140,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOutingAuth, { data: planOutingAuthData, isLoading: planOutingAuthLoading }] =
     usePlanOutingAuthenticatedMutation();
   const planOutingLoading = planOutingAnonLoading || planOutingAuthLoading;
-  const { data: searchRegionsData } = useGetSearchRegionsQuery({});
+  const { data: searchRegionsData } = useGetSearchRegionsQuery({}, { skip: viewOnly });
   const outing = useSelector((state: RootState) => state.outing.details);
 
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
@@ -204,8 +216,9 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     if (outing) {
       setStartTime(new Date(outing.startTime));
       setHeadcount(outing.headcount);
+      setSearchAreaIds(outing.searchRegions.map((r) => r.id));
+
       if (outing.survey) {
-        setSearchAreaIds(outing.survey.searchRegions.map((r) => r.id));
         setBudget(outing.survey.budget);
       }
     }
@@ -285,10 +298,14 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   return (
     <Section bgImgUrl={getRegionImage(outing.searchRegions)}>
       <LogisticsGradient>
-        <Logistics viewOnly={viewOnly}>
-          {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
+        <Logistics viewOnly={viewOnly} onClick={viewOnly ? undefined : toggleDetailsOpen}>
+          {!viewOnly && (
+            <SearchButton>
+              <SearchIcon />
+            </SearchButton>
+          )}
           <TimeAndPlace>
-            <Time>{getTimeLabel(startTime)}</Time>
+            <Time>{getDateTimeLabelExtended(startTime)}</Time>
             <Place>
               For {headcount} •<Region>{getMultiRegionLabel(searchAreaIds)}</Region>• {getBudgetLabel(budget)}
             </Place>
@@ -296,39 +313,45 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         </Logistics>
       </LogisticsGradient>
       <LogisticsBadge startTime={startTime} connect={!!outing.reservation} />
-      <ButtonContainer>
-        <ShareButton onClick={handleShareClick}>
-          <Typography variant="body1">{copied ? "URL Copied!" : "Share"}</Typography>
-          {copied ? <CheckIcon color="white" /> : <ShareIcon color="white" />}
-        </ShareButton>
-      </ButtonContainer>
-      <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
-        <DateSelections
-          cta="Update"
-          headcount={headcount}
-          budget={budget}
-          startTime={startTime}
-          searchAreaIds={searchAreaIds}
-          onSubmit={handleReplan}
-          onSelectHeadcount={handleSelectHeadcount}
-          onSelectBudget={handleSelectBudget}
-          onSelectStartTime={toggleDatePickerOpen}
-          onSelectSearchArea={toggleAreasOpen}
-          errorMessage={errorMessage}
-          disabled={replanDisabled}
-          loading={planOutingLoading}
-        />
-      </Modal>
-      <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-        <DateAreaSelections
-          cta="Update"
-          onSubmit={handleSelectSearchAreas}
-          regions={searchRegionsData?.searchRegions}
-        />
-      </Modal>
-      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-        <DateTimeSelections cta="Update" onSubmit={handleSelectStartTime} startDateTime={startTime} />
-      </Modal>
+
+      {!viewOnly && (
+        <>
+          <ButtonContainer>
+            <ShareButton onClick={handleShareClick}>
+              <Typography variant="body1">{copied ? "URL Copied!" : "Share"}</Typography>
+              {copied ? <CheckIcon color="white" /> : <ShareIcon color="white" />}
+            </ShareButton>
+          </ButtonContainer>
+
+          <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
+            <DateSelections
+              cta="Update"
+              headcount={headcount}
+              budget={budget}
+              startTime={startTime}
+              searchAreaIds={searchAreaIds}
+              onSubmit={handleReplan}
+              onSelectHeadcount={handleSelectHeadcount}
+              onSelectBudget={handleSelectBudget}
+              onSelectStartTime={toggleDatePickerOpen}
+              onSelectSearchArea={toggleAreasOpen}
+              errorMessage={errorMessage}
+              disabled={replanDisabled}
+              loading={planOutingLoading}
+            />
+          </Modal>
+          <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+            <DateAreaSelections
+              cta="Update"
+              onSubmit={handleSelectSearchAreas}
+              regions={searchRegionsData?.searchRegions}
+            />
+          </Modal>
+          <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+            <DateTimeSelections cta="Update" onSubmit={handleSelectStartTime} startDateTime={startTime} />
+          </Modal>
+        </>
+      )}
     </Section>
   );
 };
