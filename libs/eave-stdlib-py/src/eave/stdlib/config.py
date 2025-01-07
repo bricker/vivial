@@ -268,13 +268,6 @@ class _EaveConfig(ConfigBase):
         else:
             return "C085C89U211"  # alerts-bookings
 
-    @property
-    def eave_deployment_notifications_channel_id(self) -> str:
-        if self.is_local:
-            return SLACK_CHANNEL_ID_BOT_TESTING
-        else:
-            return "C086TDX5079"  # notif-deployments
-
     @cached_property
     def send_grid_api_key(self) -> str:
         return get_secret("SENDGRID_API_KEY")
