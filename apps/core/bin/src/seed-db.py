@@ -86,6 +86,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
                 session,
                 email=f"john{row}@gmail.com",
                 plaintext_password="pasword1!",  # noqa: S106
+                visitor_id=uuid.uuid4().hex,
             )
 
         assert account is not None

@@ -26,6 +26,7 @@ class TestLoginMutation(BaseTestCase):
                 session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
+                visitor_id=None,
             )
             account_orm.last_login = self.anydatetime("last_login", past=True)
 
@@ -58,6 +59,7 @@ class TestLoginMutation(BaseTestCase):
                 session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
+                visitor_id=self.anystr(),
             )
             account_orm.last_login = self.anydatetime("last_login", past=True)
 
@@ -89,6 +91,7 @@ class TestLoginMutation(BaseTestCase):
                 session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
+                visitor_id=self.anystr(),
             )
             account_orm.last_login = self.anydatetime("last_login", past=True)
 
@@ -120,6 +123,7 @@ class TestLoginMutation(BaseTestCase):
                 session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
+                visitor_id=None,
             )
 
             account_orm.last_login = self.anydatetime("last_login", past=True)

@@ -16,7 +16,10 @@ class TestAccountOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
             new_account = AccountOrm(
-                session, email=self.anyemail("email"), plaintext_password=self.anystr("plaintext_password")
+                session,
+                email=self.anyemail("email"),
+                plaintext_password=self.anystr("plaintext_password"),
+                visitor_id=self.anystr("visitor_id"),
             )
 
         async with self.db_session.begin() as session:
@@ -26,12 +29,18 @@ class TestAccountOrm(BaseTestCase):
             assert fetched_account.email == self.getemail("email")
             assert fetched_account.password_key
             assert fetched_account.password_key != self.getstr("plaintext_password")
+            assert fetched_account.visitor_id == self.getstr("visitor_id")
 
     async def test_account_validation_invalid_email(self) -> None:
         with self.assertRaises(InvalidRecordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                AccountOrm(session, email="invalid email", plaintext_password=self.anystr("plaintext_password"))
+                AccountOrm(
+                    session,
+                    email="invalid email",
+                    plaintext_password=self.anystr("plaintext_password"),
+                    visitor_id=None,
+                )
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -40,7 +49,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                AccountOrm(session, email=self.anyemail(), plaintext_password="weak password")
+                AccountOrm(session, email=self.anyemail(), plaintext_password="weak password", visitor_id=None)
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -49,7 +58,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                AccountOrm(session, email=self.anyemail(), plaintext_password="")
+                AccountOrm(session, email=self.anyemail(), plaintext_password="", visitor_id=None)
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -64,6 +73,7 @@ class TestAccountOrm(BaseTestCase):
                     session,
                     email=self.anyemail(),
                     plaintext_password=None,  # type:ignore - testing what happens if None happens to be passed in at runtime
+                    visitor_id=None,
                 )
 
         async with self.db_session.begin() as session:
@@ -72,7 +82,7 @@ class TestAccountOrm(BaseTestCase):
     async def test_account_verify_password_verified(self) -> None:
         async with self.db_session.begin() as session:
             new_account = AccountOrm(
-                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password")
+                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"), visitor_id=None
             )
 
         async with self.db_session.begin() as session:
@@ -88,7 +98,7 @@ class TestAccountOrm(BaseTestCase):
     async def test_account_verify_password_not_verified(self) -> None:
         async with self.db_session.begin() as session:
             new_account = AccountOrm(
-                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password")
+                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"), visitor_id=None
             )
 
         async with self.db_session.begin() as session:
@@ -103,7 +113,7 @@ class TestAccountOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
             new_account = AccountOrm(
-                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password")
+                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"), visitor_id=None
             )
 
         async with self.db_session.begin() as session:
@@ -207,7 +217,9 @@ class TestAccountOrm(BaseTestCase):
 
     async def test_account_associations(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
+            account = AccountOrm(
+                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"), visitor_id=None
+            )
             reserver_details = self.make_reserver_details(session, account)
             survey = self.make_survey(session, account)
             outing = self.make_outing(session, account, survey)
