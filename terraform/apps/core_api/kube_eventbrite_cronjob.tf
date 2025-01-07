@@ -10,7 +10,7 @@
 
 #     spec = {
 #       concurrencyPolicy = "Replace"
-#       schedule          = "0 20 * * *"
+#       schedule          = "0 12 * * *"
 #       timezone          = "Etc/UTC"
 
 #       jobTemplate = {
@@ -223,7 +223,8 @@ resource "kubernetes_cron_job_v1" "eventbrite_filler" {
 
   spec {
     concurrency_policy = "Replace"
-    schedule           = "0 12 * * *"
+    schedule           = var.eventbrite_filler_cron_schedule
+    timezone = "Etc/UTC"
 
     job_template {
       metadata {
