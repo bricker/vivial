@@ -129,3 +129,7 @@ variable "root_iap_jwt_aud" {
   type     = string
   nullable = true
 }
+
+variable "eventbrite_filler_cron_enabled" {
+  type = bool
+}

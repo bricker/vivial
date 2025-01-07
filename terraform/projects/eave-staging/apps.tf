@@ -44,6 +44,7 @@ module "core_api_app" {
   root_iap_enabled = true
   root_iap_jwt_aud = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core-api"].generated_id}"
   iap_jwt_aud      = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core-api-iap"].generated_id}"
+  eventbrite_filler_cron_enabled = false
 }
 
 module "dashboard_app" {
