@@ -8,7 +8,7 @@ function _print_help() (
 	statusmsg -o "Build and deploy a service."
 	statusmsg -o "Usage: deploy-service -s service [-f dockerfile]"
 	statusmsg -o "  -f dockerfile : Optional. The path to the Dockerfile relative to EAVE_HOME. If omitted, uses the Dockerfile in the current directory or fails if it doesn't exist."
-	statusmsg -o "	-l label : Optional. A k8s selector to select a label of deploy to. e.g. 'app_group=core-api'"
+	statusmsg -o "	-l label : Optional. A k8s selector to select a label to deploy to. e.g. 'app_group=core-api'"
 	statusmsg -o "  -h : Print this message."
 )
 
@@ -20,7 +20,7 @@ function deploy() (
 
 	# Unset necessary to reset global getopts memory
 	unset argname OPTARG OPTIND
-	while getopts "s:f:l:h" argname; do
+	while getopts "f:l:h" argname; do
 		case "$argname" in
 		f) dockerfile=$OPTARG ;;
 		l) label=$OPTARG ;;
@@ -88,15 +88,15 @@ function deploy() (
 function main() (
 	e.verify-clean-git-index
 
-	local service=""
+	local service
+	service="$(jq -r ".kubeService" eavevars.json)"
 	local dockerfile=""
 	local label=""
 
 	# Unset necessary to reset global getopts memory
 	unset argname OPTARG OPTIND
-	while getopts "s:f:l:h" argname; do
+	while getopts "f:l:h" argname; do
 		case "$argname" in
-		s) service=$OPTARG ;;
 		f) dockerfile=$OPTARG ;;
 		l) label=$OPTARG ;;
 		h)
@@ -127,7 +127,7 @@ function main() (
 	fi
 
 	set +e
-	deploy -s "$service" -f "$dockerfile" -l "$label"
+	deploy -f "$dockerfile" -l "$label"
 	local result=$?
 
 	if test "$gcloudproject" == "eave-production"; then
