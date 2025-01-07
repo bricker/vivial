@@ -14,6 +14,7 @@ import {
   OutingBudget,
   type Itinerary,
   type PaymentMethodFieldsFragment,
+  PlanOutingInput,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath, type NavigationState } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -237,7 +238,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const handleReroll = useCallback(async () => {
     if (outing) {
       const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
-      const input = {
+      const input: PlanOutingInput = {
         startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
         searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
         budget: outing.survey?.budget || OutingBudget.Expensive,

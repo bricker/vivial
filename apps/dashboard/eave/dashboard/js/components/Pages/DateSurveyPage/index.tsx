@@ -1,5 +1,6 @@
 import {
   OutingBudget,
+  PlanOutingInput,
   type ActivityCategoryFieldsFragment,
   type RestaurantCategoryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
@@ -168,7 +169,7 @@ const DateSurveyPage = () => {
       rerolled();
     }
     const groupPreferences = getPreferenceInputs(outingPreferences, partnerPreferences);
-    const input = {
+    const input: PlanOutingInput = {
       startTime: startTime.toISOString(),
       groupPreferences,
       budget,

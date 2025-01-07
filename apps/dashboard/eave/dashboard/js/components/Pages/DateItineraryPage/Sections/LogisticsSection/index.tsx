@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { OutingBudget, PlanOutingInput } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import {
@@ -149,7 +149,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   const handleReplan = useCallback(async () => {
     const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
-    const input = {
+    const input: PlanOutingInput = {
       startTime: startTime.toISOString(),
       groupPreferences,
       budget,
