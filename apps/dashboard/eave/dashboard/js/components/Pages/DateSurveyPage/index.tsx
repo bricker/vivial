@@ -151,7 +151,6 @@ const DateSurveyPage = () => {
       if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
         const outing = planOutingData.planOuting.outing;
         dispatch(plannedOuting({ outing }));
-        dispatch(chosePreferences({}));
         navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
