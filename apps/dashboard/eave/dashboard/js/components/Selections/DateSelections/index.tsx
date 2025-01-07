@@ -11,10 +11,11 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React from "react";
 
+import { getDateTimeLabelAbbreviated } from "$eave-dashboard/js/util/date";
 import Typography from "@mui/material/Typography";
 import HighlightButton from "../../Buttons/HighlightButton";
 import LoadingButton from "../../Buttons/LoadingButton";
-import { getSearchAreaLabel, getStartTimeLabel } from "./helpers";
+import { getSearchAreaLabel } from "./helpers";
 
 const Row = styled("div")(() => ({
   display: "flex",
@@ -94,7 +95,7 @@ const DateSelections = ({
 
   const searchRegions = data?.searchRegions || [];
   const searchAreaLabel = getSearchAreaLabel(searchAreaIds, searchRegions);
-  const startTimeLabel = getStartTimeLabel(startTime);
+  const startTimeLabel = getDateTimeLabelAbbreviated(startTime);
 
   const handleSubmit = () => {
     if (onSubmit) {
