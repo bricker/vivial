@@ -1,6 +1,6 @@
 import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
+import { Button, styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,8 @@ import { getMultiRegionLabel, getRegionImage } from "$eave-dashboard/js/util/reg
 import { getTimeLabel } from "../../helpers";
 
 import SettingsButton from "$eave-dashboard/js/components/Buttons/SettingsButton";
+import CheckIcon from "$eave-dashboard/js/components/Icons/CheckIcon";
+import ShareIcon from "$eave-dashboard/js/components/Icons/ShareIcon";
 import Modal from "$eave-dashboard/js/components/Modal";
 import DateAreaSelections from "$eave-dashboard/js/components/Selections/DateAreaSelections";
 import DateSelections from "$eave-dashboard/js/components/Selections/DateSelections";
@@ -99,6 +101,22 @@ const Region = styled("span")(() => ({
   padding: "0 3px",
 }));
 
+const ButtonContainer = styled("div")(() => ({
+  display: "flex",
+  width: "100%",
+  justifyContent: "flex-end",
+  marginTop: 110,
+}));
+
+const ShareButton = styled(Button)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "row",
+  gap: 8,
+  color: theme.palette.text.primary,
+  textDecorationLine: "underline",
+  marginRight: -16,
+}));
+
 const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
@@ -107,6 +125,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const [startTime, setStartTime] = useState(new Date());
+  const [copied, setCopied] = useState(false);
   const [headcount, setHeadcount] = useState(2);
   const [replanDisabled, setReplanDisabled] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -191,6 +210,20 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     }
   }, [planOutingData, userPreferences, partnerPreferences]);
 
+  const handleShareClick = useCallback(async () => {
+    try {
+      await navigator.share({
+        title: "Vivial",
+        text: "Check out this itinerary from Vivial!",
+        url: window.location.href,
+      });
+    } catch {
+      // share API likely not supported by browser; fallback to copy to clipboard
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+    }
+  }, []);
+
   if (!outing) {
     return null;
   }
@@ -209,6 +242,12 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         </Logistics>
       </LogisticsGradient>
       <LogisticsBadge startTime={startTime} connect={!!outing.reservation} />
+      <ButtonContainer>
+        <ShareButton onClick={handleShareClick}>
+          <Typography variant="body1">{copied ? "URL Copied!" : "Share"}</Typography>
+          {copied ? <CheckIcon color="white" /> : <ShareIcon color="white" />}
+        </ShareButton>
+      </ButtonContainer>
       <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
         <DateSelections
           cta="Update"
