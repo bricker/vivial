@@ -87,7 +87,7 @@ function deploy() (
 )
 
 function main() (
-	# e.verify-clean-git-index
+	e.verify-clean-git-index
 
 	local service=""
 	local dockerfile=""
@@ -118,16 +118,25 @@ function main() (
 		exit 1
 	fi
 
-	local slackts
-	slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
+	local gcloudproject
+	gcloudproject="$(e.gcloudproject)"
+
+	local slackts=""
+
+	if test "$gcloudproject" == "eave-production"; then
+		slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
+	fi
 
 	set +e
 	deploy -s "$service" -f "$dockerfile" -l "$label"
+	local result=$?
 
-	if test "$?" -eq 0; then
-		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=complete --app="$service" --msg-timestamp="$slackts"
-	else
-		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
+	if test "$gcloudproject" == "eave-production"; then
+		if test $result -eq 0; then
+			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=complete --app="$service" --msg-timestamp="$slackts"
+		else
+			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
+		fi
 	fi
 )
 

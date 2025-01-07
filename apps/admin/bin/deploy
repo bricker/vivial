@@ -14,7 +14,7 @@ function main() (
 	bin/lint
 
 	statusmsg -a "Diff since last deployment:"
-	e.diff-prod
+	e.diff-deployed
 
 	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
 

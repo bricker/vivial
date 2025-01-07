@@ -5,16 +5,16 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 function main() (
-	# e.verify-clean-git-index
+	e.verify-clean-git-index
 
 	export EAVE_DEPLOY_TARGET
 	EAVE_DEPLOY_TARGET="$(e.gcloudproject)"
 
 	cd "$(e.parentpath)"
-	# bin/lint
+	bin/lint
 
-	# statusmsg -a "Diff since last deployment:"
-	# e.diff-prod
+	statusmsg -a "Diff since last deployment:"
+	e.diff-deployed
 
 	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
 
