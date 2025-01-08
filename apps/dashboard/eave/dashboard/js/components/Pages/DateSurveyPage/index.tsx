@@ -49,7 +49,6 @@ const CopyContainer = styled("div")(({ theme }) => ({
     padding: "16px 0 0",
     background: "transparent",
     maxWidth: 426,
-    marginRight: 60,
     boxShadow: "none",
   },
 }));
