@@ -58,7 +58,6 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
             stdout, stderr = p.communicate()
             changelog = stdout.decode()
             lines = changelog.splitlines()
-            lines.reverse()
 
             slack_response = await slack_client.chat_postMessage(
                 channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
