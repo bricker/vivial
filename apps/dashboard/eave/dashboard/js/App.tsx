@@ -1,12 +1,12 @@
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import mixpanel from "mixpanel-browser";
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import { Provider as StoreProvider, useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { initMixpanelSessionRecording } from "./analytics/mixpanel";
 import { pageView } from "./analytics/segment";
 import GlobalLayout from "./components/Global/GlobalLayout";
 import AccountPage from "./components/Pages/AccountPage";
@@ -31,7 +31,6 @@ import ScrollToTop from "./components/Util/ScrollToTop";
 import { AppRoute } from "./routes";
 import store, { RootState } from "./store";
 import { theme } from "./theme";
-import { initMixpanelSessionRecording } from "./analytics/mixpanel";
 
 const fireAnalyticsPageView = (_path: string) => pageView({});
 
