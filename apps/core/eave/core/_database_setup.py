@@ -66,8 +66,10 @@ if SHARED_CONFIG.is_local:
 
         await postgres_engine.dispose()
 
-        await install_extensions(engine)
-        await connection.run_sync(get_base_metadata().create_all)
+        await install_extensions(postgres_engine)
+
+        async with engine.begin() as connection:
+            await connection.run_sync(get_base_metadata().create_all)
 
     async def install_extensions(engine: AsyncEngine = async_engine) -> None:
         async with engine.begin() as connection:
