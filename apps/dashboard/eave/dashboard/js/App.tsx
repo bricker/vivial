@@ -31,13 +31,11 @@ import ScrollToTop from "./components/Util/ScrollToTop";
 import { AppRoute } from "./routes";
 import store, { RootState } from "./store";
 import { theme } from "./theme";
+import { initMixpanel } from "./analytics/mixpanel";
 
 const fireAnalyticsPageView = (_path: string) => pageView({});
 
-
-mixpanel.init("TOKEN", {
-  debug: false,
-});
+initMixpanel();
 
 const App = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);

@@ -6,6 +6,7 @@ export type GlobalWindow = Window &
       version?: string;
       assetBase?: string;
       segmentWriteKey?: string;
+      mixpanelToken?: string;
       analyticsEnabled?: boolean;
       monitoringEnabled?: boolean;
       stripePublishableKey?: string;
