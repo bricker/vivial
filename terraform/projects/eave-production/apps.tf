@@ -4,8 +4,10 @@ module "shared_kubernetes_resources" {
   dns_domain               = local.dns_domain
   www_public_domain_prefix = local.www_public_domain_prefix
   api_public_domain_prefix = local.api_public_domain_prefix
+  admin_public_domain_prefix = local.admin_public_domain_prefix
   STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
   EAVE_ENV                 = "production"
+  google_project = data.google_project.default
 }
 
 module "core_api_app" {
@@ -39,10 +41,12 @@ module "core_api_app" {
   release_version              = "latest"
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 
-  iap_enabled                       = false
+  internal_iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["core_api_iap"].generated_id}"
+  root_iap_enabled = false
+  root_iap_jwt_aud = null
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["core_api_iap"].generated_id}"
+
   eventbrite_filler_cron_schedule   = "0 12 * * *" # Daily at 4/5am PT
 }
 
@@ -63,9 +67,9 @@ module "dashboard_app" {
   release_version = "latest"
 
   iap_enabled                       = false
+  iap_jwt_aud                       = null
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  iap_jwt_aud                       = null
 }
 
 module "admin_app" {
@@ -84,7 +88,7 @@ module "admin_app" {
   LOG_LEVEL       = "DEBUG"
   release_version = "latest"
 
+  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["admin"].generated_id}"
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["admin"].generated_id}"
 }
