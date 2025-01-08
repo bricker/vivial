@@ -24,7 +24,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
+import { keyframes, styled } from "@mui/material";
 
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
@@ -40,6 +40,7 @@ import { useMobile } from "$eave-dashboard/js/util/mobile";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
 import LoadingButton from "../../Buttons/LoadingButton";
+import ArrowRightIcon from "../../Icons/ArrowRightIcon";
 import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(() => ({
@@ -47,25 +48,28 @@ const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
 }));
 
-const PageContentContainer = styled("div")(({ theme }) => ({
-  [theme.breakpoints.up(Breakpoint.Medium)]: {
-    display: "flex",
-    justifyContent: "center",
-  },
+const PageContentContainer = styled("div")(({theme}) => ({
+  height: "100%",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  flexDirection: "row",
+  [theme.breakpoints.down(Breakpoint.Medium)]: {
+    flexDirection: "column"
+  }
 }));
 
-const CopyContainer = styled(Paper)(({ theme }) => ({
+const CopyContainer = styled("div")(({ theme }) => ({
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     padding: "16px 0 0",
-    background: "transparent",
     maxWidth: 426,
-    boxShadow: "none",
   },
 }));
 
 const TitleCopy = styled(Typography)(({ theme }) => ({
   maxWidth: 250,
   marginBottom: 4,
+  color: theme.palette.text.primary,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     maxWidth: "none",
     marginBottom: 24,
@@ -104,7 +108,31 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const SubmitButton = styled(LoadingButton)(() => ({
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
   marginTop: 16,
+}));
+
+const pulse = keyframes`
+0% {
+  transform: scale(1);
+}
+50% {
+  transform: scale(1.2);
+}
+100% {
+  transform: scale(1);
+}
+`;
+
+const AnimatedDiv = styled("div")(() => ({
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  animation: `${pulse} 2s linear infinite`,
 }));
 
 const Error = styled(Typography)(({ theme }) => ({
@@ -303,31 +331,36 @@ const DateSurveyPage = () => {
             </>
           )}
 
-          {isMobile && (
+          {(isMobile || !isLoggedIn) && (
             <>
               <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
-                🎲 Pick my date
+                <Typography variant="button">Plan my date</Typography>
+                <AnimatedDiv>
+                  <ArrowRightIcon color="black" width={16} height={16} />
+                </AnimatedDiv>
               </SubmitButton>
               {errorMessage && <Error>ERROR: {errorMessage}</Error>}
             </>
           )}
         </CopyContainer>
-        <DateSurveyContainer>
-          <DateSelections
-            cta={!isMobile ? "🎲 Pick my date" : undefined}
-            headcount={headcount}
-            budget={budget}
-            startTime={startTime}
-            searchAreaIds={searchAreaIds}
-            onSubmit={!isMobile ? handleSubmit : undefined}
-            onSelectHeadcount={handleSelectHeadcount}
-            onSelectBudget={handleSelectBudget}
-            onSelectStartTime={toggleDatePickerOpen}
-            onSelectSearchArea={toggleAreasOpen}
-            errorMessage={!isMobile ? errorMessage : undefined}
-            loading={!isMobile ? planOutingLoading : undefined}
-          />
-        </DateSurveyContainer>
+        {isLoggedIn && (
+          <DateSurveyContainer>
+            <DateSelections
+              cta={!isMobile ? "🎲 Pick my date" : undefined}
+              headcount={headcount}
+              budget={budget}
+              startTime={startTime}
+              searchAreaIds={searchAreaIds}
+              onSubmit={!isMobile ? handleSubmit : undefined}
+              onSelectHeadcount={handleSelectHeadcount}
+              onSelectBudget={handleSelectBudget}
+              onSelectStartTime={toggleDatePickerOpen}
+              onSelectSearchArea={toggleAreasOpen}
+              errorMessage={!isMobile ? errorMessage : undefined}
+              loading={!isMobile ? planOutingLoading : undefined}
+            />
+          </DateSurveyContainer>
+        )}
       </PageContentContainer>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
         <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegionsData?.searchRegions} />
