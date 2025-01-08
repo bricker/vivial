@@ -1,4 +1,4 @@
-import { OutingBudget, PlanOutingInput } from "$eave-dashboard/js/graphql/generated/graphql";
+import { ActivityCategoryFieldsFragment, OutingBudget, PlanOutingInput, RestaurantCategoryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
@@ -209,6 +209,19 @@ const DateSurveyPage = () => {
       navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
     }
   }, [planOutingAuthData, planOutingAnonData, outingPreferences]);
+
+  useEffect(() => {
+    const viewer = outingPreferencesData?.viewer;
+    if (viewer?.__typename === "AuthenticatedViewerQueries") {
+      const preferences = viewer.outingPreferences;
+      if (preferences.activityCategories || preferences.restaurantCategories) {
+        setOutingPreferences({
+          restaurantCategories: preferences.restaurantCategories as RestaurantCategoryFieldsFragment[],
+          activityCategories: preferences.activityCategories as ActivityCategoryFieldsFragment[],
+        });
+      }
+    }
+  }, [outingPreferencesData]);
 
   useEffect(() => {
     if (searchRegionsData?.searchRegions) {
