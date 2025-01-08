@@ -203,9 +203,9 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     if (outing) {
       setStartTime(new Date(outing.startTime));
       setHeadcount(outing.headcount);
-      setSearchAreaIds(outing.searchRegions.map((r) => r.id));
 
       if (outing.survey) {
+        setSearchAreaIds(outing.survey.searchRegions.map((r) => r.id));
         setBudget(outing.survey.budget);
       }
     }
