@@ -41,7 +41,7 @@ module "core_api_app" {
   release_version              = "latest"
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 
-  internal_iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["core_api_iap"].generated_id}"
+  internal_iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core_api_iap"].generated_id}"
   root_iap_enabled = false
   root_iap_jwt_aud = null
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
@@ -88,7 +88,7 @@ module "admin_app" {
   LOG_LEVEL       = "DEBUG"
   release_version = "latest"
 
-  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service["admin"].generated_id}"
+  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["admin"].generated_id}"
   iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }

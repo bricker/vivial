@@ -3,6 +3,11 @@ moved {
   to   = module.cloudsql_eave_core.module.cloudsql_user_role
 }
 
+moved {
+  from = module.cloudsql_eave_core.module.cloudsql_iam.google_project_iam_binding.project_cloudsql_user_role_members
+  to   = module.cloudsql_eave_core.google_project_iam_binding.project_cloudsql_user_role_members
+}
+
 module "cloudsql_eave_core" {
   source                 = "../../modules/cloudsql_instance"
   instance_name          = "eave-pg-core"

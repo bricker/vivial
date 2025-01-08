@@ -8,6 +8,11 @@ moved {
   to   = module.kubernetes_services["healthchecks"]
 }
 
+moved {
+  from = module.healthcheck_service_backend_policy.kubernetes_manifest.backend_policy
+  to = module.kubernetes_services["healthchecks"].kubernetes_manifest.backend_policy
+}
+
 module "kubernetes_services" {
   for_each = {
     default = {

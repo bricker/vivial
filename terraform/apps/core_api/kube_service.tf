@@ -39,3 +39,8 @@ moved {
   from = module.service_backend_policy.kubernetes_manifest.backend_policy
   to   = module.kubernetes_service.kubernetes_manifest.backend_policy
 }
+
+moved {
+  from = module.iap_service_backend_policy.kubernetes_manifest.backend_policy
+  to   = module.kubernetes_services["iap"].kubernetes_manifest.backend_policy
+}

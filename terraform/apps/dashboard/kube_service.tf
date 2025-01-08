@@ -12,5 +12,5 @@ module "kubernetes_service" {
 
 moved {
   from = module.service_backend_policy.kubernetes_manifest.backend_policy
-  to   = module.service.kubernetes_manifest.backend_policy
+  to   = module.kubernetes_service.kubernetes_manifest.backend_policy
 }
