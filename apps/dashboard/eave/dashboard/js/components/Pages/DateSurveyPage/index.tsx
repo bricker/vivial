@@ -3,7 +3,7 @@ import {
   type ActivityCategoryFieldsFragment,
   type RestaurantCategoryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, DateSurveyPageVariant, SearchParam, SignUpPageVariant, routePath } from "$eave-dashboard/js/routes";
+import { AppRoute, DateSurveyPageVariant, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import {
@@ -24,7 +24,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { Button, styled } from "@mui/material";
+import { styled } from "@mui/material";
 
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
@@ -36,8 +36,7 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
-import { colors, hexToRGB } from "$eave-dashboard/js/theme/colors";
-import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
+import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { useMobile } from "$eave-dashboard/js/util/mobile";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
@@ -47,6 +46,10 @@ import { getInitialStartTime } from "./helpers";
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
   [theme.breakpoints.up(Breakpoint.Medium)]: {
+    backgroundImage: `url("${imageUrl("vivial-map-graphic.png")}")`,
+    backgroundPosition: "center bottom",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "contain",
     padding: "112px 104px",
     marginBottom: 112,
     minHeight: 675,
@@ -57,20 +60,13 @@ const PageContainer = styled("div")(({ theme }) => ({
 }));
 
 const PageContentContainer = styled("div")(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-  gap: 16,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
-    flexDirection: "row",
+    display: "flex",
+    justifyContent: "center",
   },
 }));
 
 const CopyContainer = styled(Paper)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  gap: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     padding: "16px 0 0",
     background: "transparent",
@@ -81,7 +77,7 @@ const CopyContainer = styled(Paper)(({ theme }) => ({
 
 const TitleCopy = styled(Typography)(({ theme }) => ({
   maxWidth: 250,
-  color: theme.palette.text.primary,
+  marginBottom: 4,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     maxWidth: "none",
     marginBottom: 16,
@@ -106,7 +102,7 @@ const CityCopy = styled(Typography)(({ theme }) => ({
 }));
 
 const DateSurveyContainer = styled(Paper)(({ theme }) => ({
-  marginTop: 8,
+  marginTop: 16,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     border: `2px solid ${theme.palette.primary.main}`,
     background: theme.palette.background.paper,
@@ -119,7 +115,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const SubmitButton = styled(LoadingButton)(() => ({
-  marginTop: 8,
+  marginTop: 16,
 }));
 
 const Error = styled(Typography)(({ theme }) => ({
@@ -237,7 +233,6 @@ const DateSurveyPage = () => {
   const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [searchExpanded, setSearchExpanded] = useState(false);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -245,7 +240,11 @@ const DateSurveyPage = () => {
   const isMobile = useMobile();
 
   const handleSubmit = useCallback(async () => {
-    if (!isLoggedIn) {
+    // checking for mobile layout bcus the mobile layout needs
+    // to handle the reroll cookie on its own, but the desktop
+    // layout relys on the DateSelections component to handle
+    // that internally.
+    if (!isLoggedIn && isMobile) {
       if (rerolls >= MAX_REROLLS) {
         navigate(
           routePath({ route: AppRoute.signup, searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll } }),
@@ -298,17 +297,13 @@ const DateSurveyPage = () => {
     setDatePickerOpen(false);
   }, []);
 
-  const toggleDatePickerOpen = () => {
-    setDatePickerOpen((prev) => !prev);
-  };
+  const toggleDatePickerOpen = useCallback(() => {
+    setDatePickerOpen(!datePickerOpen);
+  }, [datePickerOpen]);
 
-  const toggleAreasOpen = () => {
-    setAreasOpen((prev) => !prev);
-  };
-
-  const handleAdvanceSearchClick = () => {
-    setSearchExpanded((prev) => !prev);
-  };
+  const toggleAreasOpen = useCallback(() => {
+    setAreasOpen(!areasOpen);
+  }, [areasOpen]);
 
   useEffect(() => {
     if (planOutingData) {
@@ -321,7 +316,7 @@ const DateSurveyPage = () => {
             partner: partnerPreferences,
           }),
         );
-        navigate(routePath({ route: AppRoute.itinerary, pathParams: { outingId: outing.id } }));
+        navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
       }
@@ -385,160 +380,68 @@ const DateSurveyPage = () => {
         />
       );
     }
-    return (
-      <PageContainer>
-        <PageContentContainer>
-          <CopyContainer>
-            <TitleCopy variant="h1">Your Free Date Planner</TitleCopy>
-            <CityCopy>🌴 Los Angeles, California</CityCopy>
-            <Typography variant="subtitle1">
-              We handle all the details, and you only pay for experiences you want to book.
-            </Typography>
-            {isLoggedIn && (
-              <>
-                <EditPreferencesOption
-                  label="Your preferences"
-                  editable={!outingPreferences}
-                  onClickEdit={() => setOutingPreferencesOpen(true)}
-                />
-                {headcount === 2 && (
-                  <EditPreferencesOption
-                    label="Partner preferences (optional)"
-                    editable={!partnerPreferences}
-                    onClickEdit={() => setPartnerPreferencesOpen(true)}
-                  />
-                )}
-              </>
-            )}
-
-            {isMobile && (
-              <>
-                <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
-                  🎲 Pick my date
-                </SubmitButton>
-                {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-              </>
-            )}
-          </CopyContainer>
-          <DateSurveyContainer>
-            <DateSelections
-              cta={!isMobile ? "🎲 Pick my date" : undefined}
-              headcount={headcount}
-              budget={budget}
-              startTime={startTime}
-              searchAreaIds={searchAreaIds}
-              onSubmit={!isMobile ? handleSubmit : undefined}
-              onSelectHeadcount={handleSelectHeadcount}
-              onSelectBudget={handleSelectBudget}
-              onSelectStartTime={toggleDatePickerOpen}
-              onSelectSearchArea={toggleAreasOpen}
-              errorMessage={!isMobile ? errorMessage : undefined}
-              loading={!isMobile ? planOutingLoading : undefined}
-            />
-          </DateSurveyContainer>
-        </PageContentContainer>
-        <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-          <DateAreaSelections
-            cta="Save"
-            onSubmit={handleSelectSearchAreas}
-            regions={searchRegionsData?.searchRegions}
-          />
-        </Modal>
-        <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-          <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
-        </Modal>
-      </PageContainer>
-    );
-  } else {
-    const categoryNames = [
-      "Food Types",
-      "Music",
-      "Hobbies",
-      "Arts & Theater",
-      "Film, Media, & Entertainment",
-      "Fitness & Outdoors",
-    ];
-    const categoryColors = [
-      colors.lightPurpleAccent,
-      colors.lightOrangeAccent,
-      colors.lightPinkAccent,
-      colors.mediumPurpleAccent,
-    ];
-
-    return (
-      <PageContainer>
-        <PageContentContainer>
-          <CopyContainer>
-            <TitleCopy variant="h1">Date Plans Made Easy</TitleCopy>
-            <CityCopy>🌴 Los Angeles, California</CityCopy>
-            <Typography variant="subtitle1">
-              Effortless date planning: Click below to get free restaurant and activity suggestions.
-            </Typography>
-            <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
-              🎲 Show me ideas
-            </SubmitButton>
-            {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-            <TextButton onClick={handleAdvanceSearchClick}>
-              <Typography variant="body2">{searchExpanded ? "-" : "+"} Advanced Search</Typography>
-            </TextButton>
-            {searchExpanded && (
-              <SearchContainer>
-                <DateSelections
-                  headcount={headcount}
-                  budget={budget}
-                  startTime={startTime}
-                  searchAreaIds={searchAreaIds}
-                  onSelectHeadcount={handleSelectHeadcount}
-                  onSelectBudget={handleSelectBudget}
-                  onSelectStartTime={toggleDatePickerOpen}
-                  onSelectSearchArea={toggleAreasOpen}
-                />
-              </SearchContainer>
-            )}
-          </CopyContainer>
-          <AddPrefsContainer>
-            <AddPrefsTitle variant="h3">Want something more personalized?</AddPrefsTitle>
-            <FadeInOutContainer>
-              <PrefsListContainer>
-                {categoryNames.map((categoryName, index) => (
-                  <PrefPill key={categoryName} bgColor={categoryColors[index % categoryColors.length]!}>
-                    {categoryName}
-                  </PrefPill>
-                ))}
-                <Fader side={FaderSide.Right} visible={true} />
-              </PrefsListContainer>
-            </FadeInOutContainer>
-            <Typography variant="subtitle1">
-              Fill out this quick survey and we’ll customize your recommendations.{" "}
-            </Typography>
-            <AddPrefsButton
-              onClick={() =>
-                navigate(
-                  routePath({
-                    route: AppRoute.signup,
-                    searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll },
-                  }),
-                )
-              }
-              fullWidth
-            >
-              Add my preferences
-            </AddPrefsButton>
-          </AddPrefsContainer>
-        </PageContentContainer>
-        <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-          <DateAreaSelections
-            cta="Save"
-            onSubmit={handleSelectSearchAreas}
-            regions={searchRegionsData?.searchRegions}
-          />
-        </Modal>
-        <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-          <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
-        </Modal>
-      </PageContainer>
-    );
   }
+
+  return (
+    <PageContainer>
+      <PageContentContainer>
+        <CopyContainer>
+          <TitleCopy variant="h1">Your Free Date Planner</TitleCopy>
+          <CityCopy>🌴 Los Angeles, California</CityCopy>
+          <Typography variant="subtitle1">
+            We handle all the details, and you only pay for experiences you want to book.
+          </Typography>
+          {isLoggedIn && (
+            <>
+              <EditPreferencesOption
+                label="Your preferences"
+                editable={!outingPreferences}
+                onClickEdit={() => setOutingPreferencesOpen(true)}
+              />
+              {headcount === 2 && (
+                <EditPreferencesOption
+                  label="Partner preferences (optional)"
+                  editable={!partnerPreferences}
+                  onClickEdit={() => setPartnerPreferencesOpen(true)}
+                />
+              )}
+            </>
+          )}
+
+          {isMobile && (
+            <>
+              <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
+                🎲 Pick my date
+              </SubmitButton>
+              {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+            </>
+          )}
+        </CopyContainer>
+        <DateSurveyContainer>
+          <DateSelections
+            cta={!isMobile ? "🎲 Pick my date" : undefined}
+            headcount={headcount}
+            budget={budget}
+            startTime={startTime}
+            searchAreaIds={searchAreaIds}
+            onSubmit={!isMobile ? handleSubmit : undefined}
+            onSelectHeadcount={handleSelectHeadcount}
+            onSelectBudget={handleSelectBudget}
+            onSelectStartTime={toggleDatePickerOpen}
+            onSelectSearchArea={toggleAreasOpen}
+            errorMessage={!isMobile ? errorMessage : undefined}
+            loading={!isMobile ? planOutingLoading : undefined}
+          />
+        </DateSurveyContainer>
+      </PageContentContainer>
+      <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+        <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegionsData?.searchRegions} />
+      </Modal>
+      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+        <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
+      </Modal>
+    </PageContainer>
+  );
 };
 
 export default DateSurveyPage;
