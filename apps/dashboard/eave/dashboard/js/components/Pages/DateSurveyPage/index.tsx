@@ -48,15 +48,15 @@ const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
 }));
 
-const PageContentContainer = styled("div")(({theme}) => ({
+const PageContentContainer = styled("div")(({ theme }) => ({
   height: "100%",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   flexDirection: "row",
   [theme.breakpoints.down(Breakpoint.Medium)]: {
-    flexDirection: "column"
-  }
+    flexDirection: "column",
+  },
 }));
 
 const CopyContainer = styled("div")(({ theme }) => ({
