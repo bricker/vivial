@@ -165,11 +165,7 @@ const DateSurveyPage = () => {
   const isMobile = useMobile();
 
   const handleSubmit = useCallback(async () => {
-    // checking for mobile layout bcus the mobile layout needs
-    // to handle the reroll cookie on its own, but the desktop
-    // layout relys on the DateSelections component to handle
-    // that internally.
-    if (!isLoggedIn && isMobile) {
+    if (!isLoggedIn) {
       if (rerolls >= MAX_REROLLS) {
         navigate(AppRoute.signupMultiReroll);
         return;
@@ -186,7 +182,7 @@ const DateSurveyPage = () => {
         searchAreaIds,
       },
     });
-  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime, rerolls, isMobile]);
+  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime, rerolls]);
 
   const handleSubmitPreferences = useCallback(async (selections: OutingPreferencesSelections) => {
     setOutingPreferences(selections);
