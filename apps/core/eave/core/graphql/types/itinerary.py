@@ -1,4 +1,5 @@
 from datetime import datetime
+import enum
 from uuid import UUID
 
 import google.type.latlng_pb2
@@ -20,10 +21,18 @@ from eave.stdlib.logging import LOGGER
 class TravelInfo:
     duration_minutes: int
 
+@strawberry.enum
+class ItinieraryPart(enum.Enum):
+    ACTIVITY = enum.auto()
+    RESTAURANT = enum.auto()
+
+@strawberry.input
+class ItineraryRefinement:
+    original_outing_id: UUID
+    part: ItinieraryPart
 
 @strawberry.interface
 class Itinerary:
-    id: UUID
     survey: Survey | None
     activity_plan: ActivityPlan | None
     reservation: Reservation | None

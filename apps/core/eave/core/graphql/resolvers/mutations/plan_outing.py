@@ -6,18 +6,22 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
+from eave.core.graphql.context import GraphQLContext, analytics_ctx
+from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
+from eave.core.graphql.types.itinerary import ItineraryRefinement, ItinieraryPart
 from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
+from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
+from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.orm.account import AccountOrm
+from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
+from eave.stdlib.matched_str_enum import MatchedStrEnum
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
-
 
 @strawberry.input
 class PlanOutingInput:
@@ -30,6 +34,7 @@ class PlanOutingInput:
     excluded_eventbrite_event_ids: list[str] | None = None
     excluded_google_place_ids: list[str] | None = None
     excluded_evergreen_activity_ids: list[UUID] | None = None
+    refinement: ItineraryRefinement | None = None
 
 
 @strawberry.type
@@ -49,7 +54,6 @@ class PlanOutingFailure:
 
 
 PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingFailure, strawberry.union("PlanOutingResult")]
-
 
 async def plan_outing_mutation(
     *,
@@ -82,11 +86,12 @@ async def plan_outing_mutation(
             headcount=input.headcount,
         )
 
-    outing = await create_outing(
+    outing = await _create_outing(
         individual_preferences=input.group_preferences,
         excluded_eventbrite_event_ids=input.excluded_eventbrite_event_ids,
         excluded_google_place_ids=input.excluded_google_place_ids,
         excluded_evergreen_activity_ids=input.excluded_evergreen_activity_ids,
+        refinement=input.refinement,
         visitor_id=visitor_id,
         account=account,
         survey=survey,
@@ -95,3 +100,85 @@ async def plan_outing_mutation(
     )
 
     return PlanOutingSuccess(outing=outing)
+
+async def _create_outing(
+    *,
+    individual_preferences: list[OutingPreferencesInput],
+    excluded_eventbrite_event_ids: list[str] | None,
+    excluded_google_place_ids: list[str] | None,
+    excluded_evergreen_activity_ids: list[UUID] | None,
+    refinement: ItineraryRefinement | None,
+    visitor_id: str | None,
+    account: AccountOrm | None,
+    survey: SurveyOrm,
+    is_reroll: bool,
+    ctx: GraphQLContext,
+) -> Outing:
+    itinerary = await OutingPlanner(
+        individual_preferences=individual_preferences,
+        excluded_eventbrite_event_ids=excluded_eventbrite_event_ids,
+        excluded_google_place_ids=excluded_google_place_ids,
+        excluded_evergreen_activity_ids=excluded_evergreen_activity_ids,
+        refinement=refinement,
+        survey=survey,
+        ctx=ctx,
+    ).plan()
+
+    async with database.async_session.begin() as db_session:
+        outing_orm = OutingOrm(
+            db_session,
+            visitor_id=visitor_id,
+            survey=survey,
+            account=account,
+        )
+
+        if activity_plan := itinerary.activity_plan:
+            outing_orm.activities.append(
+                OutingActivityOrm(
+                    db_session,
+                    outing=outing_orm,
+                    source_id=activity_plan.activity.source_id,
+                    source=activity_plan.activity.source,
+                    start_time_utc=activity_plan.start_time,
+                    timezone=survey.timezone,  # FIXME: This should come from arrival_time,
+                    headcount=activity_plan.headcount,
+                )
+            )
+
+        if reservation := itinerary.reservation:
+            outing_orm.reservations.append(
+                OutingReservationOrm(
+                    db_session,
+                    outing=outing_orm,
+                    source_id=reservation.restaurant.source_id,
+                    source=reservation.restaurant.source,
+                    start_time_utc=reservation.arrival_time,
+                    timezone=survey.timezone,  # FIXME: This should come from arrival_time
+                    headcount=reservation.headcount,
+                )
+            )
+
+    gql_survey = Survey.from_orm(survey)
+
+    outing = Outing(
+        id=outing_orm.id,
+        survey=gql_survey,
+        activity_plan=itinerary.activity_plan,
+        reservation=itinerary.reservation,
+    )
+
+    ANALYTICS.track(
+        event_name="outing_created",
+        account_id=account.id if account else None,
+        visitor_id=visitor_id,
+        extra_properties={
+            "reroll": is_reroll,
+            "outing_id": str(outing.id),
+            "restaurant_info": itinerary.reservation.build_analytics_properties() if itinerary.reservation else None,
+            "activity_info": itinerary.activity_plan.build_analytics_properties() if itinerary.activity_plan else None,
+            "survey_info": gql_survey.build_analytics_properties(),
+        },
+        ctx=analytics_ctx(ctx),
+    )
+
+    return outing
