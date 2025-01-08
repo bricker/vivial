@@ -27,8 +27,8 @@ from eave.stdlib.slack import get_authenticated_eave_system_slack_client
 import asyncio
 import click
 
-from eave.stdlib.config import SHARED_CONFIG
 
+_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID = os.getenv("SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID", "C086TDX5079") # notif-deployments
 
 @click.group()
 def cli() -> None:
@@ -61,26 +61,14 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
             lines.reverse()
 
             slack_response = await slack_client.chat_postMessage(
-                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
                 link_names=True,
-                text=f"Deployment to *{app}* has started. ({lines[-1]})",
                 unfurl_links=False,
                 unfurl_media=False,
-            )
-
-            await slack_client.reactions_add(
-                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
-                timestamp=slack_response["ts"],
-                name="clock5",
-            )
-
-            await slack_client.chat_postMessage(
-                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
-                thread_ts=slack_response["ts"],
-                link_names=True,
+                text=f"Deployment to *{app}* has started.\n\n{changelog}",
                 blocks=[
                     HeaderBlock(
-                        text="Changelog",
+                        text=f"Deployment to {app} has started.",
                     ),
                     RichTextBlock(
                         elements=[
@@ -91,7 +79,7 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
                                         elements=[
                                             RichTextElementParts.Text(
                                                 text=line,
-                                                style=RichTextElementParts.TextStyle(code=True),
+                                                # style=RichTextElementParts.TextStyle(),
                                             )
                                         ]
                                     )
@@ -101,7 +89,12 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
                         ],
                     ),
                 ],
-                text=changelog,
+            )
+
+            await slack_client.reactions_add(
+                channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
+                timestamp=slack_response["ts"],
+                name="clock5",
             )
 
             click.echo(slack_response["ts"])
@@ -110,20 +103,20 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
             assert msg_timestamp
 
             await slack_client.reactions_remove(
-                channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
                 timestamp=msg_timestamp,
                 name="clock5",
             )
 
             if status == DeploymentStatus.COMPLETE:
                 await slack_client.reactions_add(
-                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
                     timestamp=msg_timestamp,
                     name="white_check_mark",
                 )
 
                 await slack_client.chat_postMessage(
-                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
                     thread_ts=msg_timestamp,
                     link_names=True,
                     text="Deployment Complete!",
@@ -133,13 +126,13 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
 
             elif status == DeploymentStatus.FAILED:
                 await slack_client.reactions_add(
-                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
                     timestamp=msg_timestamp,
                     name="x",
                 )
 
                 await slack_client.chat_postMessage(
-                    channel=SHARED_CONFIG.eave_deployment_notifications_channel_id,
+                    channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,
                     thread_ts=msg_timestamp,
                     link_names=True,
                     text="Deployment Failed!",
