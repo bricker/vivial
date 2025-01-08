@@ -64,9 +64,8 @@ if SHARED_CONFIG.is_local:
             await connection.execute(sqlalchemy.text(f'CREATE DATABASE "{engine.url.database}"'))
             await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{engine.url.database}" SET timezone TO "UTC"'))
 
-        await postgres_engine.dispose()
-
         await install_extensions(postgres_engine)
+        await postgres_engine.dispose()
 
         async with engine.begin() as connection:
             await connection.run_sync(get_base_metadata().create_all)
