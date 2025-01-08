@@ -6,14 +6,17 @@ import {
 import { AppRoute, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
-import { useGetOutingPreferencesQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import {
+  useGetOutingPreferencesQuery,
+  useGetSearchRegionsQuery,
+  usePlanOutingMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
 
 import {
   OutingPreferencesSelections,
   chosePreferences,
   plannedOuting,
 } from "$eave-dashboard/js/store/slices/outingSlice";
-import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -28,18 +31,12 @@ import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
 import LoadingButton from "../../Buttons/LoadingButton";
 import ArrowRightIcon from "../../Icons/ArrowRightIcon";
+import LoadingView from "./Views/LoadingView";
 import { getInitialStartTime } from "./helpers";
 
-const PageContainer = styled("div")(({ theme }) => ({
+const PageContainer = styled("div")(() => ({
   height: "100%",
   padding: "24px 16px",
-  [theme.breakpoints.up(Breakpoint.Medium)]: {
-    backgroundImage: `url("${imageUrl("vivial-map-graphic.png")}")`,
-    backgroundPosition: "center bottom",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "contain",
-    marginBottom: 112,
-  },
 }));
 
 const PageContentContainer = styled("div")(() => ({
@@ -54,7 +51,6 @@ const CopyContainer = styled("div")(({ theme }) => ({
     padding: "16px 0 0",
     background: "transparent",
     maxWidth: 426,
-    marginRight: 60,
     boxShadow: "none",
   },
 }));
@@ -123,11 +119,12 @@ const Error = styled(Typography)(({ theme }) => ({
 
 const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
+  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const [searchParams, _] = useSearchParams();
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
   const budget = OutingBudget.Expensive;
   const headcount = 2;
-  const searchAreaIds: string[] = [];
+  const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
   const startTime = getInitialStartTime();
   const [errorMessage, setErrorMessage] = useState("");
   const [outingPreferences, setOutingPreferences] = useState<OutingPreferencesSelections | null>(null);
@@ -193,6 +190,16 @@ const DateSurveyPage = () => {
       return;
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (searchRegionsData?.searchRegions) {
+      setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
+    }
+  }, [searchRegionsData]);
+
+  if (searchRegionsAreLoading) {
+    return <LoadingView />;
+  }
 
   return (
     <PageContainer>
