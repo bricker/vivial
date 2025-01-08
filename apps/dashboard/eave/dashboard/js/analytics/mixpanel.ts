@@ -30,7 +30,6 @@ export function initMixpanelSessionRecording() {
           // mixpanel.register({ $device_id: segmentDeviceId, distinct_id : segmentDeviceId });
           // Simplified ID Merge
           mixpanel.register({ $device_id: segmentDeviceId, distinct_id: "$device:" + segmentDeviceId });
-          // -------------------------------------------
           const sessionReplayProperties = mixpanel.get_session_recording_properties();
           payload.obj.properties = {
             ...payload.obj.properties,
@@ -50,8 +49,5 @@ export function initMixpanelSessionRecording() {
 
       next(payload);
     })
-    // .then(() => {
-    //   mixpanel.start_session_recording();
-    // })
     .catch((e) => console.error(e));
 }
