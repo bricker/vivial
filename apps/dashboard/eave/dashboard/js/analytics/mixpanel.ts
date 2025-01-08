@@ -19,7 +19,7 @@ export function initMixpanelSessionRecording() {
 
   // Middleware to add Mixpanel's session recording properties to Segment events
   analytics
-    .addSourceMiddleware(({ payload, next, integrations }) => {
+    .addSourceMiddleware(({ payload, next }) => {
       switch (payload.obj.type) {
         case "track":
         case "page": {
