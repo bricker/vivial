@@ -5,10 +5,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { OutingBudget, PlanOutingInput } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath, type NavigationState } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { useGetSearchRegionsQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import {
+  useGetSearchRegionsQuery,
+  usePlanOutingAnonymousMutation,
+  usePlanOutingAuthenticatedMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { getMultiRegionLabel, getRegionImage } from "$eave-dashboard/js/util/region";
@@ -20,6 +24,7 @@ import Modal from "$eave-dashboard/js/components/Modal";
 import DateAreaSelections from "$eave-dashboard/js/components/Selections/DateAreaSelections";
 import DateSelections from "$eave-dashboard/js/components/Selections/DateSelections";
 import DateTimeSelections from "$eave-dashboard/js/components/Selections/DateTimeSelections";
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { getDateTimeLabelExtended } from "$eave-dashboard/js/util/date";
 import Typography from "@mui/material/Typography";
@@ -130,7 +135,11 @@ const ShareButton = styled(Button)(({ theme }) => ({
 }));
 
 const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
-  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+  const [planOutingAnon, { data: planOutingAnonData, isLoading: planOutingAnonLoading }] =
+    usePlanOutingAnonymousMutation();
+  const [planOutingAuth, { data: planOutingAuthData, isLoading: planOutingAuthLoading }] =
+    usePlanOutingAuthenticatedMutation();
+  const planOutingLoading = planOutingAnonLoading || planOutingAuthLoading;
   const { data: searchRegionsData } = useGetSearchRegionsQuery({}, { skip: viewOnly });
   const outing = useSelector((state: RootState) => state.outing.details);
 
@@ -146,21 +155,25 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleReplan = useCallback(async () => {
     const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
-    await planOuting({
-      input: {
-        startTime: startTime.toISOString(),
-        groupPreferences,
-        budget,
-        headcount,
-        searchAreaIds,
-        isReroll: true,
-      },
-    });
+    const input: PlanOutingInput = {
+      startTime: startTime.toISOString(),
+      groupPreferences,
+      budget,
+      headcount,
+      searchAreaIds,
+      isReroll: true,
+    };
+    if (isLoggedIn) {
+      await planOutingAuth({ input });
+    } else {
+      await planOutingAnon({ input });
+    }
   }, [userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSelectHeadcount = useCallback((value: number) => {
@@ -212,20 +225,54 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [outing]);
 
   useEffect(() => {
-    if (planOutingData) {
-      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
-        const updatedOuting = planOutingData.planOuting.outing;
-        setDetailsOpen(false);
-        dispatch(plannedOuting({ outing: updatedOuting }));
-        dispatch(chosePreferences({ user: userPreferences }));
+    let updatedOuting = undefined;
 
-        const navigationState: NavigationState = { scrollBehavior: "smooth" };
-        navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }), { state: navigationState });
-      } else {
-        setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
+    switch (planOutingAnonData?.planOuting?.__typename) {
+      case "PlanOutingSuccess": {
+        updatedOuting = planOutingAnonData.planOuting.outing;
+        break;
       }
+      case "PlanOutingFailure": {
+        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+        break;
+      }
+      default:
+        break;
     }
-  }, [planOutingData, userPreferences, partnerPreferences]);
+    switch (planOutingAuthData?.viewer?.__typename) {
+      case "AuthenticatedViewerMutations":
+        switch (planOutingAuthData.viewer.planOuting.__typename) {
+          case "PlanOutingSuccess": {
+            updatedOuting = planOutingAuthData.viewer.planOuting.outing;
+            break;
+          }
+          case "PlanOutingFailure": {
+            setErrorMessage(
+              "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
+            );
+            break;
+          }
+          default:
+            break;
+        }
+        break;
+      case "UnauthenticatedViewer":
+        dispatch(loggedOut());
+        window.location.assign(AppRoute.logout);
+        break;
+      default:
+        break;
+    }
+
+    if (updatedOuting) {
+      setDetailsOpen(false);
+      dispatch(plannedOuting({ outing: updatedOuting }));
+      dispatch(chosePreferences({ user: userPreferences }));
+
+      const navigationState: NavigationState = { scrollBehavior: "smooth" };
+      navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }), { state: navigationState });
+    }
+  }, [planOutingAnonData, planOutingAuthData, userPreferences, partnerPreferences]);
 
   const handleShareClick = useCallback(async () => {
     try {

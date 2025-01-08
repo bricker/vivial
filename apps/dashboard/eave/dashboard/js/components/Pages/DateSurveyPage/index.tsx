@@ -1,15 +1,12 @@
-import {
-  ActivityCategoryFieldsFragment,
-  OutingBudget,
-  RestaurantCategoryFieldsFragment,
-} from "$eave-dashboard/js/graphql/generated/graphql";
+import { ActivityCategoryFieldsFragment, OutingBudget, PlanOutingInput, RestaurantCategoryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import {
   useGetOutingPreferencesQuery,
   useGetSearchRegionsQuery,
-  usePlanOutingMutation,
+  usePlanOutingAnonymousMutation,
+  usePlanOutingAuthenticatedMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
 import {
@@ -27,6 +24,7 @@ import { keyframes, styled } from "@mui/material";
 
 import Typography from "@mui/material/Typography";
 
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
 import LoadingButton from "../../Buttons/LoadingButton";
@@ -121,7 +119,11 @@ const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const [searchParams, _] = useSearchParams();
-  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+  const [planOutingAnon, { data: planOutingAnonData, isLoading: planOutingAnonLoading }] =
+    usePlanOutingAnonymousMutation();
+  const [planOutingAuth, { data: planOutingAuthData, isLoading: planOutingAuthLoading }] =
+    usePlanOutingAuthenticatedMutation();
+  const planOutingLoading = planOutingAnonLoading || planOutingAuthLoading;
   const budget = OutingBudget.Expensive;
   const headcount = 2;
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
@@ -142,16 +144,70 @@ const DateSurveyPage = () => {
       rerolled();
     }
     const groupPreferences = getPreferenceInputs(outingPreferences, null);
-    await planOuting({
-      input: {
-        startTime: startTime.toISOString(),
-        groupPreferences,
-        budget,
-        headcount,
-        searchAreaIds,
-      },
-    });
-  }, [budget, headcount, searchAreaIds, startTime, rerolls]);
+    const input: PlanOutingInput = {
+      startTime: startTime.toISOString(),
+      groupPreferences,
+      budget,
+      headcount,
+      searchAreaIds,
+    };
+    if (isLoggedIn) {
+      await planOutingAuth({ input });
+    } else {
+      await planOutingAnon({ input });
+    }
+  }, [outingPreferences, budget, headcount, searchAreaIds, startTime, rerolls]);
+
+  useEffect(() => {
+    let outing = undefined;
+
+    switch (planOutingAnonData?.planOuting?.__typename) {
+      case "PlanOutingSuccess": {
+        outing = planOutingAnonData.planOuting.outing;
+        break;
+      }
+      case "PlanOutingFailure": {
+        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+        break;
+      }
+      default:
+        break;
+    }
+    switch (planOutingAuthData?.viewer?.__typename) {
+      case "AuthenticatedViewerMutations":
+        switch (planOutingAuthData.viewer.planOuting.__typename) {
+          case "PlanOutingSuccess": {
+            outing = planOutingAuthData.viewer.planOuting.outing;
+            break;
+          }
+          case "PlanOutingFailure": {
+            setErrorMessage(
+              "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
+            );
+            break;
+          }
+          default:
+            break;
+        }
+        break;
+      case "UnauthenticatedViewer":
+        dispatch(loggedOut());
+        window.location.assign(AppRoute.logout);
+        break;
+      default:
+        break;
+    }
+
+    if (outing) {
+      dispatch(plannedOuting({ outing }));
+      dispatch(
+        chosePreferences({
+          user: outingPreferences,
+        }),
+      );
+      navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
+    }
+  }, [planOutingAuthData, planOutingAnonData, outingPreferences]);
 
   useEffect(() => {
     const viewer = outingPreferencesData?.viewer;
@@ -167,21 +223,10 @@ const DateSurveyPage = () => {
   }, [outingPreferencesData]);
 
   useEffect(() => {
-    if (planOutingData) {
-      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
-        const outing = planOutingData.planOuting.outing;
-        dispatch(plannedOuting({ outing }));
-        dispatch(
-          chosePreferences({
-            user: outingPreferences,
-          }),
-        );
-        navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
-      } else {
-        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
-      }
+    if (searchRegionsData?.searchRegions) {
+      setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
     }
-  }, [planOutingData]);
+  }, [searchRegionsData]);
 
   useEffect(() => {
     const redirectPath = searchParams.get(SearchParam.redirect);
@@ -190,12 +235,6 @@ const DateSurveyPage = () => {
       return;
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    if (searchRegionsData?.searchRegions) {
-      setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
-    }
-  }, [searchRegionsData]);
 
   if (searchRegionsAreLoading) {
     return <LoadingView />;

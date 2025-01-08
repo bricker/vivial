@@ -1,4 +1,4 @@
-mutation PlanOuting($input: PlanOutingInput!) {
+mutation PlanOutingAnonymous($input: PlanOutingInput!) {
   planOuting(input: $input) {
     ... on PlanOutingSuccess {
       outing {

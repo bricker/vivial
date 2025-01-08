@@ -1,0 +1,25 @@
+mutation PlanOutingAuthenticated($input: PlanOutingInput!) {
+  viewer {
+    ... on AuthenticatedViewerMutations {
+      __typename
+
+      planOuting(input: $input) {
+        ... on PlanOutingSuccess {
+          outing {
+            ...ItineraryFields
+            ...TravelFields
+          }
+        }
+
+        ... on PlanOutingFailure {
+          failureReason
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
