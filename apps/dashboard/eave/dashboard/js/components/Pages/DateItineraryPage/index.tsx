@@ -1,5 +1,5 @@
 import { styled } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import { useGetOutingPreferencesQuery, useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,21 +34,17 @@ const DateItineraryPage = () => {
   const outingId = params["outingId"] || "";
   const outing = useSelector((state: RootState) => state.outing.details);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const [skipQueries, setSkipQueries] = useState(true);
+  // run network queries if there's no cached `outing`, or the
+  // cached `outing` is not the one requested by query params
+  const skipQueries = outing?.id === outingId;
   const { data: preferencesData, isLoading: preferencesLoading } = useGetOutingPreferencesQuery(
     {},
     { skip: !isLoggedIn || skipQueries },
   );
-  const { data: outingData, isLoading: outingDataLoading } = useGetOutingQuery(
+  const { data: outingData, isFetching: outingDataLoading } = useGetOutingQuery(
     { input: { id: outingId } },
     { skip: skipQueries },
   );
-
-  useEffect(() => {
-    if (outing === null) {
-      setSkipQueries(false);
-    }
-  }, [outing]);
 
   useEffect(() => {
     if (outingData?.outing) {

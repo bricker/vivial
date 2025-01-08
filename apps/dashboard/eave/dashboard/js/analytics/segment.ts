@@ -2,7 +2,7 @@ import { AnalyticsBrowser } from "@segment/analytics-next";
 import { myWindow } from "../types/window";
 import { delay } from "../util/delay";
 
-const analytics = AnalyticsBrowser.load(
+export const analytics = AnalyticsBrowser.load(
   { writeKey: myWindow.app.segmentWriteKey! },
   { disable: !myWindow.app.analyticsEnabled },
 );
@@ -63,6 +63,14 @@ export async function identify({ userId, extraProperties }: { userId: string; ex
   } else {
     console.debug("identify", userId, extraProperties);
   }
+}
+
+/**
+ * Clears user-identifying info saved in Segment.
+ * Useful for user logout.
+ */
+export function resetIdentity() {
+  analytics.reset().catch((e) => console.error(e));
 }
 
 /**
