@@ -2,7 +2,7 @@ export type GlobalWindow = Window &
   typeof globalThis & {
     app: {
       apiBase?: string;
-      appEnv?: string;
+      appEnv?: "test" | "development" | "staging" | "production";
       version?: string;
       assetBase?: string;
       segmentWriteKey?: string;

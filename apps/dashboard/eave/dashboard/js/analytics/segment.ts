@@ -2,7 +2,7 @@ import { AnalyticsBrowser } from "@segment/analytics-next";
 import { myWindow } from "../types/window";
 import { delay } from "../util/delay";
 
-const analytics = AnalyticsBrowser.load(
+export const analytics = AnalyticsBrowser.load(
   { writeKey: myWindow.app.segmentWriteKey! },
   { disable: !myWindow.app.analyticsEnabled },
 );
