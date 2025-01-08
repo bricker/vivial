@@ -66,6 +66,14 @@ export async function identify({ userId, extraProperties }: { userId: string; ex
 }
 
 /**
+ * Clears user-identifying info saved in Segment.
+ * Useful for user logout.
+ */
+export function resetIdentity() {
+  analytics.reset().catch((e) => console.error(e));
+}
+
+/**
  * Get Segment anonymousId.
  * Will wait up to 0.5 seconds to receive a value from Segment before rejecting.
  * Segment can have a null anonymousId value (temporarily) if none is found

@@ -26,5 +26,9 @@ class _AppConfig(ConfigBase):
     def datadog_client_token(self) -> str:
         return "pub3982d7524ad11a2faa827f44fe6d76f3"  # Not sensitive
 
+    @property
+    def mixpanel_project_token(self) -> str:
+        return "ce2e73eaf139b995f4bf53aaa617d4b5"  # Not sensitive
+
 
 DASHBOARD_APP_CONFIG = _AppConfig()
