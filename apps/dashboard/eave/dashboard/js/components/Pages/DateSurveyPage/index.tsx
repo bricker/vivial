@@ -18,7 +18,7 @@ import {
   plannedOuting,
   type OutingPreferencesSelections,
 } from "$eave-dashboard/js/store/slices/outingSlice";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -60,13 +60,20 @@ const PageContainer = styled("div")(({ theme }) => ({
 }));
 
 const PageContentContainer = styled("div")(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 16,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
-    display: "flex",
-    justifyContent: "center",
+    flexDirection: "row",
   },
 }));
 
 const CopyContainer = styled(Paper)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     padding: "16px 0 0",
     background: "transparent",
@@ -77,7 +84,7 @@ const CopyContainer = styled(Paper)(({ theme }) => ({
 
 const TitleCopy = styled(Typography)(({ theme }) => ({
   maxWidth: 250,
-  marginBottom: 4,
+  color: theme.palette.text.primary,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     maxWidth: "none",
     marginBottom: 16,
@@ -102,7 +109,7 @@ const CityCopy = styled(Typography)(({ theme }) => ({
 }));
 
 const DateSurveyContainer = styled(Paper)(({ theme }) => ({
-  marginTop: 16,
+  marginTop: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     border: `2px solid ${theme.palette.primary.main}`,
     background: theme.palette.background.paper,
@@ -115,7 +122,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const SubmitButton = styled(LoadingButton)(() => ({
-  marginTop: 16,
+  marginTop: 8,
 }));
 
 const Error = styled(Typography)(({ theme }) => ({
@@ -129,10 +136,7 @@ const TextButton = styled(Button)(({ theme }) => ({
   textDecorationLine: "underline",
   alignSelf: "flex-end",
   color: theme.palette.text.secondary,
-}));
-
-const SearchContainer = styled("div")(() => ({
-  marginTop: 16,
+  fontWeight: 500,
 }));
 
 const AddPrefsContainer = styled(Paper)(({ theme }) => ({
@@ -150,7 +154,6 @@ const FadeInOutContainer = styled("div")(() => ({
   position: "relative",
   width: "100%",
   overflow: "hidden",
-  pointerEvents: "none",
 }));
 
 const PrefsListContainer = styled("div")(() => ({
@@ -159,8 +162,9 @@ const PrefsListContainer = styled("div")(() => ({
   alignItems: "center",
   gap: 8,
   width: "100%",
-  overflowX: "hidden",
+  overflowX: "auto",
   padding: "4px 0px",
+  scrollBehavior: "smooth",
 }));
 
 const PrefPill = styled(Typography, { shouldForwardProp: (prop) => prop !== "bgColor" })<{ bgColor: string }>(
@@ -197,7 +201,7 @@ const Fader = ({ side, visible }: { side: FaderSide; visible: boolean }) => {
     position: "absolute",
     top: 0,
     bottom: 0,
-    width: 50,
+    width: 15,
     display: visible ? "block" : "none",
     transition: "opacity 0.3s ease, transform 0.3s ease",
   };
@@ -214,6 +218,36 @@ const Fader = ({ side, visible }: { side: FaderSide; visible: boolean }) => {
       break;
   }
   return <div style={style} />;
+};
+
+const FadingScrollContainer = ({ children }: { children: ReactNode }) => {
+  const scrollContainerRef = useRef(null);
+  const [leftFaderVisible, setLeftFaderVisible] = useState(false);
+  const [rightFaderVisible, setRightFaderVisible] = useState(true);
+
+  const handleScroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      if (scrollLeft === 0) {
+        setLeftFaderVisible(false);
+      } else if (scrollLeft + clientWidth === scrollWidth) {
+        setRightFaderVisible(false);
+      } else {
+        setLeftFaderVisible(true);
+        setRightFaderVisible(true);
+      }
+    }
+  }, [scrollContainerRef]);
+
+  return (
+    <FadeInOutContainer>
+      <PrefsListContainer ref={scrollContainerRef} onScroll={handleScroll}>
+        <Fader side={FaderSide.Left} visible={leftFaderVisible} />
+        {children}
+        <Fader side={FaderSide.Right} visible={rightFaderVisible} />
+      </PrefsListContainer>
+    </FadeInOutContainer>
+  );
 };
 
 const DateSurveyPage = () => {
