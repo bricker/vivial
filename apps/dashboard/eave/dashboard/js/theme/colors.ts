@@ -31,3 +31,21 @@ export const colors = {
     900: "#332C2D",
   },
 };
+
+type Tuple<T, N extends number> = N extends N ? (number extends N ? T[] : _TupleOf<T, N, []>) : never;
+type _TupleOf<T, N extends number, R extends unknown[]> = R["length"] extends N ? R : _TupleOf<T, N, [T, ...R]>;
+
+/**
+ * Break a hex color string into its numeric RGB components.
+ * @param hex hex color string with leading # and 6 characters long
+ * @return list of length 3, representing the R, G, and B color components of `hex`, in that order.
+ */
+export function hexToRGB(hex: string): Tuple<number, 3> {
+  if (hex.length !== 7) {
+    // fallback to return something valid
+    return [0, 0, 0];
+  }
+  return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)].map(
+    (component) => (isNaN(component) ? 0 : component),
+  ) as Tuple<number, 3>;
+}

@@ -53,8 +53,7 @@ const SignUpPage = () => {
   let redirectRoute: string = AppRoute.root;
 
   if (variant === SignUpPageVariant.MultiReroll) {
-    title = "🎯 Not quite right?";
-    subtitle = "Create a free Vivial account to unlock personalized recommendations.";
+    title = "Get personalized recommendations";
     allowClose = true;
     redirectRoute = AppRoute.rootPreferencesOpen;
   }

@@ -18,7 +18,7 @@ export enum Breakpoint {
 }
 
 export function isDesktop(breakpoint: Breakpoint) {
-  return breakpoint === Breakpoint.Medium || breakpoint === Breakpoint.Large || breakpoint === Breakpoint.ExtraLarge;
+  return [Breakpoint.Medium, Breakpoint.Large, Breakpoint.ExtraLarge].includes(breakpoint);
 }
 
 /**

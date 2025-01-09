@@ -18,7 +18,7 @@ import {
   plannedOuting,
   type OutingPreferencesSelections,
 } from "$eave-dashboard/js/store/slices/outingSlice";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -36,12 +36,12 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
-import { colors } from "$eave-dashboard/js/theme/colors";
+import { colors, hexToRGB } from "$eave-dashboard/js/theme/colors";
+import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { useMobile } from "$eave-dashboard/js/util/mobile";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
 import LoadingButton from "../../Buttons/LoadingButton";
-import SecondaryButton from "../../Buttons/SecondaryButton";
 import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
@@ -57,13 +57,20 @@ const PageContainer = styled("div")(({ theme }) => ({
 }));
 
 const PageContentContainer = styled("div")(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 16,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
-    display: "flex",
-    justifyContent: "center",
+    flexDirection: "row",
   },
 }));
 
 const CopyContainer = styled(Paper)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     padding: "16px 0 0",
     background: "transparent",
@@ -74,10 +81,10 @@ const CopyContainer = styled(Paper)(({ theme }) => ({
 
 const TitleCopy = styled(Typography)(({ theme }) => ({
   maxWidth: 250,
-  marginBottom: 4,
+  color: theme.palette.text.primary,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     maxWidth: "none",
-    marginBottom: 24,
+    marginBottom: 16,
   },
 }));
 
@@ -85,7 +92,6 @@ const CityCopy = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
   fontSize: rem(14),
   lineHeight: rem(18),
-  marginBottom: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     border: `1px solid ${theme.palette.primary.main}`,
     color: theme.palette.text.primary,
@@ -94,13 +100,13 @@ const CityCopy = styled(Typography)(({ theme }) => ({
     fontSize: rem(18.586),
     lineHeight: rem(23),
     padding: "10px 20px",
-    marginBottom: 24,
+    marginBottom: 16,
     fontWeight: 700,
   },
 }));
 
 const DateSurveyContainer = styled(Paper)(({ theme }) => ({
-  marginTop: 16,
+  marginTop: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     border: `2px solid ${theme.palette.primary.main}`,
     background: theme.palette.background.paper,
@@ -113,14 +119,133 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const SubmitButton = styled(LoadingButton)(() => ({
-  marginTop: 16,
+  marginTop: 8,
 }));
 
 const Error = styled(Typography)(({ theme }) => ({
   color: theme.palette.error.main,
-  marginTop: 16,
+  marginTop: 8,
   textAlign: "left",
 }));
+
+const TextButton = styled(Button)(({ theme }) => ({
+  fontFamily: fontFamilies.inter,
+  textDecorationLine: "underline",
+  alignSelf: "flex-end",
+  color: theme.palette.text.secondary,
+  fontWeight: 500,
+}));
+
+const AddPrefsContainer = styled(Paper)(({ theme }) => ({
+  width: "100%",
+  [theme.breakpoints.up(Breakpoint.Medium)]: {
+    maxWidth: 426,
+  },
+}));
+
+const AddPrefsTitle = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
+}));
+
+const FadeInOutContainer = styled("div")(() => ({
+  position: "relative",
+  width: "100%",
+  overflow: "hidden",
+}));
+
+const PrefsListContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+  width: "100%",
+  overflowX: "auto",
+  padding: "4px 0px",
+  scrollBehavior: "smooth",
+}));
+
+const PrefPill = styled(Typography, { shouldForwardProp: (prop) => prop !== "bgColor" })<{ bgColor: string }>(
+  ({ bgColor, theme }) => ({
+    backgroundColor: bgColor,
+    color: theme.palette.common.black,
+    padding: "8px 16px",
+    whiteSpace: "nowrap",
+    fontWeight: 600,
+  }),
+);
+
+const AddPrefsButton = styled(Button)(({ theme }) => ({
+  marginTop: 16,
+  backgroundColor: theme.palette.background.default,
+  borderStyle: "solid",
+  borderColor: theme.palette.primary.main,
+  borderWidth: 1,
+  borderRadius: 100,
+  color: theme.palette.primary.main,
+  paddingTop: 16,
+  paddingBottom: 16,
+}));
+
+enum FaderSide {
+  Left,
+  Right,
+}
+
+const Fader = ({ side, visible }: { side: FaderSide; visible: boolean }) => {
+  const [r, g, b] = hexToRGB(colors.almostBlackBG);
+  const style: { [key: string]: any } = {
+    // zIndex: 1,
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 15,
+    display: visible ? "block" : "none",
+    transition: "opacity 0.3s ease, transform 0.3s ease",
+  };
+  switch (side) {
+    case FaderSide.Left:
+      style["left"] = 0;
+      style["background"] = `linear-gradient(to right, rgba(${r}, ${g}, ${b}, 1), rgba(${r}, ${g}, ${b}, 0))`;
+      break;
+    case FaderSide.Right:
+      style["right"] = 0;
+      style["background"] = `linear-gradient(to left, rgba(${r}, ${g}, ${b}, 1), rgba(${r}, ${g}, ${b}, 0))`;
+      break;
+    default:
+      break;
+  }
+  return <div style={style} />;
+};
+
+const FadingScrollContainer = ({ children }: { children: ReactNode }) => {
+  const scrollContainerRef = useRef(null);
+  const [leftFaderVisible, setLeftFaderVisible] = useState(false);
+  const [rightFaderVisible, setRightFaderVisible] = useState(true);
+
+  const handleScroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      if (scrollLeft === 0) {
+        setLeftFaderVisible(false);
+      } else if (scrollLeft + clientWidth === scrollWidth) {
+        setRightFaderVisible(false);
+      } else {
+        setLeftFaderVisible(true);
+        setRightFaderVisible(true);
+      }
+    }
+  }, [scrollContainerRef]);
+
+  return (
+    <FadeInOutContainer>
+      <PrefsListContainer ref={scrollContainerRef} onScroll={handleScroll}>
+        <Fader side={FaderSide.Left} visible={leftFaderVisible} />
+        {children}
+        <Fader side={FaderSide.Right} visible={rightFaderVisible} />
+      </PrefsListContainer>
+    </FadeInOutContainer>
+  );
+};
 
 const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
@@ -363,6 +488,7 @@ const DateSurveyPage = () => {
       colors.lightPinkAccent,
       colors.mediumPurpleAccent,
     ];
+
     return (
       <PageContainer>
         <PageContentContainer>
@@ -376,22 +502,24 @@ const DateSurveyPage = () => {
               🎲 Show me ideas
             </SubmitButton>
             {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-            <Button>+ Advanced Search</Button>
+            <TextButton>+ Advanced Search</TextButton>
           </CopyContainer>
-          <CopyContainer>
-            <Typography variant="h2">Want something more personalized?</Typography>
-            <div style={{ display: "flex", gap: 8 }}>
+          <AddPrefsContainer>
+            <AddPrefsTitle variant="h3">Want something more personalized?</AddPrefsTitle>
+            <FadingScrollContainer>
               {categoryNames.map((categoryName, index) => (
-                <div key={categoryName} style={{ backgroundColor: categoryColors[index % categoryColors.length] }}>
+                <PrefPill key={categoryName} bgColor={categoryColors[index % categoryColors.length]!}>
                   {categoryName}
-                </div>
+                </PrefPill>
               ))}
-            </div>
+            </FadingScrollContainer>
             <Typography variant="subtitle1">
               Fill out this quick survey and we’ll customize your recommendations.{" "}
             </Typography>
-            <SecondaryButton>Add my preferences</SecondaryButton>
-          </CopyContainer>
+            <AddPrefsButton onClick={() => navigate(AppRoute.signupMultiReroll)} fullWidth>
+              Add my preferences
+            </AddPrefsButton>
+          </AddPrefsContainer>
         </PageContentContainer>
       </PageContainer>
     );
