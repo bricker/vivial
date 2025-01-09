@@ -48,7 +48,7 @@ const SignUpPage = () => {
   const variant = searchParams.get(SearchParam.variant) as SignUpPageVariant;
 
   let title = "Create a free account to book";
-  let subtitle = "";
+  const subtitle = "";
   let allowClose = false;
   let redirectRoute: string = AppRoute.root;
 

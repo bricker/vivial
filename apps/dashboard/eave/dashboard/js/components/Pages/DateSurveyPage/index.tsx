@@ -230,7 +230,7 @@ const FadingScrollContainer = ({ children }: { children: ReactNode }) => {
       const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
       if (scrollLeft === 0) {
         setLeftFaderVisible(false);
-      } else if (scrollLeft + clientWidth === scrollWidth) {
+      } else if ((scrollLeft as number) + (clientWidth as number) === (scrollWidth as number)) {
         setRightFaderVisible(false);
       } else {
         setLeftFaderVisible(true);
