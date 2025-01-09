@@ -133,7 +133,10 @@ const TextButton = styled(Button)(({ theme }) => ({
   textDecorationLine: "underline",
   alignSelf: "flex-end",
   color: theme.palette.text.secondary,
-  fontWeight: 500,
+}));
+
+const SearchContainer = styled("div")(() => ({
+  marginTop: 16,
 }));
 
 const AddPrefsContainer = styled(Paper)(({ theme }) => ({
@@ -264,6 +267,7 @@ const DateSurveyPage = () => {
   const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -326,13 +330,17 @@ const DateSurveyPage = () => {
     setDatePickerOpen(false);
   }, []);
 
-  const toggleDatePickerOpen = useCallback(() => {
-    setDatePickerOpen(!datePickerOpen);
-  }, [datePickerOpen]);
+  const toggleDatePickerOpen = () => {
+    setDatePickerOpen((prev) => !prev);
+  };
 
-  const toggleAreasOpen = useCallback(() => {
-    setAreasOpen(!areasOpen);
-  }, [areasOpen]);
+  const toggleAreasOpen = () => {
+    setAreasOpen((prev) => !prev);
+  };
+
+  const handleAdvanceSearchClick = () => {
+    setSearchExpanded((prev) => !prev);
+  };
 
   useEffect(() => {
     if (planOutingData) {
@@ -502,7 +510,27 @@ const DateSurveyPage = () => {
               🎲 Show me ideas
             </SubmitButton>
             {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-            <TextButton>+ Advanced Search</TextButton>
+            <TextButton onClick={handleAdvanceSearchClick}>
+              <Typography variant="body2">{searchExpanded ? "-" : "+"} Advanced Search</Typography>
+            </TextButton>
+            {searchExpanded && (
+              <SearchContainer>
+                <DateSelections
+                  cta={!isMobile ? "🎲 Pick my date" : undefined}
+                  headcount={headcount}
+                  budget={budget}
+                  startTime={startTime}
+                  searchAreaIds={searchAreaIds}
+                  onSubmit={!isMobile ? handleSubmit : undefined}
+                  onSelectHeadcount={handleSelectHeadcount}
+                  onSelectBudget={handleSelectBudget}
+                  onSelectStartTime={toggleDatePickerOpen}
+                  onSelectSearchArea={toggleAreasOpen}
+                  errorMessage={!isMobile ? errorMessage : undefined}
+                  loading={!isMobile ? planOutingLoading : undefined}
+                />
+              </SearchContainer>
+            )}
           </CopyContainer>
           <AddPrefsContainer>
             <AddPrefsTitle variant="h3">Want something more personalized?</AddPrefsTitle>
@@ -521,6 +549,16 @@ const DateSurveyPage = () => {
             </AddPrefsButton>
           </AddPrefsContainer>
         </PageContentContainer>
+        <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+          <DateAreaSelections
+            cta="Save"
+            onSubmit={handleSelectSearchAreas}
+            regions={searchRegionsData?.searchRegions}
+          />
+        </Modal>
+        <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+          <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
+        </Modal>
       </PageContainer>
     );
   }
