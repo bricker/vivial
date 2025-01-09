@@ -1,4 +1,4 @@
-import { getVisitorId, identify } from "$eave-dashboard/js/analytics/segment";
+import { getVisitorId, identify, resetIdentity } from "$eave-dashboard/js/analytics/segment";
 import type { AccountFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
 
@@ -33,6 +33,7 @@ export const authSlice = createSlice({
     loggedOut: (state) => {
       state.isLoggedIn = false;
       state.account = null;
+      resetIdentity();
     },
     updateEmail: (state, action: { payload: { email: string } }) => {
       if (state.account) {

@@ -6,6 +6,7 @@ import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import { Provider as StoreProvider, useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { initMixpanelSessionRecording } from "./analytics/mixpanel";
 import { pageView } from "./analytics/segment";
 import GlobalLayout from "./components/Global/GlobalLayout";
 import AccountPage from "./components/Pages/AccountPage";
@@ -32,6 +33,8 @@ import store, { RootState } from "./store";
 import { theme } from "./theme";
 
 const fireAnalyticsPageView = (_path: string) => pageView({});
+
+initMixpanelSessionRecording();
 
 const App = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
