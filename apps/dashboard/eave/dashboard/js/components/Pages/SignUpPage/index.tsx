@@ -48,7 +48,6 @@ const SignUpPage = () => {
   const variant = searchParams.get(SearchParam.variant) as SignUpPageVariant;
 
   let title = "Create a free account to book";
-  const subtitle = "";
   let allowClose = false;
   let redirectRoute: string = AppRoute.root;
 
@@ -105,7 +104,7 @@ const SignUpPage = () => {
       )}
       <AuthForm
         title={title}
-        subtitle={subtitle}
+        subtitle={""}
         cta="Create Free Account"
         onSubmit={handleSubmit}
         isLoading={isLoading}

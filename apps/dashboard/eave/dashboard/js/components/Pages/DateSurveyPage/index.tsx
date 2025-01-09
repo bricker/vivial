@@ -488,7 +488,7 @@ const DateSurveyPage = () => {
       "Hobbies",
       "Arts & Theater",
       "Film, Media, & Entertainment",
-      "FItness & Outdoors",
+      "Fitness & Outdoors",
     ];
     const categoryColors = [
       colors.lightPurpleAccent,
