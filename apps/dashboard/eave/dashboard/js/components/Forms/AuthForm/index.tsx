@@ -183,7 +183,7 @@ const AuthForm = ({
     <FormContainer onSubmit={handleSubmit}>
       <FormContent>
         <TitleContainer>
-          <Title variant="h2">{title}</Title>
+          <Title variant="h3">{title}</Title>
           {subtitle && <Subtitle variant="subtitle2">{subtitle}</Subtitle>}
         </TitleContainer>
         <EmailInput placeholder="Email" onChange={handleEmailChange} autoComplete="email" />
