@@ -516,18 +516,14 @@ const DateSurveyPage = () => {
             {searchExpanded && (
               <SearchContainer>
                 <DateSelections
-                  cta={!isMobile ? "🎲 Pick my date" : undefined}
                   headcount={headcount}
                   budget={budget}
                   startTime={startTime}
                   searchAreaIds={searchAreaIds}
-                  onSubmit={!isMobile ? handleSubmit : undefined}
                   onSelectHeadcount={handleSelectHeadcount}
                   onSelectBudget={handleSelectBudget}
                   onSelectStartTime={toggleDatePickerOpen}
                   onSelectSearchArea={toggleAreasOpen}
-                  errorMessage={!isMobile ? errorMessage : undefined}
-                  loading={!isMobile ? planOutingLoading : undefined}
                 />
               </SearchContainer>
             )}
