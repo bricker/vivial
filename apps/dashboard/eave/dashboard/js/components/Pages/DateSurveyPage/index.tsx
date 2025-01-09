@@ -18,7 +18,7 @@ import {
   plannedOuting,
   type OutingPreferencesSelections,
 } from "$eave-dashboard/js/store/slices/outingSlice";
-import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -154,6 +154,7 @@ const FadeInOutContainer = styled("div")(() => ({
   position: "relative",
   width: "100%",
   overflow: "hidden",
+  pointerEvents: "none",
 }));
 
 const PrefsListContainer = styled("div")(() => ({
@@ -162,9 +163,8 @@ const PrefsListContainer = styled("div")(() => ({
   alignItems: "center",
   gap: 8,
   width: "100%",
-  overflowX: "auto",
+  overflowX: "hidden",
   padding: "4px 0px",
-  scrollBehavior: "smooth",
 }));
 
 const PrefPill = styled(Typography, { shouldForwardProp: (prop) => prop !== "bgColor" })<{ bgColor: string }>(
@@ -201,7 +201,7 @@ const Fader = ({ side, visible }: { side: FaderSide; visible: boolean }) => {
     position: "absolute",
     top: 0,
     bottom: 0,
-    width: 15,
+    width: 50,
     display: visible ? "block" : "none",
     transition: "opacity 0.3s ease, transform 0.3s ease",
   };
@@ -218,36 +218,6 @@ const Fader = ({ side, visible }: { side: FaderSide; visible: boolean }) => {
       break;
   }
   return <div style={style} />;
-};
-
-const FadingScrollContainer = ({ children }: { children: ReactNode }) => {
-  const scrollContainerRef = useRef(null);
-  const [leftFaderVisible, setLeftFaderVisible] = useState(false);
-  const [rightFaderVisible, setRightFaderVisible] = useState(true);
-
-  const handleScroll = useCallback(() => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-      if (scrollLeft === 0) {
-        setLeftFaderVisible(false);
-      } else if ((scrollLeft as number) + (clientWidth as number) === (scrollWidth as number)) {
-        setRightFaderVisible(false);
-      } else {
-        setLeftFaderVisible(true);
-        setRightFaderVisible(true);
-      }
-    }
-  }, [scrollContainerRef]);
-
-  return (
-    <FadeInOutContainer>
-      <PrefsListContainer ref={scrollContainerRef} onScroll={handleScroll}>
-        <Fader side={FaderSide.Left} visible={leftFaderVisible} />
-        {children}
-        <Fader side={FaderSide.Right} visible={rightFaderVisible} />
-      </PrefsListContainer>
-    </FadeInOutContainer>
-  );
 };
 
 const DateSurveyPage = () => {
@@ -530,13 +500,16 @@ const DateSurveyPage = () => {
           </CopyContainer>
           <AddPrefsContainer>
             <AddPrefsTitle variant="h3">Want something more personalized?</AddPrefsTitle>
-            <FadingScrollContainer>
-              {categoryNames.map((categoryName, index) => (
-                <PrefPill key={categoryName} bgColor={categoryColors[index % categoryColors.length]!}>
-                  {categoryName}
-                </PrefPill>
-              ))}
-            </FadingScrollContainer>
+            <FadeInOutContainer>
+              <PrefsListContainer>
+                {categoryNames.map((categoryName, index) => (
+                  <PrefPill key={categoryName} bgColor={categoryColors[index % categoryColors.length]!}>
+                    {categoryName}
+                  </PrefPill>
+                ))}
+                <Fader side={FaderSide.Right} visible={true} />
+              </PrefsListContainer>
+            </FadeInOutContainer>
             <Typography variant="subtitle1">
               Fill out this quick survey and we’ll customize your recommendations.{" "}
             </Typography>
