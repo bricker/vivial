@@ -24,7 +24,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
+import { Button, styled } from "@mui/material";
 
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
@@ -36,20 +36,17 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
-import { imageUrl } from "$eave-dashboard/js/util/asset";
+import { colors } from "$eave-dashboard/js/theme/colors";
 import { useMobile } from "$eave-dashboard/js/util/mobile";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
 import LoadingButton from "../../Buttons/LoadingButton";
+import SecondaryButton from "../../Buttons/SecondaryButton";
 import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
   [theme.breakpoints.up(Breakpoint.Medium)]: {
-    backgroundImage: `url("${imageUrl("vivial-map-graphic.png")}")`,
-    backgroundPosition: "center bottom",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "contain",
     padding: "112px 104px",
     marginBottom: 112,
     minHeight: 675,
@@ -287,68 +284,118 @@ const DateSurveyPage = () => {
         />
       );
     }
-  }
-
-  return (
-    <PageContainer>
-      <PageContentContainer>
-        <CopyContainer>
-          <TitleCopy variant="h1">Your Free Date Planner</TitleCopy>
-          <CityCopy>🌴 Los Angeles, California</CityCopy>
-          <Typography variant="subtitle1">
-            We handle all the details, and you only pay for experiences you want to book.
-          </Typography>
-          {isLoggedIn && (
-            <>
-              <EditPreferencesOption
-                label="Your preferences"
-                editable={!outingPreferences}
-                onClickEdit={() => setOutingPreferencesOpen(true)}
-              />
-              {headcount === 2 && (
+    return (
+      <PageContainer>
+        <PageContentContainer>
+          <CopyContainer>
+            <TitleCopy variant="h1">Your Free Date Planner</TitleCopy>
+            <CityCopy>🌴 Los Angeles, California</CityCopy>
+            <Typography variant="subtitle1">
+              We handle all the details, and you only pay for experiences you want to book.
+            </Typography>
+            {isLoggedIn && (
+              <>
                 <EditPreferencesOption
-                  label="Partner preferences (optional)"
-                  editable={!partnerPreferences}
-                  onClickEdit={() => setPartnerPreferencesOpen(true)}
+                  label="Your preferences"
+                  editable={!outingPreferences}
+                  onClickEdit={() => setOutingPreferencesOpen(true)}
                 />
-              )}
-            </>
-          )}
+                {headcount === 2 && (
+                  <EditPreferencesOption
+                    label="Partner preferences (optional)"
+                    editable={!partnerPreferences}
+                    onClickEdit={() => setPartnerPreferencesOpen(true)}
+                  />
+                )}
+              </>
+            )}
 
-          {isMobile && (
-            <>
-              <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
-                🎲 Pick my date
-              </SubmitButton>
-              {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-            </>
-          )}
-        </CopyContainer>
-        <DateSurveyContainer>
-          <DateSelections
-            cta={!isMobile ? "🎲 Pick my date" : undefined}
-            headcount={headcount}
-            budget={budget}
-            startTime={startTime}
-            searchAreaIds={searchAreaIds}
-            onSubmit={!isMobile ? handleSubmit : undefined}
-            onSelectHeadcount={handleSelectHeadcount}
-            onSelectBudget={handleSelectBudget}
-            onSelectStartTime={toggleDatePickerOpen}
-            onSelectSearchArea={toggleAreasOpen}
-            errorMessage={!isMobile ? errorMessage : undefined}
-            loading={!isMobile ? planOutingLoading : undefined}
+            {isMobile && (
+              <>
+                <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
+                  🎲 Pick my date
+                </SubmitButton>
+                {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+              </>
+            )}
+          </CopyContainer>
+          <DateSurveyContainer>
+            <DateSelections
+              cta={!isMobile ? "🎲 Pick my date" : undefined}
+              headcount={headcount}
+              budget={budget}
+              startTime={startTime}
+              searchAreaIds={searchAreaIds}
+              onSubmit={!isMobile ? handleSubmit : undefined}
+              onSelectHeadcount={handleSelectHeadcount}
+              onSelectBudget={handleSelectBudget}
+              onSelectStartTime={toggleDatePickerOpen}
+              onSelectSearchArea={toggleAreasOpen}
+              errorMessage={!isMobile ? errorMessage : undefined}
+              loading={!isMobile ? planOutingLoading : undefined}
+            />
+          </DateSurveyContainer>
+        </PageContentContainer>
+        <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+          <DateAreaSelections
+            cta="Save"
+            onSubmit={handleSelectSearchAreas}
+            regions={searchRegionsData?.searchRegions}
           />
-        </DateSurveyContainer>
-      </PageContentContainer>
-      <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-        <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegionsData?.searchRegions} />
-      </Modal>
-      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-        <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
-      </Modal>
-    </PageContainer>
-  );
+        </Modal>
+        <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+          <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
+        </Modal>
+      </PageContainer>
+    );
+  } else {
+    const categoryNames = [
+      "Food Types",
+      "Music",
+      "Hobbies",
+      "Arts & Theater",
+      "Film, Media, & Entertainment",
+      "FItness & Outdoors",
+    ];
+    const categoryColors = [
+      colors.lightPurpleAccent,
+      colors.lightOrangeAccent,
+      colors.lightPinkAccent,
+      colors.mediumPurpleAccent,
+    ];
+    return (
+      <PageContainer>
+        <PageContentContainer>
+          <CopyContainer>
+            <TitleCopy variant="h1">Date Plans Made Easy</TitleCopy>
+            <CityCopy>🌴 Los Angeles, California</CityCopy>
+            <Typography variant="subtitle1">
+              Effortless date planning: Click below to get free restaurant and activity suggestions.
+            </Typography>
+            <SubmitButton onClick={handleSubmit} loading={planOutingLoading} fullWidth>
+              🎲 Show me ideas
+            </SubmitButton>
+            {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+            <Button>+ Advanced Search</Button>
+          </CopyContainer>
+          <CopyContainer>
+            <Typography variant="h2">Want something more personalized?</Typography>
+            <div style={{ display: "flex", gap: 8 }}>
+              {categoryNames.map((categoryName, index) => (
+                <div key={categoryName} style={{ backgroundColor: categoryColors[index % categoryColors.length] }}>
+                  {categoryName}
+                </div>
+              ))}
+            </div>
+            <Typography variant="subtitle1">
+              Fill out this quick survey and we’ll customize your recommendations.{" "}
+            </Typography>
+            <SecondaryButton>Add my preferences</SecondaryButton>
+          </CopyContainer>
+        </PageContentContainer>
+      </PageContainer>
+    );
+  }
 };
 
 export default DateSurveyPage;
