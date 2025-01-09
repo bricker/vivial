@@ -26,5 +26,15 @@ class _AppConfig(ConfigBase):
     def datadog_client_token(self) -> str:
         return "pub3982d7524ad11a2faa827f44fe6d76f3"  # Not sensitive
 
+    @property
+    def mixpanel_project_token(self) -> str:
+        match SHARED_CONFIG.eave_env:
+            case EaveEnvironment.staging:
+                return "e1cd3ea4a66d55dd61513161437a87b4"  # Not sensitive
+            case EaveEnvironment.production:
+                return "ce2e73eaf139b995f4bf53aaa617d4b5"  # Not sensitive
+            case _:
+                return "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
 
 DASHBOARD_APP_CONFIG = _AppConfig()
