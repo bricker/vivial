@@ -48,13 +48,11 @@ const SignUpPage = () => {
   const variant = searchParams.get(SearchParam.variant) as SignUpPageVariant;
 
   let title = "Create a free account to book";
-  let subtitle = "";
   let allowClose = false;
   let redirectRoute: string = AppRoute.root;
 
   if (variant === SignUpPageVariant.MultiReroll) {
-    title = "🎯 Not quite right?";
-    subtitle = "Create a free Vivial account to unlock personalized recommendations.";
+    title = "Get personalized recommendations";
     allowClose = true;
     redirectRoute = AppRoute.rootPreferencesOpen;
   }
@@ -106,7 +104,7 @@ const SignUpPage = () => {
       )}
       <AuthForm
         title={title}
-        subtitle={subtitle}
+        subtitle={""}
         cta="Create Free Account"
         onSubmit={handleSubmit}
         isLoading={isLoading}

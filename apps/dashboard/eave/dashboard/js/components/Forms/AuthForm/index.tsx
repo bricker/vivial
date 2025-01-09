@@ -27,6 +27,11 @@ const TitleContainer = styled("div")(() => ({
   marginBottom: 16,
 }));
 
+const Title = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  wordWrap: "break-word",
+}));
+
 const Subtitle = styled(Typography)(() => ({
   marginTop: 8,
 }));
@@ -178,7 +183,7 @@ const AuthForm = ({
     <FormContainer onSubmit={handleSubmit}>
       <FormContent>
         <TitleContainer>
-          <Typography variant="h2">{title}</Typography>
+          <Title variant="h3">{title}</Title>
           {subtitle && <Subtitle variant="subtitle2">{subtitle}</Subtitle>}
         </TitleContainer>
         <EmailInput placeholder="Email" onChange={handleEmailChange} autoComplete="email" />
