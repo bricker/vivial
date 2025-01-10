@@ -7,7 +7,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
 import { useLoginMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
-import { AppRoute, SearchParam } from "$eave-dashboard/js/routes";
+import { AppRoute, ItineraryPageVariant, SearchParam, SignUpPageVariant, routePath } from "$eave-dashboard/js/routes";
 import AuthForm from "../../Forms/AuthForm";
 import Link from "../../Links/Link";
 
@@ -32,6 +32,15 @@ const LogInPage = () => {
   const [searchParams] = useSearchParams();
 
   let redirectRoute: string = AppRoute.root;
+
+  const outingId = searchParams.get(SearchParam.outingId);
+  if (searchParams.get(SearchParam.variant) === SignUpPageVariant.MultiReroll && outingId) {
+    redirectRoute = routePath({
+      route: AppRoute.itinerary,
+      pathParams: { outingId },
+      searchParams: { [SearchParam.variant]: ItineraryPageVariant.AutoRoll },
+    });
+  }
 
   const redirectQueryParam = searchParams.get(SearchParam.redirect);
   if (redirectQueryParam) {
