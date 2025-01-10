@@ -72,7 +72,10 @@ const PreferencesBanner = () => {
 
   const handleBannerClick = () => {
     navigate(
-      routePath({ route: AppRoute.signup, searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll } }),
+      routePath({
+        route: AppRoute.signup,
+        searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll },
+      }),
     );
   };
 
