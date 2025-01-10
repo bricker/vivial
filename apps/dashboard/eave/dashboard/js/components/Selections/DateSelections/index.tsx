@@ -1,5 +1,5 @@
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, SearchParam, SignUpPageVariant, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
@@ -103,7 +103,12 @@ const DateSelections = ({
         onSubmit();
       } else {
         if (rerolls >= MAX_REROLLS) {
-          navigate(AppRoute.signupMultiReroll);
+          navigate(
+            routePath({
+              route: AppRoute.signup,
+              searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll },
+            }),
+          );
         } else {
           rerolled();
           onSubmit();

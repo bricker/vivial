@@ -3,7 +3,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, SearchParam, SignUpPageVariant, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -23,25 +23,29 @@ const CustomButton = styled(Button)(({ theme }) => ({
 interface RerollButtonProps extends ButtonProps {
   onReroll: () => void;
   loading?: boolean;
+  outingId?: string;
 }
 
-const RerollButton = ({ onReroll, loading, ...props }: RerollButtonProps) => {
+const RerollButton = ({ onReroll, loading, outingId, ...props }: RerollButtonProps) => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const [rerolls, rerolled] = useReroll();
   const navigate = useNavigate();
   const buttonContent = loading ? <CircularProgress color="inherit" size={20} /> : "🎲 Reroll";
 
   const handleReroll = () => {
-    if (isLoggedIn) {
-      onReroll();
-    } else {
+    if (!isLoggedIn) {
       if (rerolls >= MAX_REROLLS) {
-        navigate(AppRoute.signupMultiReroll);
+        const searchParams: { [key: string]: string } = { [SearchParam.variant]: SignUpPageVariant.MultiReroll };
+        if (outingId) {
+          searchParams[SearchParam.outingId] = outingId;
+        }
+        navigate(routePath({ route: AppRoute.signup, searchParams }));
+        return;
       } else {
         rerolled();
-        onReroll();
       }
     }
+    onReroll();
   };
 
   return (

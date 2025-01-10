@@ -32,7 +32,7 @@ const ItineraryVariant = () => {
 
   const handleBook = useCallback(() => {
     if (outing?.id) {
-      const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
+      const reservePath = routePath({ route: AppRoute.checkoutReserve, pathParams: { outingId: outing.id } });
       navigate(reservePath);
     }
   }, [outing]);
