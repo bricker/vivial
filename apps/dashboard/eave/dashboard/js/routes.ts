@@ -16,6 +16,10 @@ export enum SignUpPageVariant {
   MultiReroll = "mr",
 }
 
+export enum ItineraryPageVariant {
+  PreferencesBanner = "pb",
+}
+
 export const ITINERARY_PREFIX = "/itinerary";
 
 export enum AppRoute {

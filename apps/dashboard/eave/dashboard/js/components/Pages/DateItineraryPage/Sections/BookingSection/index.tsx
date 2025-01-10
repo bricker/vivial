@@ -6,7 +6,7 @@ import {
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   ActivitySource,
@@ -14,7 +14,13 @@ import {
   type Itinerary,
   type PaymentMethodFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, routePath, type NavigationState } from "$eave-dashboard/js/routes";
+import {
+  AppRoute,
+  ItineraryPageVariant,
+  routePath,
+  SearchParam,
+  type NavigationState,
+} from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -156,6 +162,7 @@ const isPaidOuting = (itinerary: Itinerary): boolean => {
 const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [_, setSearchParams] = useSearchParams();
 
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
 
@@ -167,7 +174,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookButtonLoading, setBookButtonLoading] = useState(false);
-
   const [oneClickEligible, setOneClickEligible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -243,6 +249,10 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         },
       });
     }
+    setSearchParams((prev) => {
+      prev.set(SearchParam.variant, ItineraryPageVariant.PreferencesBanner);
+      return prev;
+    });
   }, [userPreferences, partnerPreferences, outing]);
 
   const toggleBookingOpen = useCallback(() => {
