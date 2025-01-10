@@ -162,7 +162,7 @@ const isPaidOuting = (itinerary: Itinerary): boolean => {
 const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [_, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
 
@@ -249,10 +249,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         },
       });
     }
-    setSearchParams((prev) => {
-      prev.set(SearchParam.variant, ItineraryPageVariant.PreferencesBanner);
-      return prev;
-    });
   }, [userPreferences, partnerPreferences, outing]);
 
   const toggleBookingOpen = useCallback(() => {
@@ -267,7 +263,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
     if (!oneClickEligible || !isLoggedIn) {
       // This handles the auth redirect and return path
-      navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+      navigate(routePath({ route: AppRoute.checkoutReserve, pathParams: { outingId: outing.id } }));
       return;
     }
 
@@ -295,7 +291,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           case "InitiateBookingSuccess": {
             const booking = initiateBookingResult.booking;
             dispatch(setBookingDetails({ bookingDetails: booking }));
-            navigate(routePath(AppRoute.checkoutComplete, { bookingId: booking.id }));
+            navigate(routePath({ route: AppRoute.checkoutComplete, pathParams: { bookingId: booking.id } }));
             return;
           }
           case "InitiateBookingFailure": {
@@ -335,7 +331,16 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           dispatch(plannedOuting({ outing: newOuting }));
 
           const navigationState: NavigationState = { scrollBehavior: "smooth" };
-          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }), { state: navigationState });
+          navigate(
+            routePath({
+              route: AppRoute.itinerary,
+              pathParams: { outingId: newOuting.id },
+              searchParams: { [SearchParam.variant]: ItineraryPageVariant.PreferencesBanner },
+            }),
+            {
+              state: navigationState,
+            },
+          );
           break;
         }
         default: {
@@ -346,6 +351,16 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       }
     }
   }, [planOutingData]);
+
+  useEffect(() => {
+    if (searchParams.get(SearchParam.variant) === ItineraryPageVariant.AutoRoll) {
+      handleReroll().catch(() => {});
+      setSearchParams((prev) => {
+        prev.delete(SearchParam.variant);
+        return prev;
+      });
+    }
+  }, [handleReroll]);
 
   if (!outing) {
     return null;
@@ -444,7 +459,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         <>
           {oneClickUI}
           <ActionButtons>
-            <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
+            <RerollButton onReroll={handleReroll} loading={planOutingLoading} outingId={outing.id} />
             <BookButton onClick={handleBookClick} fullWidth loading={bookButtonLoading}>
               Checkout
             </BookButton>

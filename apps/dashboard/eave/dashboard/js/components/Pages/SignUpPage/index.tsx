@@ -9,7 +9,7 @@ import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
 import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 
-import { AppRoute, SearchParam, SignUpPageVariant } from "$eave-dashboard/js/routes";
+import { AppRoute, DateSurveyPageVariant, SearchParam, SignUpPageVariant, routePath } from "$eave-dashboard/js/routes";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import CloseButton from "../../Buttons/CloseButton";
 import AuthForm from "../../Forms/AuthForm";
@@ -54,7 +54,10 @@ const SignUpPage = () => {
   if (variant === SignUpPageVariant.MultiReroll) {
     title = "Get personalized recommendations";
     allowClose = true;
-    redirectRoute = AppRoute.rootPreferencesOpen;
+    redirectRoute = routePath({
+      route: AppRoute.root,
+      searchParams: { [SearchParam.variant]: DateSurveyPageVariant.PreferencesOpen },
+    });
   }
 
   const redirectQueryParam = searchParams.get(SearchParam.redirect);
