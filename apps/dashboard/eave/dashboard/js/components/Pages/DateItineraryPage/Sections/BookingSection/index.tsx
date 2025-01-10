@@ -348,7 +348,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   useEffect(() => {
     if (searchParams.get(SearchParam.variant) === ItineraryPageVariant.AutoRoll) {
-      handleReroll();
+      handleReroll().catch(() => {});
       setSearchParams((prev) => {
         prev.delete(SearchParam.variant);
         return prev;
