@@ -305,7 +305,10 @@ const CheckoutForm = ({
           }
         }
 
-        const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: bookingDetails!.id });
+        const returnPath = routePath({
+          route: AppRoute.checkoutComplete,
+          pathParams: { bookingId: bookingDetails!.id },
+        });
 
         // execute the payment
         if (isPaidOuting(bookingDetails)) {

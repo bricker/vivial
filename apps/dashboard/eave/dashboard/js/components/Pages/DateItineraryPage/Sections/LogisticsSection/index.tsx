@@ -220,7 +220,9 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         dispatch(chosePreferences({ user: userPreferences }));
 
         const navigationState: NavigationState = { scrollBehavior: "smooth" };
-        navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }), { state: navigationState });
+        navigate(routePath({ route: AppRoute.itinerary, pathParams: { outingId: updatedOuting.id } }), {
+          state: navigationState,
+        });
       } else {
         setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
       }

@@ -1,6 +1,7 @@
 export enum SearchParam {
   variant = "v",
   redirect = "r",
+  outingId = "oid",
 
   // These come from Stripe and cannot be changed.
   stripePaymentIntentId = "payment_intent",
@@ -16,16 +17,18 @@ export enum SignUpPageVariant {
   MultiReroll = "mr",
 }
 
+export enum ItineraryPageVariant {
+  AutoRoll = "ar",
+}
+
 export const ITINERARY_PREFIX = "/itinerary";
 
 export enum AppRoute {
   root = "/",
-  rootPreferencesOpen = `/?${SearchParam.variant}=${DateSurveyPageVariant.PreferencesOpen}`,
   login = "/login",
   logout = "/logout",
   forgotPassword = "/login/password",
   signup = "/signup",
-  signupMultiReroll = `/signup?${SearchParam.variant}=${SignUpPageVariant.MultiReroll}`,
   account = "/account",
   plans = "/plans",
   planDetails = "/plans/:bookingId",
@@ -40,13 +43,26 @@ export enum AppRoute {
   itinerary = `${ITINERARY_PREFIX}/:outingId`,
 }
 
-export function routePath(route: AppRoute, pathParams?: { [key: string]: string }): string {
+export function routePath({
+  route,
+  pathParams,
+  searchParams,
+}: {
+  route: AppRoute;
+  pathParams?: { [key: string]: string };
+  searchParams?: { [key: string]: string };
+}): string {
   let filledRoute = route.toString();
 
   if (pathParams) {
     for (const [paramName, paramValue] of Object.entries(pathParams)) {
       filledRoute = filledRoute.replaceAll(new RegExp(`/:${paramName}/?$`, "g"), `/${paramValue}`);
     }
+  }
+
+  if (searchParams) {
+    const urlParams = new URLSearchParams(searchParams);
+    filledRoute = `${filledRoute}?${urlParams.toString()}`;
   }
 
   return filledRoute;
