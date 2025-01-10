@@ -5,7 +5,7 @@ import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { Typography, keyframes, styled } from "@mui/material";
+import { Button, Typography, keyframes, styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -18,6 +18,10 @@ const BannerContainer = styled("div")<{ open: boolean }>(({ theme, open }) => ({
   padding: 16,
 }));
 
+const ClickableBannerContainer = styled(Button)(() => ({
+  display: "flex",
+}));
+
 const AlignedCloseButton = styled(CloseButton)(() => ({
   alignSelf: "flex-start",
 }));
@@ -26,12 +30,14 @@ const TextContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
   gap: 8,
-  padding: 16,
+  padding: "16px 8px",
 }));
 
 const BannerText = styled(Typography)(({ theme }) => ({
   fontFamily: fontFamilies.quicksand,
+  fontWeight: 600,
   color: theme.palette.field.primary,
+  textAlign: "left",
 }));
 
 const BannerTitle = styled(BannerText)(() => ({
@@ -76,15 +82,17 @@ const PreferencesBanner = () => {
     }
   }, [searchParams, isLoggedIn]);
   return (
-    <BannerContainer open={prefsBannerOpen} onClick={handleBannerClick}>
+    <BannerContainer open={prefsBannerOpen}>
       <AlignedCloseButton iconColor={colors.grey[800]} onClick={() => setPrefsBannerOpen(false)} />
-      <TextContainer>
-        <BannerTitle variant="h4">🎯 Not quite right?</BannerTitle>
-        <BannerText variant="body1">Update your preferences for personalized recommendations.</BannerText>
-      </TextContainer>
-      <AnimatedDiv>
-        <ArrowRightIcon />
-      </AnimatedDiv>
+      <ClickableBannerContainer onClick={handleBannerClick}>
+        <TextContainer>
+          <BannerTitle variant="h4">🎯 Not quite right?</BannerTitle>
+          <BannerText variant="body1">Update your preferences for personalized recommendations.</BannerText>
+        </TextContainer>
+        <AnimatedDiv>
+          <ArrowRightIcon />
+        </AnimatedDiv>
+      </ClickableBannerContainer>
     </BannerContainer>
   );
 };
