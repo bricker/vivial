@@ -249,7 +249,7 @@ const DateSurveyPage = () => {
     // to handle the reroll cookie on its own, but the desktop
     // layout relys on the DateSelections component to handle
     // that internally.
-    if (!isLoggedIn && isMobile) {
+    if (!isLoggedIn) {
       if (rerolls >= MAX_REROLLS) {
         navigate(AppRoute.signupMultiReroll);
         return;
