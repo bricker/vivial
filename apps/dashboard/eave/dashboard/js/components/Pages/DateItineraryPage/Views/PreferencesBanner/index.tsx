@@ -1,6 +1,6 @@
 import CloseButton from "$eave-dashboard/js/components/Buttons/CloseButton";
 import ArrowRightIcon from "$eave-dashboard/js/components/Icons/ArrowRightIcon";
-import { ItineraryPageVariant, SearchParam } from "$eave-dashboard/js/routes";
+import { AppRoute, ItineraryPageVariant, SearchParam, SignUpPageVariant, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
@@ -8,7 +8,7 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Typography, keyframes, styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const BannerContainer = styled("div")<{ open: boolean }>(({ theme, open }) => ({
   display: open ? "flex" : "none",
@@ -58,10 +58,17 @@ const AnimatedDiv = styled("div")(() => ({
 }));
 
 const PreferencesBanner = () => {
+  const navigate = useNavigate();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
   const [searchParams, _] = useSearchParams();
   const [prefsBannerOpen, setPrefsBannerOpen] = useState(false);
+
+  const handleBannerClick = () => {
+    navigate(
+      routePath({ route: AppRoute.signup, searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll } }),
+    );
+  };
 
   useEffect(() => {
     if (!isLoggedIn && searchParams.get(SearchParam.variant) === ItineraryPageVariant.PreferencesBanner) {
@@ -69,7 +76,7 @@ const PreferencesBanner = () => {
     }
   }, [searchParams, isLoggedIn]);
   return (
-    <BannerContainer open={prefsBannerOpen}>
+    <BannerContainer open={prefsBannerOpen} onClick={handleBannerClick}>
       <AlignedCloseButton iconColor={colors.grey[800]} onClick={() => setPrefsBannerOpen(false)} />
       <TextContainer>
         <BannerTitle variant="h4">🎯 Not quite right?</BannerTitle>
