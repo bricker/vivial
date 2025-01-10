@@ -25,12 +25,10 @@ export const ITINERARY_PREFIX = "/itinerary";
 
 export enum AppRoute {
   root = "/",
-  // rootPreferencesOpen = `/?${SearchParam.variant}=${DateSurveyPageVariant.PreferencesOpen}`,
   login = "/login",
   logout = "/logout",
   forgotPassword = "/login/password",
   signup = "/signup",
-  // signupMultiReroll = `/signup?${SearchParam.variant}=${SignUpPageVariant.MultiReroll}`,
   account = "/account",
   plans = "/plans",
   planDetails = "/plans/:bookingId",
@@ -43,7 +41,6 @@ export enum AppRoute {
   checkoutComplete = "/checkout/complete/:bookingId",
   checkoutReserve = "/checkout/reserve/:outingId",
   itinerary = `${ITINERARY_PREFIX}/:outingId`,
-  // itineraryAutoRoll = `${ITINERARY_PREFIX}/:outingId?${SearchParam.variant}=${ItineraryPageVariant.AutoRoll}`
 }
 
 export function routePath({

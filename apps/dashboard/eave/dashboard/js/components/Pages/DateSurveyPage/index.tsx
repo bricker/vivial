@@ -3,7 +3,7 @@ import {
   type ActivityCategoryFieldsFragment,
   type RestaurantCategoryFieldsFragment,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, DateSurveyPageVariant, SearchParam, routePath } from "$eave-dashboard/js/routes";
+import { AppRoute, DateSurveyPageVariant, SearchParam, SignUpPageVariant, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import {
@@ -245,13 +245,11 @@ const DateSurveyPage = () => {
   const isMobile = useMobile();
 
   const handleSubmit = useCallback(async () => {
-    // checking for mobile layout bcus the mobile layout needs
-    // to handle the reroll cookie on its own, but the desktop
-    // layout relys on the DateSelections component to handle
-    // that internally.
     if (!isLoggedIn) {
       if (rerolls >= MAX_REROLLS) {
-        navigate(AppRoute.signupMultiReroll);
+        navigate(
+          routePath({ route: AppRoute.signup, searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll } }),
+        );
         return;
       }
       rerolled();
@@ -323,7 +321,7 @@ const DateSurveyPage = () => {
             partner: partnerPreferences,
           }),
         );
-        navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
+        navigate(routePath({ route: AppRoute.itinerary, pathParams: { outingId: outing.id } }));
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
       }
@@ -513,7 +511,17 @@ const DateSurveyPage = () => {
             <Typography variant="subtitle1">
               Fill out this quick survey and we’ll customize your recommendations.{" "}
             </Typography>
-            <AddPrefsButton onClick={() => navigate(AppRoute.signupMultiReroll)} fullWidth>
+            <AddPrefsButton
+              onClick={() =>
+                navigate(
+                  routePath({
+                    route: AppRoute.signup,
+                    searchParams: { [SearchParam.variant]: SignUpPageVariant.MultiReroll },
+                  }),
+                )
+              }
+              fullWidth
+            >
               Add my preferences
             </AddPrefsButton>
           </AddPrefsContainer>

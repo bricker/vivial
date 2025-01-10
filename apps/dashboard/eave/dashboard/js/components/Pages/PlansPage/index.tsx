@@ -116,7 +116,9 @@ const BookingDetails = ({ booking }: { booking: BookingDetailsPeekFieldsFragment
     dateDay,
   );
   return (
-    <DetailsPaper onClick={() => navigate(routePath(AppRoute.planDetails, { bookingId: booking.id }))}>
+    <DetailsPaper
+      onClick={() => navigate(routePath({ route: AppRoute.planDetails, pathParams: { bookingId: booking.id } }))}
+    >
       <BookingContainer>
         <BookingDetailsContainer>
           <DetailsTitle variant="subtitle2">{formattedDay}</DetailsTitle>
