@@ -14,10 +14,17 @@ module "app_secrets" {
         "group:developers@eave.fyi",
       ],
     },
-    EVENTBRITE_API_KEYS = {
-      data = jsonencode(var.EVENTBRITE_API_KEYS)
+    EVENTBRITE_API_KEY = {
+      data = var.EVENTBRITE_API_KEY
       accessors = [
         "group:developers@eave.fyi",
+      ],
+    },
+    EVENTBRITE_API_KEYS = {
+      # DEPRECATED - backward-compat until all devs have pulled
+      data = jsonencode([var.EVENTBRITE_API_KEY])
+      accessors = [
+        module.core_api_app.service_account.member,
       ],
     },
     STRIPE_SECRET_KEY = {

@@ -65,13 +65,7 @@ class _AppConfig(ConfigBase):
 
     @cached_property
     def eventbrite_api_key(self) -> str:
-        api_keys = self.eventbrite_api_keys
-        return api_keys[0]
-
-    @cached_property
-    def eventbrite_api_keys(self) -> list[str]:
-        val = get_secret("EVENTBRITE_API_KEYS")
-        return json.loads(val)
+        return get_secret("EVENTBRITE_API_KEY")
 
     @property
     def segment_write_key(self) -> str:

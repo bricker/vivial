@@ -12,7 +12,12 @@ variable "secrets" {
       data      = string
       accessors = list(string)
     })
+    EVENTBRITE_API_KEY = object({
+      data      = string
+      accessors = list(string)
+    })
     EVENTBRITE_API_KEYS = object({
+      # DEPRECATED - backward-compat until next Core deployment
       data      = string
       accessors = list(string)
     })
