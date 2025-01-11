@@ -24,7 +24,7 @@ module "app_secrets" {
       # DEPRECATED - backward-compat until all devs have pulled
       data = jsonencode([var.EVENTBRITE_API_KEY])
       accessors = [
-        module.core_api_app.service_account.member,
+        "group:developers@eave.fyi",
       ],
     },
     STRIPE_SECRET_KEY = {

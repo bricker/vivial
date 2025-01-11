@@ -6,28 +6,18 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 function _print_help() (
 	statusmsg -o "Build and deploy a service."
-	statusmsg -o "Usage: deploy-service -s service [-f dockerfile]"
-	statusmsg -o "  -f dockerfile : Optional. The path to the Dockerfile relative to EAVE_HOME. If omitted, uses the Dockerfile in the current directory or fails if it doesn't exist."
-	statusmsg -o "	-l label : Optional. A k8s selector to select a label to deploy to. e.g. 'app_group=core-api'"
+	statusmsg -o "Usage: deploy-service"
 	statusmsg -o "  -h : Print this message."
 )
 
-function deploy() (
-	local service
-	service="$(jq -r ".kubeService" eavevars.json)"
-	local dockerfile=""
-	local label=""
+function _deploy() (
+	local service=""
 
 	# Unset necessary to reset global getopts memory
 	unset argname OPTARG OPTIND
-	while getopts "f:l:h" argname; do
+	while getopts "s:" argname; do
 		case "$argname" in
-		f) dockerfile=$OPTARG ;;
-		l) label=$OPTARG ;;
-		h)
-			_print_help
-			exit 0
-			;;
+		s) service=$OPTARG ;;
 		*)
 			statusmsg -e "unknown option: $argname"
 			_print_help
@@ -42,9 +32,8 @@ function deploy() (
 		exit 1
 	fi
 
-	if test -z "$dockerfile"; then
-		dockerfile="$(readlink -fn Dockerfile)"
-	fi
+	local dockerfile
+	dockerfile="$(readlink -fn Dockerfile)"
 
 	local gcloudproject
 	gcloudproject="$(e.gcloudproject)"
@@ -74,14 +63,10 @@ function deploy() (
 		docker push --all-tags "$imagename"
 	fi
 
-	statusmsg -a "Rolling out $imagename:$gitsha to $service (label ${label:-<none>})"
+	statusmsg -a "Rolling out $imagename:$gitsha to $service"
 	if e.confirm; then
-		if test -z "$label"; then
-			kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
-			kubectl --context="$gcloudproject" -n eave rollout status deployment/"$service"
-		else
-			kubectl --context="$gcloudproject" -n eave rollout restart deployment --selector="$label"
-		fi
+		kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
+		kubectl --context="$gcloudproject" -n eave rollout status deployment/"$service"
 	fi
 )
 
@@ -90,15 +75,11 @@ function main() (
 
 	local service
 	service="$(jq -r ".kubeService" eavevars.json)"
-	local dockerfile=""
-	local label=""
 
 	# Unset necessary to reset global getopts memory
 	unset argname OPTARG OPTIND
-	while getopts "f:l:h" argname; do
+	while getopts "h" argname; do
 		case "$argname" in
-		f) dockerfile=$OPTARG ;;
-		l) label=$OPTARG ;;
 		h)
 			_print_help
 			exit 0
@@ -127,7 +108,7 @@ function main() (
 	fi
 
 	set +e
-	deploy -f "$dockerfile" -l "$label"
+	_deploy -s "$service"
 	local result=$?
 
 	if test "$gcloudproject" == "eave-production"; then

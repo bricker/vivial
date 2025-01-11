@@ -1,4 +1,6 @@
 module "shared_kubernetes_resources" {
+  depends_on = [module.gke_primary]
+
   source                   = "../../modules/kube_shared_resources"
   iap_oauth_client_secret  = module.iap.google_iap_client.secret
   dns_domain               = local.dns_domain
@@ -6,7 +8,7 @@ module "shared_kubernetes_resources" {
   api_public_domain_prefix = local.api_public_domain_prefix
   admin_public_domain_prefix = local.admin_public_domain_prefix
   STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
-  EAVE_ENV                 = "production"
+  EAVE_ENV                 = local.EAVE_ENV
   google_project = data.google_project.default
 }
 

@@ -3,7 +3,6 @@ module "service_accounts" {
   source              = "../../modules/gke_app_service_account"
   app_name            = local.app_name
   kube_namespace_name = var.kube_namespace_name
-
 }
 
 module "app_iam_role" {
