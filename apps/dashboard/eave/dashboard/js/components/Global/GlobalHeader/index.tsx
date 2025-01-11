@@ -9,6 +9,7 @@ import { isDesktop, useBreakpoint } from "$eave-dashboard/js/theme/helpers/break
 import ItineraryVariant from "./Variants/ItineraryVariant";
 import LoggedInVariant, { DeviceType } from "./Variants/LoggedInVariant";
 import LoggedOutVariant from "./Variants/LoggedOutVariant";
+import { styled } from "@mui/material";
 
 const GlobalHeader = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -28,4 +29,6 @@ const GlobalHeader = () => {
   return <LoggedOutVariant />;
 };
 
-export default GlobalHeader;
+export default styled(GlobalHeader)(() => ({
+  width: "100%",
+}));

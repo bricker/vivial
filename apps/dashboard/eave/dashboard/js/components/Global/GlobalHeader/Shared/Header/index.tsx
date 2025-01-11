@@ -29,6 +29,7 @@ const Header = styled("header", { shouldForwardProp: (prop) => prop !== "variant
     padding: "0 24px",
     backgroundColor: theme.palette.background.paper,
     flex: `0 0 ${HeaderHeight.Mobile}px`,
+    width: "100%",
     [theme.breakpoints.up(Breakpoint.Medium)]: {
       flex: `0 0 ${HeaderHeight.Desktop}px`,
     },

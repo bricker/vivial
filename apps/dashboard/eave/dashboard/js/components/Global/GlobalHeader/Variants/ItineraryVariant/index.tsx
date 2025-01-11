@@ -20,13 +20,6 @@ const ItineraryVariant = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const navigate = useNavigate();
 
-  const handleBook = useCallback(() => {
-    if (outing?.id) {
-      const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
-      navigate(reservePath);
-    }
-  }, [outing]);
-
   if (!outing) {
     return null;
   }
@@ -34,7 +27,7 @@ const ItineraryVariant = () => {
   return (
     <Header variant={HeaderVariant.Sticky}>
       <VivialLogo hideText />
-      <BookButton onClick={handleBook}>Checkout</BookButton>
+      <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
     </Header>
   );
 };

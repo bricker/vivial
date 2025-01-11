@@ -41,6 +41,7 @@ import { capitalize } from "$eave-dashboard/js/util/string";
 import Typography from "@mui/material/Typography";
 import OneClickBadge from "./OneClickBadge";
 import VivialBadge from "./VivialBadge";
+import { useReroll } from "$eave-dashboard/js/hooks/useReroll";
 
 const Section = styled("section")(({ theme }) => ({
   position: "relative",
@@ -157,12 +158,8 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
-
   const { isLoggedIn, account } = useSelector((state: RootState) => state.auth);
   const outing = useSelector((state: RootState) => state.outing.details);
-  const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
-  const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const { reserverDetails } = useSelector((state: RootState) => state.reserverDetails);
 
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -172,6 +169,22 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const [defaultPaymentMethod, setDefaultPaymentMethod] = useState<PaymentMethodFieldsFragment | null>(null);
+
+  const [performReroll, { isLoading: rerollIsLoading, isSuccess: rerollIsSuccess }] = useReroll({ outing });
+
+  useEffect(() => {
+    if (outing) {
+      if (rerollIsSuccess === true) {
+        setBookingOpen(false);
+        const navigationState: NavigationState = { scrollBehavior: "smooth" };
+        navigate(routePath(AppRoute.itinerary, { outingId: outing.id }), { state: navigationState });
+      } else if (rerollIsSuccess === false) {
+        setErrorMessage(
+          "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
+        );
+      }
+    }
+  }, [rerollIsSuccess, outing]);
 
   // We only want to run this if the user is logged in.
   const { data: oneClickBookingCriteriaData } = useGetOneClickBookingCriteriaQuery(
@@ -228,22 +241,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       }
     }
   }, [oneClickBookingCriteriaData, outing]);
-
-  const handleReroll = useCallback(async () => {
-    if (outing) {
-      const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
-      await planOuting({
-        input: {
-          startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
-          searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
-          budget: outing.survey?.budget || OutingBudget.Expensive,
-          headcount: outing.survey?.headcount || outing.headcount,
-          groupPreferences,
-          isReroll: true,
-        },
-      });
-    }
-  }, [userPreferences, partnerPreferences, outing]);
 
   const toggleBookingOpen = useCallback(() => {
     setBookingOpen(!bookingOpen);
@@ -315,27 +312,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       }
     }
   }, [isLoggedIn, outing, oneClickEligible, defaultPaymentMethod]);
-
-  useEffect(() => {
-    if (planOutingData) {
-      switch (planOutingData.planOuting?.__typename) {
-        case "PlanOutingSuccess": {
-          const newOuting = planOutingData.planOuting.outing;
-          setBookingOpen(false);
-          dispatch(plannedOuting({ outing: newOuting }));
-
-          const navigationState: NavigationState = { scrollBehavior: "smooth" };
-          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }), { state: navigationState });
-          break;
-        }
-        default: {
-          setErrorMessage(
-            "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
-          );
-        }
-      }
-    }
-  }, [planOutingData]);
 
   if (!outing) {
     return null;
@@ -434,7 +410,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         <>
           {oneClickUI}
           <ActionButtons>
-            <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
+            <RerollButton onReroll={performReroll} loading={rerollIsLoading} />
             <BookButton onClick={handleBookClick} fullWidth loading={bookButtonLoading}>
               Checkout
             </BookButton>

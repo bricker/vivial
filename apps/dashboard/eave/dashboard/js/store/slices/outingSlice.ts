@@ -14,7 +14,7 @@ export type OutingPreferencesSelections = {
 
 export interface OutingState {
   details: (ItineraryFieldsFragment & TravelFieldsFragment) | null;
-  preferenes: {
+  preferences: {
     user: OutingPreferencesSelections | null;
     partner: OutingPreferencesSelections | null;
   };
@@ -22,7 +22,7 @@ export interface OutingState {
 
 const initialState: OutingState = {
   details: null,
-  preferenes: {
+  preferences: {
     user: null,
     partner: null,
   },
@@ -48,15 +48,15 @@ export const outingSlice = createSlice({
       },
     ) => {
       if (action.payload.user) {
-        state.preferenes.user = action.payload.user;
+        state.preferences.user = action.payload.user;
       }
       if (action.payload.partner) {
-        state.preferenes.partner = action.payload.partner;
+        state.preferences.partner = action.payload.partner;
       }
     },
     unsetOuting: (state) => {
       state.details = null;
-      state.preferenes = {
+      state.preferences = {
         user: null,
         partner: null,
       };

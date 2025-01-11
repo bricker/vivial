@@ -6,9 +6,9 @@ import BaseExpandButton from "$eave-dashboard/js/components/Buttons/ExpandButton
 const Section = styled("section")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   position: "relative",
-  width: "calc(100% - 32px)",
+  width: "100%",
   padding: "16px",
-  margin: "0 16px",
+  // margin: "0 16px",
   borderRadius: "15px",
   minHeight: 139,
 }));

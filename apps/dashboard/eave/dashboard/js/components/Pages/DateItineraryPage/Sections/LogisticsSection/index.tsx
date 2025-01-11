@@ -134,8 +134,8 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const { data: searchRegionsData } = useGetSearchRegionsQuery({}, { skip: viewOnly });
   const outing = useSelector((state: RootState) => state.outing.details);
 
-  const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
-  const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
+  const userPreferences = useSelector((state: RootState) => state.outing.preferences.user);
+  const partnerPreferences = useSelector((state: RootState) => state.outing.preferences.partner);
   const [startTime, setStartTime] = useState(new Date());
   const [copied, setCopied] = useState(false);
   const [headcount, setHeadcount] = useState(2);

@@ -60,7 +60,6 @@ const PageContentContainer = styled("div")(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
-  alignItems: "center",
   gap: 16,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     flexDirection: "row",

@@ -19,6 +19,7 @@ import LoadingView from "./Views/LoadingView";
 export const PageContainer = styled("div")(({ theme }) => ({
   paddingBottom: 56,
   maxWidth: 600,
+  margin: "0 auto",
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     border: `1.5px solid ${theme.palette.primary.main}`,
     borderRadius: 25,
