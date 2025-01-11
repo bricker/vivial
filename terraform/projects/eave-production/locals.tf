@@ -16,7 +16,7 @@ locals {
 
   authorized_networks = {
     "bryan-wifi" : {
-      cidr_block   = "75.83.177.78/32"
+      cidr_block   = "75.83.177.2/32"
       display_name = "Bryan's Home Wifi"
     },
     "liam-home" : {
