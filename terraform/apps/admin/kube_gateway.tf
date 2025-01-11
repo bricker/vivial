@@ -65,7 +65,7 @@ resource "kubernetes_manifest" "app_httproute" {
           ]
         },
         {
-          # No path matching is specified, so all traffic is routed to this backend.
+          # All other traffic is routed to the default backend.
           backendRefs = [
             {
               name = module.kubernetes_services["default"].kubernetes_service.name

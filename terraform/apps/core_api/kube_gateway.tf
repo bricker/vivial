@@ -39,6 +39,13 @@ resource "kubernetes_manifest" "app_httproute" {
       rules = [
         # Healthcheck endpoints
         {
+          backendRefs = [
+            {
+              name = module.kubernetes_services["healthchecks"].kubernetes_service.name
+              port = module.kubernetes_services["healthchecks"].kubernetes_service.port.number
+            }
+          ]
+
           matches = [
             {
               path = {
@@ -54,13 +61,6 @@ resource "kubernetes_manifest" "app_httproute" {
             },
           ]
 
-          backendRefs = [
-            {
-              name = module.kubernetes_services["healthchecks"].kubernetes_service.name
-              port = module.kubernetes_services["healthchecks"].kubernetes_service.port.number
-            }
-          ]
-
           filters = [
             module.http_route_filters.request_header_modifier_standard,
             module.http_route_filters.response_header_modifier_standard
@@ -69,6 +69,13 @@ resource "kubernetes_manifest" "app_httproute" {
 
         # App endpoints
         {
+          backendRefs = [
+            {
+              name = module.kubernetes_services["default"].kubernetes_service.name
+              port = module.kubernetes_services["default"].kubernetes_service.port.number
+            }
+          ]
+
           matches = [
             {
               path = {
@@ -90,13 +97,6 @@ resource "kubernetes_manifest" "app_httproute" {
             }
           ]
 
-          backendRefs = [
-            {
-              name = module.kubernetes_services["default"].kubernetes_service.name
-              port = module.kubernetes_services["default"].kubernetes_service.port.number
-            }
-          ]
-
           filters = [
             module.http_route_filters.request_header_modifier_standard,
             module.http_route_filters.response_header_modifier_standard
@@ -105,6 +105,13 @@ resource "kubernetes_manifest" "app_httproute" {
 
         # IAP-only endpoints
         {
+          backendRefs = [
+            {
+              name = module.kubernetes_services["iap"].kubernetes_service.name
+              port = module.kubernetes_services["iap"].kubernetes_service.port.number
+            }
+          ]
+
           matches = [
             {
               path = {
@@ -112,13 +119,6 @@ resource "kubernetes_manifest" "app_httproute" {
                 value = "/iap"
               }
             },
-          ]
-
-          backendRefs = [
-            {
-              name = module.kubernetes_services["iap"].kubernetes_service.name
-              port = module.kubernetes_services["iap"].kubernetes_service.port.number
-            }
           ]
 
           filters = [

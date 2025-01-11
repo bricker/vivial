@@ -37,12 +37,41 @@ resource "kubernetes_manifest" "app_httproute" {
       ]
 
       rules = [
+        # Healthcheck endpoints
         {
-          # No path matching is specified, so all traffic is routed to this backend.
           backendRefs = [
             {
-              name = module.kubernetes_service.kubernetes_service.name
-              port = module.kubernetes_service.kubernetes_service.port.number
+              name = module.kubernetes_services["healthchecks"].kubernetes_service.name
+              port = module.kubernetes_services["healthchecks"].kubernetes_service.port.number
+            }
+          ]
+
+          matches = [
+            {
+              path = {
+                type  = "Exact"
+                value = "/status"
+              }
+            },
+            {
+              path = {
+                type  = "Exact"
+                value = "/healthz"
+              }
+            },
+          ]
+
+          filters = [
+            module.http_route_filters.request_header_modifier_standard,
+            module.http_route_filters.response_header_modifier_standard
+          ]
+        },
+        {
+          # All other traffic routed to default backend.
+          backendRefs = [
+            {
+              name = module.kubernetes_services["default"].kubernetes_service.name
+              port = module.kubernetes_services["default"].kubernetes_service.port.number
             }
           ]
 
