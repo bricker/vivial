@@ -17,6 +17,6 @@ variable "hostname" {
 }
 
 variable "use_dns_authorization" {
-  type = bool
+  type    = bool
   default = false
 }

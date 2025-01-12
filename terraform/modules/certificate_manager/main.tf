@@ -18,7 +18,7 @@ resource "google_certificate_manager_certificate" "default" {
   managed {
     domains = [var.hostname]
     dns_authorizations = var.use_dns_authorization ? [
-      for dns_auth in google_certificate_manager_dns_authorization.default: dns_auth.id
+      for dns_auth in google_certificate_manager_dns_authorization.default : dns_auth.id
     ] : null
   }
 }

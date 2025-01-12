@@ -61,7 +61,7 @@ resource "google_compute_global_forwarding_rule" "default" {
 
 moved {
   from = module.cdn_certificate
-  to = module.certificate
+  to   = module.certificate
 }
 
 module "certificate" {

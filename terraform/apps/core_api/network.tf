@@ -24,7 +24,7 @@ resource "google_dns_record_set" "default" {
 
 moved {
   from = module.api_certificate
-  to = module.certificate
+  to   = module.certificate
 }
 
 module "certificate" {

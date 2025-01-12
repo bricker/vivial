@@ -28,5 +28,5 @@ moved {
 
 moved {
   from = module.kubernetes_service
-  to = module.kubernetes_services["default"]
+  to   = module.kubernetes_services["default"]
 }

@@ -31,5 +31,5 @@ locals {
   ])
 
   STRIPE_ENVIRONMENT = "live"
-  EAVE_ENV = "production"
+  EAVE_ENV           = "production"
 }
