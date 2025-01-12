@@ -3,17 +3,6 @@ variable "public_domain_prefix" {
   default = "api"
 }
 
-variable "environment" {
-  description = "Allowed values: DEV, STG, PROD"
-  type        = string
-  default     = "DEV"
-
-  validation {
-    condition     = contains(["DEV", "STG", "PROD"], var.environment)
-    error_message = "Allowed values: DEV, STG, PROD"
-  }
-}
-
 variable "google_dns_managed_zone" {
   type = object({
     name     = string
@@ -80,7 +69,7 @@ variable "release_version" {
 
 variable "LOG_LEVEL" {
   type    = string
-  default = "debug"
+  default = "info"
 }
 
 variable "impersonator_role_name" {

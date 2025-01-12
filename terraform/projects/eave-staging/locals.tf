@@ -4,7 +4,6 @@ locals {
   default_region = "us-central1"
   default_zone   = "us-central1-a"
 
-  environment     = "STG"
   dns_domain      = "eave.dev"
   resource_domain = "eave.dev"
 
