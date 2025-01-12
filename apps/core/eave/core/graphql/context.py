@@ -65,9 +65,7 @@ def log_ctx(context: GraphQLContext) -> JsonObject:
         }
     except Exception as e:
         LOGGER.exception(e)
-        return {
-            "source": "graphql",
-        }
+        return {}
 
 
 def analytics_ctx(context: GraphQLContext) -> AnalyticsContext:
