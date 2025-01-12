@@ -59,7 +59,12 @@ resource "google_compute_global_forwarding_rule" "default" {
   ip_address            = google_compute_global_address.default.id
 }
 
-module "cdn_certificate" {
+moved {
+  from = module.cdn_certificate
+  to = module.certificate
+}
+
+module "certificate" {
   source                                     = "../../modules/certificate_manager"
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   cert_name                                  = var.name

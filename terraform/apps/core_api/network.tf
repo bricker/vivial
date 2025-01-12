@@ -22,7 +22,12 @@ resource "google_dns_record_set" "default" {
   ]
 }
 
-module "api_certificate" {
+moved {
+  from = module.api_certificate
+  to = module.certificate
+}
+
+module "certificate" {
   source                                     = "../../modules/certificate_manager"
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   cert_name                                  = local.app_name
