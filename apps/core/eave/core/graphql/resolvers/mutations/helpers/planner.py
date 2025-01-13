@@ -7,7 +7,7 @@ from uuid import UUID
 from sqlalchemy import func
 
 import eave.core.database
-from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.context import GraphQLContext, LogContext, log_ctx
 from eave.core.graphql.types.activity import Activity, ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import OutingPreferencesInput
@@ -515,10 +515,10 @@ class OutingPlanner:
             reservation=reservation,
         )
 
-    def _log_ctx(self) -> JsonObject:
-        return {
-            "source": "planner",
-            "correlation_id": self.ctx.get("correlation_id"),
+    def _log_ctx(self) -> LogContext:
+        ctx = log_ctx(self.ctx)
+
+        planner_ctx = {
             "group_activity_category_preferences": [p.name for p in self.group_activity_category_preferences],
             "search_areas": [
                 SearchRegionOrm.one_or_exception(search_region_id=search_area_id).name
@@ -533,3 +533,8 @@ class OutingPlanner:
             "excluded_google_place_ids": self.excluded_google_place_ids,
             "excluded_evergreen_activity_ids": [x.hex for x in self.excluded_evergreen_activity_ids],
         }
+
+        extra = ctx.setdefault("extra", {})
+        extra["planner"] = planner_ctx
+
+        return ctx
