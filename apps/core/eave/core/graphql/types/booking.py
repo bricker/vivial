@@ -37,4 +37,5 @@ class BookingDetailsPeek:
 
 @strawberry.type
 class BookingDetails(Itinerary):
+    id: UUID
     state: BookingState

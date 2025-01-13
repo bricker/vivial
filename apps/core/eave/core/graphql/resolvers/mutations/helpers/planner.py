@@ -10,16 +10,18 @@ import eave.core.database
 from eave.core.graphql.context import GraphQLContext, LogContext, log_ctx
 from eave.core.graphql.types.activity import Activity, ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
+from eave.core.graphql.types.itinerary import Itinerary, ItineraryRefinement, ItinieraryPart
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Reservation, Restaurant
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.event_helpers import get_internal_activity
+from eave.core.lib.event_helpers import get_internal_activity, resolve_activity_details
 from eave.core.lib.eventbrite import EventbriteUtility
 from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.evergreen_activity import EvergreenActivityOrm
+from eave.core.orm.outing import OutingOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
@@ -163,6 +165,7 @@ class OutingPlanner:
     excluded_eventbrite_event_ids: list[str]
     excluded_google_place_ids: list[str]
     excluded_evergreen_activity_ids: list[UUID]
+    refinement: ItineraryRefinement | None
 
     ctx: GraphQLContext
 
@@ -178,6 +181,7 @@ class OutingPlanner:
         excluded_eventbrite_event_ids: list[str] | None = None,
         excluded_google_place_ids: list[str] | None = None,
         excluded_evergreen_activity_ids: list[UUID] | None = None,
+        refinement: ItineraryRefinement | None = None,
     ) -> None:
         self.places = GooglePlacesUtility()
         self.eventbrite = EventbriteUtility()
@@ -200,6 +204,7 @@ class OutingPlanner:
         self.excluded_google_place_ids = excluded_google_place_ids or []
         self.excluded_eventbrite_event_ids = excluded_eventbrite_event_ids or []
         self.excluded_evergreen_activity_ids = excluded_evergreen_activity_ids or []
+        self.refinement = refinement
 
         self.ctx = ctx
 
@@ -212,6 +217,15 @@ class OutingPlanner:
         first, then we find a restaurant nearby that users can eat at before
         the activity.
         """
+
+        if self.refinement and self.refinement.part == ItinieraryPart.ACTIVITY:
+            try:
+                async with eave.core.database.async_session.begin() as db_session:
+                    original_outing_orm = await OutingOrm.get_one(db_session, self.refinement.original_outing_id)
+                    resolve_activity_details()
+            except Exception as e:
+                LOGGER.exception(e)
+                # Move on to normal planning. Refinement won't occur, so both parts will be rolled.
 
         # The time+120 minutes is because the restaurant happens before the activity.
         start_time_local = self.survey.start_time_local + timedelta(minutes=120)
@@ -476,7 +490,7 @@ class OutingPlanner:
         self.restaurant = None
         return self.restaurant
 
-    async def plan(self) -> PlannerResult:
+    async def plan(self) -> Itinerary:
         """
         Plan an outing for a group of users, taking into consideration outing
         constraints and group preferences.
@@ -484,16 +498,12 @@ class OutingPlanner:
         await self.plan_activity()
         await self.plan_restaurant()
 
-        total_cost_breakdown = CostBreakdown()
-
         if self.activity and self.activity_start_time_local:
             activity_plan = ActivityPlan(
                 activity=self.activity,
                 start_time=self.activity_start_time_local,
                 headcount=self.survey.headcount,
             )
-
-            total_cost_breakdown += activity_plan.calculate_cost_breakdown()
         else:
             activity_plan = None
 
@@ -503,13 +513,11 @@ class OutingPlanner:
                 arrival_time=self.restaurant_arrival_time_local,
                 headcount=self.survey.headcount,
             )
-
-            total_cost_breakdown += reservation.calculate_cost_breakdown()
         else:
             reservation = None
 
-        return PlannerResult(
-            cost_breakdown=total_cost_breakdown,
+        return Itinerary(
+            survey=Survey.from_orm(self.survey),
             activity_plan=activity_plan,
             reservation=reservation,
         )

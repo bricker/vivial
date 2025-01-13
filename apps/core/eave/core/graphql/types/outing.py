@@ -13,4 +13,5 @@ class OutingPreferencesInput:
 
 @strawberry.type
 class Outing(Itinerary):
-    pass
+    id: UUID
+
