@@ -159,8 +159,10 @@ class EaveLogger:
             "msg": msg,
             "extra": {
                 "http_request": http_request,
-                "eave": eave_extras,
-                **extra,
+                "json_fields": {
+                    "eave": eave_extras,
+                    **extra,
+                },
             },
             **kwargs,
         }
