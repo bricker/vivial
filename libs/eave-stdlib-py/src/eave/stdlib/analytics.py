@@ -42,11 +42,17 @@ class AnalyticsTracker:
         Should only be called on account creation, or update.
         https://segment.com/docs/connections/sources/catalog/libraries/server/python/#identify
         """
-        segment.analytics.identify(
-            user_id=str(account_id),
-            traits=extra_properties,
-            anonymous_id=visitor_id,
-        )
+        try:
+            segment.analytics.identify(
+                user_id=str(account_id),
+                traits=extra_properties,
+                anonymous_id=visitor_id,
+            )
+        except Exception as e:
+            if SHARED_CONFIG.is_local:
+                raise
+            else:
+                LOGGER.exception(e)
 
     def track(
         self,
@@ -72,9 +78,15 @@ class AnalyticsTracker:
         if ctx:
             properties.update(ctx)
 
-        segment.analytics.track(
-            user_id=user_id,
-            event=event_name,
-            properties=properties,
-            anonymous_id=anon_id,
-        )
+        try:
+            segment.analytics.track(
+                user_id=user_id,
+                event=event_name,
+                properties=properties,
+                anonymous_id=anon_id,
+            )
+        except Exception as e:
+            if SHARED_CONFIG.is_local:
+                raise
+            else:
+                LOGGER.exception(e)

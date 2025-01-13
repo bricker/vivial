@@ -16,9 +16,7 @@ variable "hostname" {
   type = string
 }
 
-variable "domains" {
-  type        = list(string)
-  description = "If not given, the hostname will be used"
-  nullable    = true
-  default     = null
+variable "use_dns_authorization" {
+  type    = bool
+  default = false
 }

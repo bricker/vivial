@@ -22,10 +22,14 @@ resource "google_dns_record_set" "default" {
   ]
 }
 
-# module "certificate" {
-#   source                                     = "../../modules/certificate_manager"
-#   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
-#   cert_name                                  = local.app_name
-#   entry_name                                 = local.app_name
-#   hostname                                   = local.domain
-# }
+module "certificate" {
+  source                                     = "../../modules/certificate_manager"
+  google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
+  cert_name                                  = local.app_name
+  entry_name                                 = local.app_name
+  hostname                                   = local.domain
+
+  # This is necessary because when launching Vivial, we switched www.vivialapp.com from Squarespace to Google Cloud, and this switch caused the automatic validation process fail, so we used DNS authorization to get it validated quickly.
+  # This is only necessary for www.vivialapp.com. For every other domain in all projects, the automatic load-balancer certificate authorization works.
+  use_dns_authorization = local.domain == "www.vivialapp.com"
+}

@@ -134,6 +134,17 @@ resource "kubernetes_deployment" "app" {
             }
           }
 
+          startup_probe {
+            initial_delay_seconds = 10
+            period_seconds        = 1
+            timeout_seconds       = 5
+            failure_threshold     = 20
+            http_get {
+              path = "/healthz"
+              port = local.app_port.name
+            }
+          }
+
           readiness_probe {
             failure_threshold     = 2
             timeout_seconds       = 30
@@ -222,9 +233,10 @@ resource "kubernetes_deployment" "app" {
           ]
 
           startup_probe {
-            period_seconds    = 1
-            timeout_seconds   = 5
-            failure_threshold = 20
+            initial_delay_seconds = 5
+            period_seconds        = 1
+            timeout_seconds       = 5
+            failure_threshold     = 20
             http_get {
               path = "/startup"
               port = local.clousql_proxy_healthcheck_port.name

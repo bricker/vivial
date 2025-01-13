@@ -5,8 +5,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .config import CORE_API_APP_CONFIG
 
+DB_DRIVERNAME = "postgresql+asyncpg"
+
 db_uri = sqlalchemy.engine.url.URL.create(
-    drivername="postgresql+asyncpg",
+    drivername=DB_DRIVERNAME,
     host=CORE_API_APP_CONFIG.db_host,
     port=CORE_API_APP_CONFIG.db_port,
     username=CORE_API_APP_CONFIG.db_user,

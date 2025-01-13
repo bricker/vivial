@@ -65,3 +65,39 @@ module "dns_zone_run" {
 
   ]
 }
+
+module "dns_zone_pink" {
+  source     = "../../modules/dns_zone"
+  dns_domain = "eave.pink"
+  records = [
+    {
+      type      = "A"
+      subdomain = "*"
+      datas     = ["127.0.0.1"] # It is important that this is an IPv4 address, because our local development setup only guarantees IPv4 binding
+    },
+  ]
+}
+
+module "dns_zone_red" {
+  source     = "../../modules/dns_zone"
+  dns_domain = "eave.red"
+  records = [
+    {
+      type      = "A"
+      subdomain = "*"
+      datas     = ["127.0.0.1"] # It is important that this is an IPv4 address, because our local development setup only guarantees IPv4 binding
+    },
+  ]
+}
+
+module "dns_zone_blue" {
+  source     = "../../modules/dns_zone"
+  dns_domain = "eave.blue"
+  records = [
+    {
+      type      = "A"
+      subdomain = "*"
+      datas     = ["127.0.0.1"] # It is important that this is an IPv4 address, because our local development setup only guarantees IPv4 binding
+    },
+  ]
+}

@@ -6,31 +6,18 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 function _print_help() (
 	statusmsg -o "Build and deploy a service."
-	statusmsg -o "Usage: deploy-service -s service [-f dockerfile]"
-	statusmsg -o "  -s service : Required. The name of the kubernertes service to build and deploy. eg 'core-api' or 'dashboard'"
-	statusmsg -o "  -f dockerfile : Optional. The path to the Dockerfile relative to EAVE_HOME. If omitted, uses the Dockerfile in the current directory or fails if it doesn't exist."
-	statusmsg -o "	-l label : Optional. A k8s selector to select a label of  deploy to. e.g. 'app_group=core-api'"
+	statusmsg -o "Usage: deploy-service"
 	statusmsg -o "  -h : Print this message."
 )
 
-function deploy() (
-	set -e
-
+function _deploy() (
 	local service=""
-	local dockerfile=""
-	local label=""
 
-	# Reset getopts global memory
+	# Unset necessary to reset global getopts memory
 	unset argname OPTARG OPTIND
-	while getopts "s:f:l:h" argname; do
+	while getopts "s:" argname; do
 		case "$argname" in
 		s) service=$OPTARG ;;
-		f) dockerfile=$OPTARG ;;
-		l) label=$OPTARG ;;
-		h)
-			_print_help
-			exit 0
-			;;
 		*)
 			statusmsg -e "unknown option: $argname"
 			_print_help
@@ -45,9 +32,8 @@ function deploy() (
 		exit 1
 	fi
 
-	if test -z "$dockerfile"; then
-		dockerfile="$(readlink -fn Dockerfile)"
-	fi
+	local dockerfile
+	dockerfile="$(readlink -fn Dockerfile)"
 
 	local gcloudproject
 	gcloudproject="$(e.gcloudproject)"
@@ -77,34 +63,23 @@ function deploy() (
 		docker push --all-tags "$imagename"
 	fi
 
-	statusmsg -a "Rolling out $imagename:$gitsha to $service (label ${label:-<none>})"
+	statusmsg -a "Rolling out $imagename:$gitsha to $service"
 	if e.confirm; then
-		if test -z "$label"; then
-			kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
-			kubectl --context="$gcloudproject" -n eave rollout status deployment/"$service"
-		else
-			kubectl --context="$gcloudproject" -n eave rollout restart deployment --selector="$label"
-		fi
+		kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
+		kubectl --context="$gcloudproject" -n eave rollout status deployment/"$service"
 	fi
 )
 
 function main() (
-	e.verify_clean_git_index
+	e.verify-clean-git-index
 
-	local service=""
-	local dockerfile=""
-	local label=""
+	local service
+	service="$(jq -r ".kubeService" eavevars.json)"
 
-	# Reset getopts global memory
+	# Unset necessary to reset global getopts memory
 	unset argname OPTARG OPTIND
-	while getopts "s:f:l:h" argname; do
+	while getopts "h" argname; do
 		case "$argname" in
-		s)
-			echo ">>s"
-			service=$OPTARG
-			;;
-		f) dockerfile=$OPTARG ;;
-		l) label=$OPTARG ;;
 		h)
 			_print_help
 			exit 0
@@ -123,16 +98,25 @@ function main() (
 		exit 1
 	fi
 
-	local slackts
-	slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
+	local gcloudproject
+	gcloudproject="$(e.gcloudproject)"
+
+	local slackts=""
+
+	if test "$gcloudproject" == "eave-production"; then
+		slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
+	fi
 
 	set +e
-	deploy -s "$service" -f "$dockerfile" -l "$label"
+	_deploy -s "$service"
+	local result=$?
 
-	if test "$?" -eq 0; then
-		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=complete --app="$service" --msg-timestamp="$slackts"
-	else
-		"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
+	if test "$gcloudproject" == "eave-production"; then
+		if test $result -eq 0; then
+			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=complete --app="$service" --msg-timestamp="$slackts"
+		else
+			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
+		fi
 	fi
 )
 

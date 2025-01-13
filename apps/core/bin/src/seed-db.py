@@ -33,9 +33,9 @@ import os
 import time
 import uuid
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
-import eave.core.database
+from eave.core.database import async_engine
 from eave.core.graphql.types.activity import ActivitySource
 from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.lib.address import Address
@@ -56,13 +56,12 @@ _GCLOUD_PROJECT = os.getenv("GCLOUD_PROJECT")
 _GAE_ENV = os.getenv("GAE_ENV")
 
 # Some attempts to prevent this script from running against the production database
-assert _GAE_ENV is None
 assert _GOOGLE_CLOUD_PROJECT != "eave-production"
 assert _GCLOUD_PROJECT != "eave-production"
 
 
-async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
-    session = AsyncSession(db)
+async def seed_database(account_id: uuid.UUID | None) -> None:
+    session = AsyncSession(async_engine)
 
     num_rows = 100 if account_id is None else 1
 
@@ -212,19 +211,11 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
 
     await session.commit()
     await session.close()
-    await db.dispose()
+    await async_engine.dispose()
 
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Database seeder")
-    parser.add_argument(
-        "-d",
-        "--database",
-        help="Name of the database to seed",
-        type=str,
-        required=False,
-        default=_EAVE_DB_NAME,
-    )
     parser.add_argument(
         "-a",
         "--account",
@@ -235,26 +226,13 @@ async def main() -> None:
     )
     args, _ = parser.parse_known_args()
 
-    postgres_uri = eave.core.database.async_engine.url._replace(database=args.database)
-    seed_db = create_async_engine(
-        postgres_uri,
-        isolation_level="AUTOCOMMIT",
-        echo=False,
-        connect_args={
-            "server_settings": {
-                "timezone": "UTC",
-            },
-        },
-    )
-
     LOGGER.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
-    LOGGER.fprint(logging.INFO, f"> Target Database: {seed_db.url.database}")
-    LOGGER.fprint(logging.INFO, f"> Postgres connection URI: {seed_db.url}")
+    LOGGER.fprint(logging.INFO, f"> Postgres connection URI: {async_engine.url}")
     LOGGER.fprint(
-        logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."
+        logging.WARNING, f"\nThis script will insert junk seed data into the '{async_engine.url.database}' database."
     )
 
-    warn_msg = f"Proceed to insert junk seed data into the {seed_db.url.database} database?"
+    warn_msg = f"Proceed to insert junk seed data into the '{async_engine.url.database}' database?"
     if args.account:
         warn_msg = f"Seeding for account {args.account}. {warn_msg}"
 
@@ -263,8 +241,8 @@ async def main() -> None:
         LOGGER.fprint(logging.CRITICAL, "Aborting.")
         return
 
-    LOGGER.fprint(logging.INFO, f"Starting to seed your db {seed_db.url.database}...")
-    await seed_database(db=seed_db, account_id=args.account)
+    LOGGER.fprint(logging.INFO, f"Starting to seed your db '{async_engine.url.database}'...")
+    await seed_database(account_id=args.account)
     LOGGER.fprint(logging.INFO, "\nYour database has been seeded!")
 
 

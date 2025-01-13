@@ -76,6 +76,23 @@ async def _app_lifespan(app: starlette.applications.Starlette) -> AsyncGenerator
 
 
 app = starlette.applications.Starlette(
+    middleware=[
+        # CORS is needed only for dashboard to API communications.
+        Middleware(
+            CORSMiddleware,
+            allow_origins=[
+                SHARED_CONFIG.eave_dashboard_base_url_public,
+                SHARED_CONFIG.eave_admin_base_url_public,
+            ],
+            allow_methods=[
+                aiohttp.hdrs.METH_GET,
+                aiohttp.hdrs.METH_POST,
+                aiohttp.hdrs.METH_HEAD,
+                aiohttp.hdrs.METH_OPTIONS,
+            ],
+            allow_credentials=True,
+        ),
+    ],
     routes=[
         Route(
             path="/status",
@@ -94,37 +111,17 @@ app = starlette.applications.Starlette(
             endpoint=NoopEndpoint,
             methods=[aiohttp.hdrs.METH_GET],
         ),
-        Route(
-            path="/graphql",
-            methods=[
-                aiohttp.hdrs.METH_POST,
-                aiohttp.hdrs.METH_GET,  # Allows GraphiQL in development
-            ]
-            if SHARED_CONFIG.is_development
-            else [
-                aiohttp.hdrs.METH_POST,
-            ],
-            endpoint=graphql_app,
-        ),
-        Route(
-            path="/public/logout",
-            endpoint=LogoutEndpoint,
-            methods=[
-                aiohttp.hdrs.METH_GET,
-            ],
-        ),
-        Route(
-            path="/public/refresh_tokens",
-            endpoint=RefreshTokensEndpoint,
-            methods=[
-                aiohttp.hdrs.METH_POST,
-            ],
-        ),
         Mount(
             # This path prefix matches configuration in Kubernetes and shouldn't be changed.
             # It is configured to send everything on this path through the IAP
             "/iap",
-            middleware=[Middleware(IAPJWTValidationMiddleware, aud=CORE_API_APP_CONFIG.iap_jwt_aud)],
+            middleware=[
+                Middleware(
+                    IAPJWTValidationMiddleware,
+                    enabled=CORE_API_APP_CONFIG.internal_iap_enabled,
+                    aud=CORE_API_APP_CONFIG.internal_iap_jwt_aud,
+                ),
+            ],
             routes=[
                 Route(
                     path="/graphql",
@@ -138,24 +135,45 @@ app = starlette.applications.Starlette(
                 ),
             ],
         ),
-    ],
-    exception_handlers=exception_handlers,
-    middleware=[
-        # CORS is needed only for dashboard to API communications.
-        Middleware(
-            CORSMiddleware,
-            allow_origins=[
-                SHARED_CONFIG.eave_dashboard_base_url_public,
-                SHARED_CONFIG.eave_admin_base_url_public,
+        Mount(
+            "/",
+            middleware=[
+                Middleware(
+                    IAPJWTValidationMiddleware,
+                    enabled=CORE_API_APP_CONFIG.root_iap_enabled,
+                    aud=CORE_API_APP_CONFIG.root_iap_jwt_aud,
+                ),
             ],
-            allow_methods=[
-                aiohttp.hdrs.METH_GET,
-                aiohttp.hdrs.METH_POST,
-                aiohttp.hdrs.METH_HEAD,
-                aiohttp.hdrs.METH_OPTIONS,
+            routes=[
+                Route(
+                    path="/graphql",
+                    methods=[
+                        aiohttp.hdrs.METH_POST,
+                        aiohttp.hdrs.METH_GET,  # Allows GraphiQL in development
+                    ]
+                    if SHARED_CONFIG.is_development
+                    else [
+                        aiohttp.hdrs.METH_POST,
+                    ],
+                    endpoint=graphql_app,
+                ),
+                Route(
+                    path="/public/logout",
+                    endpoint=LogoutEndpoint,
+                    methods=[
+                        aiohttp.hdrs.METH_GET,
+                    ],
+                ),
+                Route(
+                    path="/public/refresh_tokens",
+                    endpoint=RefreshTokensEndpoint,
+                    methods=[
+                        aiohttp.hdrs.METH_POST,
+                    ],
+                ),
             ],
-            allow_credentials=True,
         ),
     ],
+    exception_handlers=exception_handlers,
     lifespan=_app_lifespan,
 )

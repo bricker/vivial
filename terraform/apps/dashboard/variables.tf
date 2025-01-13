@@ -3,17 +3,6 @@ variable "public_domain_prefix" {
   default = "www"
 }
 
-variable "environment" {
-  description = "Allowed values: DEV, STG, PROD"
-  type        = string
-  default     = "DEV"
-
-  validation {
-    condition     = contains(["DEV", "STG", "PROD"], var.environment)
-    error_message = "Allowed values: DEV, STG, PROD"
-  }
-}
-
 variable "google_dns_managed_zone" {
   type = object({
     name     = string
@@ -59,22 +48,22 @@ variable "release_version" {
 
 variable "LOG_LEVEL" {
   type    = string
-  default = "debug"
-}
-
-variable "iap_oauth_client_id" {
-  type     = string
-  nullable = true
-  default  = null
-}
-
-variable "iap_oauth_client_kube_secret_name" {
-  type     = string
-  nullable = true
-  default  = null
+  default = "info"
 }
 
 variable "iap_enabled" {
-  type    = bool
-  default = false
+  type = bool
+}
+
+variable "iap_jwt_aud" {
+  type     = string
+  nullable = true
+}
+
+variable "iap_oauth_client_id" {
+  type = string
+}
+
+variable "iap_oauth_client_kube_secret_name" {
+  type = string
 }

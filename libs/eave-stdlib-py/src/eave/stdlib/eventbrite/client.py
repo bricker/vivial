@@ -1,5 +1,4 @@
 import dataclasses
-import random
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
@@ -196,15 +195,10 @@ def paginated[T, **P](
 class EventbriteClient:
     base_url = "https://www.eventbrite.com"
 
-    _api_keys: list[str]
-    _current_api_key_idx: int
+    _api_key: str
 
-    def __init__(self, *, api_keys: list[str]) -> None:
-        if len(api_keys) == 0:
-            raise ValueError("At least one Eventbrite API key must be provided")
-
-        self._api_keys = api_keys
-        self._current_api_key_idx = random.randrange(len(api_keys))  # noqa: S311
+    def __init__(self, *, api_key: str) -> None:
+        self._api_key = api_key
 
     async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
@@ -344,53 +338,25 @@ class EventbriteClient:
         if continuation:
             query["continuation"] = continuation
 
-        async def _req(session: aiohttp.ClientSession) -> aiohttp.ClientResponse:
-            LOGGER.debug(
-                "Eventbrite API Request",
-                {
-                    "method": method,
-                    "path": path,
-                    "body": body,
-                    "query": query,
-                    "api_key_idx": self._current_api_key_idx,
-                },
-            )
+        LOGGER.debug(
+            "Eventbrite API Request",
+            {
+                "method": method,
+                "path": path,
+                "body": body,
+                "query": query,
+            },
+        )
 
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
             response = await session.request(
                 method=method,
                 url=f"{self.base_url}{path}",
-                headers={"Authorization": f"Bearer {self.api_key}"},
+                headers={"Authorization": f"Bearer {self._api_key}"},
                 params=query,
                 json=body,
             )
 
-            return response
-
-        async with aiohttp.ClientSession(raise_for_status=False) as session:
-            response = await _req(session)
-
-            try_num = 0
-            while response.status == 429 and try_num < len(self._api_keys):
-                LOGGER.warning(
-                    f"429 from Eventbrite; attempting key rotation ({self._current_api_key_idx + 1}/{len(self._api_keys)}"
-                )
-                # Rate limited. Switch to next API key and try again.
-                try_num += 1
-                self._increment_api_key_idx()
-                response = await _req(session)
-
-            response.raise_for_status()
             await response.read()  # Read the response body while the session is still open
 
         return response
-
-    def _increment_api_key_idx(self) -> None:
-        self._current_api_key_idx = (self._current_api_key_idx + 1) % len(self._api_keys)
-
-    @property
-    def api_key(self) -> str:
-        try:
-            return self._api_keys[self._current_api_key_idx]
-        except KeyError:
-            # This is a failsafe in case the key index math is wrong or something
-            return self._api_keys[0]

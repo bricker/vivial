@@ -1,10 +1,15 @@
 module "shared_kubernetes_resources" {
-  source                   = "../../modules/kube_shared_resources"
-  iap_oauth_client_secret  = google_iap_client.default.secret
-  dns_domain               = local.dns_domain
-  www_public_domain_prefix = local.www_public_domain_prefix
-  api_public_domain_prefix = local.api_public_domain_prefix
-  STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
+  depends_on = [module.gke_primary]
+
+  source                     = "../../modules/kube_shared_resources"
+  iap_oauth_client_secret    = module.iap.google_iap_client.secret
+  dns_domain                 = local.dns_domain
+  www_public_domain_prefix   = local.www_public_domain_prefix
+  api_public_domain_prefix   = local.api_public_domain_prefix
+  admin_public_domain_prefix = local.admin_public_domain_prefix
+  STRIPE_ENVIRONMENT         = local.STRIPE_ENVIRONMENT
+  EAVE_ENV                   = local.EAVE_ENV
+  google_project             = data.google_project.default
 }
 
 module "core_api_app" {
@@ -38,9 +43,13 @@ module "core_api_app" {
   release_version              = "latest"
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 
-  iap_enabled                       = false
-  iap_oauth_client_id               = google_iap_client.default.client_id
+  internal_iap_jwt_aud              = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core_api_iap"].generated_id}"
+  root_iap_enabled                  = false
+  root_iap_jwt_aud                  = null
+  iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+
+  eventbrite_filler_cron_schedule = "0 12 * * *" # Daily at 4/5am PT
 }
 
 module "dashboard_app" {
@@ -60,7 +69,8 @@ module "dashboard_app" {
   release_version = "latest"
 
   iap_enabled                       = false
-  iap_oauth_client_id               = google_iap_client.default.client_id
+  iap_jwt_aud                       = null
+  iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }
 
@@ -80,6 +90,7 @@ module "admin_app" {
   LOG_LEVEL       = "DEBUG"
   release_version = "latest"
 
-  iap_oauth_client_id               = google_iap_client.default.client_id
+  iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["admin"].generated_id}"
+  iap_oauth_client_id               = module.iap.google_iap_client.client_id
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }

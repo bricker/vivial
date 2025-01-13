@@ -1,4 +1,4 @@
-variable "kube_service_name" {
+variable "app_name" {
   type = string
 }
 

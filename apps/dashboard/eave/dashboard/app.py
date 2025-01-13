@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from http import HTTPStatus
 
 from starlette.applications import Starlette
+from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 from starlette.routing import Mount, Route
@@ -14,6 +15,7 @@ import eave.stdlib.time
 from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import MIME_TYPE_BINARY, MIME_TYPE_JSON
+from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 from eave.stdlib.starlette import exception_handlers
 from eave.stdlib.status import status_payload
 
@@ -87,20 +89,32 @@ async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
 
 app = Starlette(
     routes=[
-        Mount("/static", StaticFiles(directory="eave/dashboard/static")),
         Route(
             path="/status",
             methods=["GET"],
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
-        Route(
-            path="/.well-known/apple-developer-merchantid-domain-association",
-            methods=["GET"],
-            endpoint=apple_domain_verification_file,
+        Mount(
+            path="/",
+            middleware=[
+                Middleware(
+                    IAPJWTValidationMiddleware,
+                    enabled=DASHBOARD_APP_CONFIG.iap_enabled,
+                    aud=DASHBOARD_APP_CONFIG.iap_jwt_aud,
+                ),
+            ],
+            routes=[
+                Mount("/static", StaticFiles(directory="eave/dashboard/static")),
+                Route(
+                    path="/.well-known/apple-developer-merchantid-domain-association",
+                    methods=["GET"],
+                    endpoint=apple_domain_verification_file,
+                ),
+                Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
+                Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
+            ],
         ),
-        Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
-        Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
     exception_handlers=exception_handlers,
     lifespan=_app_lifespan,

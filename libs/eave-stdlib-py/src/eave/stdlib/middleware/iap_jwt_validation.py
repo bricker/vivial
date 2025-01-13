@@ -6,7 +6,6 @@ from google.oauth2 import id_token
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from eave.stdlib.api_util import get_header_value_or_exception
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_exceptions import ForbiddenError
 from eave.stdlib.logging import LOGGER
 
@@ -19,11 +18,13 @@ class IAPJWTValidationMiddleware:
     """
 
     app: asgiref.typing.ASGI3Application
-    aud: str
+    aud: str | None
+    enabled: bool
 
-    def __init__(self, app: ASGIApp, *, aud: str) -> None:
+    def __init__(self, app: ASGIApp, *, enabled: bool, aud: str | None) -> None:
         self.app = cast(asgiref.typing.ASGI3Application, app)
         self.aud = aud
+        self.enabled = enabled
 
     async def __call__(
         self,
@@ -38,12 +39,10 @@ class IAPJWTValidationMiddleware:
         if cscope["type"] != "http":
             raise Exception(f"only HTTP requests are allowed ({cscope["type"]})")
 
-        if cscope["path"] == "/healthz" or cscope["path"] == "/status":
-            # Healthcheck endpoints always allowed
-            await self.app(cscope, creceive, csend)
-            return
+        if self.enabled:
+            if not self.aud:
+                raise ForbiddenError("IAP auth failed (missing audience)")
 
-        if not SHARED_CONFIG.is_local:
             jwt_assertion_header = get_header_value_or_exception(scope=cscope, name=IAP_JWT_HEADER)
 
             decoded_token = id_token.verify_token(

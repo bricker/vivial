@@ -5,7 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 function main() (
-	e.verify_clean_git_index
+	e.verify-clean-git-index
 
 	export EAVE_DEPLOY_TARGET
 	EAVE_DEPLOY_TARGET="$(e.gcloudproject)"
@@ -14,13 +14,13 @@ function main() (
 	bin/lint
 
 	statusmsg -a "Diff since last deployment:"
-	bin/diff-prod
+	e.diff-deployed
 
 	statusmsg -a "Deploy target: ${EAVE_DEPLOY_TARGET}"
 
 	if e.confirm; then
 		bin/run-db-migration
-		"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s core-api
+		"${EAVE_HOME}"/develop/deploy/bin/deploy-service
 	fi
 )
 

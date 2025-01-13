@@ -6,7 +6,6 @@ locals {
   default_region  = "us-central1"
   default_zone    = "us-central1-a"
 
-  environment     = "PROD"
   dns_domain      = "vivialapp.com"
   resource_domain = "eave.fyi" # This is used for Storage buckets and stuff, because our public domain changed but we couldn't delete all of our resources.
 
@@ -16,7 +15,7 @@ locals {
 
   authorized_networks = {
     "bryan-wifi" : {
-      cidr_block   = "75.83.177.78/32"
+      cidr_block   = "75.83.177.2/32"
       display_name = "Bryan's Home Wifi"
     },
     "liam-home" : {
@@ -32,4 +31,5 @@ locals {
   ])
 
   STRIPE_ENVIRONMENT = "live"
+  EAVE_ENV           = "production"
 }

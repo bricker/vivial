@@ -16,7 +16,7 @@ module "custom_gke_node_role" {
   title   = "GKE Node"
   base_roles = [
     "roles/container.defaultNodeServiceAccount",
-    # "roles/artifactregistry.reader",
+    "roles/artifactregistry.reader",
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter",
     "roles/monitoring.viewer",
@@ -32,10 +32,11 @@ resource "google_project_iam_binding" "project_gke_node_role_members" {
 
   project = data.google_project.default.id
   role    = module.custom_gke_node_role.google_project_iam_custom_role.id
-  members = [
+
+  members = var.use_default_service_account ? [
     google_service_account.gke_node.member,
     data.google_compute_default_service_account.default.member
-  ]
+  ] : [google_service_account.gke_node.member]
 }
 
 resource "google_artifact_registry_repository_iam_binding" "docker_repo_gke_node_role_members" {
@@ -45,8 +46,9 @@ resource "google_artifact_registry_repository_iam_binding" "docker_repo_gke_node
 
   repository = data.google_artifact_registry_repository.docker.name
   role       = module.custom_gke_node_role.google_project_iam_custom_role.id
-  members = [
+
+  members = var.use_default_service_account ? [
     google_service_account.gke_node.member,
     data.google_compute_default_service_account.default.member
-  ]
+  ] : [google_service_account.gke_node.member]
 }

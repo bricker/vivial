@@ -3,17 +3,6 @@ variable "public_domain_prefix" {
   default = "api"
 }
 
-variable "environment" {
-  description = "Allowed values: DEV, STG, PROD"
-  type        = string
-  default     = "DEV"
-
-  validation {
-    condition     = contains(["DEV", "STG", "PROD"], var.environment)
-    error_message = "Allowed values: DEV, STG, PROD"
-  }
-}
-
 variable "google_dns_managed_zone" {
   type = object({
     name     = string
@@ -80,7 +69,7 @@ variable "release_version" {
 
 variable "LOG_LEVEL" {
   type    = string
-  default = "debug"
+  default = "info"
 }
 
 variable "impersonator_role_name" {
@@ -105,21 +94,31 @@ variable "bastion_accessors" {
   default = []
 }
 
+variable "JWS_SIGNING_KEY_VERSION_PATH" {
+  type = string
+}
+
 variable "iap_oauth_client_id" {
-  type     = string
-  nullable = false
+  type = string
 }
 
 variable "iap_oauth_client_kube_secret_name" {
+  type = string
+}
+
+variable "internal_iap_jwt_aud" {
+  type = string
+}
+
+variable "root_iap_enabled" {
+  type = bool
+}
+
+variable "root_iap_jwt_aud" {
   type     = string
-  nullable = false
+  nullable = true
 }
 
-variable "iap_enabled" {
-  type    = bool
-  default = false
-}
-
-variable "JWS_SIGNING_KEY_VERSION_PATH" {
+variable "eventbrite_filler_cron_schedule" {
   type = string
 }

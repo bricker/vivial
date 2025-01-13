@@ -1,15 +1,17 @@
-from collections.abc import MutableMapping
-from typing import Literal
+# isort: off
 
-from eave.core._database_setup import get_base_metadata
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
 
+# isort: on
+
 # ruff: noqa: E402
 
 import asyncio
+from collections.abc import MutableMapping
 from logging.config import fileConfig
+from typing import Literal
 
 from alembic import context
 from sqlalchemy import Connection
@@ -18,6 +20,7 @@ import eave.core.database as eave_db
 import eave.core.orm
 import eave.core.orm.base
 import eave.stdlib.time
+from eave.core._database_setup import get_base_metadata
 
 eave.stdlib.time.set_utc()
 

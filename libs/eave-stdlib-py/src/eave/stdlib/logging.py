@@ -1,6 +1,7 @@
 import dataclasses
 import logging
 import sys
+from collections.abc import Mapping
 from logging import Logger, LogRecord
 from typing import Any, override
 
@@ -113,28 +114,28 @@ class EaveLogger:
     def fprint(self, level: int, message: str) -> None:
         print(self.f(level, message))
 
-    def debug(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
+    def debug(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         self._raw_logger.debug(**self._preparekwargs(msg, *args, **kwargs))
 
-    def info(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
+    def info(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         self._raw_logger.info(**self._preparekwargs(msg, *args, **kwargs))
 
-    def warning(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
+    def warning(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         self._raw_logger.warning(**self._preparekwargs(msg, *args, **kwargs))
 
-    def error(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
+    def error(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.error(**self._preparekwargs(msg, *args, **kwargs))
 
-    def exception(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
+    def exception(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.exception(**self._preparekwargs(msg, *args, **kwargs))
 
-    def critical(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> None:
+    def critical(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
 
-    def _preparekwargs(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> dict[str, Any]:
+    def _preparekwargs(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> dict[str, Any]:
         if isinstance(msg, Exception):
             kwargs["exc_info"] = True
 
@@ -145,12 +146,19 @@ class EaveLogger:
 
         for a in args:
             if a:
-                for k, v in a.items():
-                    eave_extras[k] = _build_extra(v)
+                try:
+                    for k, v in a.items():
+                        eave_extras[k] = self._build_extra(v)
+                except Exception as e:
+                    self._raw_logger.exception(e)
+
+        # This is a special field in Cloud Logging, which sits outside of `json_fields`.
+        http_request = eave_extras.pop("http_request", None)
 
         return {
             "msg": msg,
             "extra": {
+                "http_request": http_request,
                 "json_fields": {
                     "eave": eave_extras,
                     **extra,
@@ -159,18 +167,21 @@ class EaveLogger:
             **kwargs,
         }
 
-
-def _build_extra(v: Any) -> JsonValue:
-    if isinstance(v, (int, float, bool)) or v is None:
-        return v
-    elif isinstance(v, list):
-        return [_build_extra(e) for e in v]
-    elif isinstance(v, dict):
-        return {k: _build_extra(e) for k, e in v.items()}
-    elif dataclasses.is_dataclass(v) and not isinstance(v, type):
-        return _build_extra(dataclasses.asdict(v))
-    else:
-        return str(v)
+    def _build_extra(self, v: object) -> JsonValue:
+        try:
+            if isinstance(v, (int, float, bool)) or v is None:
+                return v
+            elif isinstance(v, list):
+                return [self._build_extra(e) for e in v]
+            elif isinstance(v, dict):
+                return {k: self._build_extra(e) for k, e in v.items()}
+            elif dataclasses.is_dataclass(v) and not isinstance(v, type):
+                return self._build_extra(dataclasses.asdict(v))
+            else:
+                return str(v)
+        except Exception as e:
+            self._raw_logger.exception(e)
+            return "[PARSING ERROR]"
 
 
 LOGGER = EaveLogger()

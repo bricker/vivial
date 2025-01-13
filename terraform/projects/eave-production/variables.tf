@@ -7,11 +7,6 @@ variable "SLACK_SYSTEM_BOT_TOKEN" {
   sensitive = true
 }
 
-variable "GCP_MONITORING_SLACK_AUTH_TOKEN" {
-  type      = string
-  sensitive = true
-}
-
 variable "SENDGRID_API_KEY" {
   type      = string
   sensitive = true
@@ -22,17 +17,17 @@ variable "EVENTBRITE_API_KEY" {
   sensitive = true
 }
 
-variable "EVENTBRITE_API_KEYS" {
-  type      = list(string)
-  sensitive = true
-}
-
 variable "STRIPE_SECRET_KEY" {
   type      = string
   sensitive = true
 }
 
 variable "GOOGLE_MAPS_API_KEY" {
+  type      = string
+  sensitive = true
+}
+
+variable "GCP_MONITORING_SLACK_AUTH_TOKEN" {
   type      = string
   sensitive = true
 }

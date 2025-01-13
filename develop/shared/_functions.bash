@@ -15,6 +15,21 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		grep -qE "node_modules|\.venv|vendor" <<<"$1"
 	)
 
+	function e.status() (
+		local proj
+		proj="$(e.gcloudproject)"
+
+		local url
+		url="$(jq -r ".googleCloudProjects.\"$proj\".url" eavevars.json)"
+		curl -s "$url/status" | jq .
+	)
+
+	function e.diff-deployed() (
+		local liveversion
+		liveversion="$(e.status | jq -r .version)"
+		git log --oneline --reverse "$liveversion"..HEAD . "$EAVE_HOME"/libs/eave-stdlib-py
+	)
+
 	function statusmsg() (
 		local usage="
 			Usage: statusmsg [-odiwesnh] MESSAGE
@@ -152,7 +167,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		return 0
 	)
 
-	function e.verify_clean_git_index() {
+	function e.verify-clean-git-index() {
 		if ! test -z "$(git status --porcelain)"; then
 			statusmsg -e "Dirty git index!"
 			exit 1

@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-curl -s https://www.vivialapp.com/status | jq .

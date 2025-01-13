@@ -8,7 +8,7 @@ import eave.core.app
 import eave.core.database
 import eave.core.orm
 import eave.stdlib.typing
-from eave.core._database_setup import get_base_metadata, init_database
+from eave.core._database_setup import get_base_metadata, reset_database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.stdlib.testing_util import UtilityBaseTestCase
 
@@ -47,7 +47,7 @@ class BaseTestCase(
 
         if not _db_setup:
             print("Running one-time DB setup...")
-            await init_database()
+            await reset_database()
             _db_setup = True
 
         CORE_API_APP_CONFIG.reset_cached_properties()

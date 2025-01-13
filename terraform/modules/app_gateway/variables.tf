@@ -1,8 +1,8 @@
-variable "service_name" {
+variable "name" {
   type = string
 }
 
-variable "namespace" {
+variable "kubernetes_namespace_name" {
   type = string
 }
 
@@ -12,8 +12,10 @@ variable "google_certificate_manager_certificate_map" {
   })
 }
 
-variable "global_address_names" {
-  type = set(string)
+variable "google_compute_global_addresses" {
+  type = list(object({
+    name = string
+  }))
 }
 
 variable "google_compute_ssl_policy" {

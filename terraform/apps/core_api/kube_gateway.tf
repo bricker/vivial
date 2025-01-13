@@ -1,11 +1,15 @@
 module "app_gateway" {
   depends_on                                 = [google_compute_global_address.a_addrs]
   source                                     = "../../modules/app_gateway"
-  service_name                               = module.kubernetes_service.name
-  namespace                                  = var.kube_namespace_name
+  name                                       = local.app_name
+  kubernetes_namespace_name                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
-  global_address_names                       = [for addr in google_compute_global_address.a_addrs : addr.name]
+  google_compute_global_addresses            = google_compute_global_address.a_addrs
   google_compute_ssl_policy                  = var.google_compute_ssl_policy
+}
+
+module "http_route_filters" {
+  source = "../../modules/http_route_filters"
 }
 
 resource "kubernetes_manifest" "app_httproute" {
@@ -33,9 +37,15 @@ resource "kubernetes_manifest" "app_httproute" {
       ]
 
       rules = [
+        # Healthcheck endpoints
         {
-          # These are the only path prefixes that can be accessed through the load balancer.
-          # All other path prefixes are considered internal-only and can only be accessed within the cluster.
+          backendRefs = [
+            {
+              name = module.kubernetes_services["healthchecks"].kubernetes_service.name
+              port = module.kubernetes_services["healthchecks"].kubernetes_service.port.number
+            }
+          ]
+
           matches = [
             {
               path = {
@@ -49,6 +59,24 @@ resource "kubernetes_manifest" "app_httproute" {
                 value = "/healthz"
               }
             },
+          ]
+
+          filters = [
+            module.http_route_filters.request_header_modifier_standard,
+            module.http_route_filters.response_header_modifier_standard
+          ]
+        },
+
+        # App endpoints
+        {
+          backendRefs = [
+            {
+              name = module.kubernetes_services["default"].kubernetes_service.name
+              port = module.kubernetes_services["default"].kubernetes_service.port.number
+            }
+          ]
+
+          matches = [
             {
               path = {
                 type  = "PathPrefix"
@@ -69,60 +97,21 @@ resource "kubernetes_manifest" "app_httproute" {
             }
           ]
 
+          filters = [
+            module.http_route_filters.request_header_modifier_standard,
+            module.http_route_filters.response_header_modifier_standard
+          ]
+        },
+
+        # IAP-only endpoints
+        {
           backendRefs = [
             {
-              name = module.kubernetes_service.name
-              port = module.kubernetes_service.port.number
+              name = module.kubernetes_services["iap"].kubernetes_service.name
+              port = module.kubernetes_services["iap"].kubernetes_service.port.number
             }
           ]
 
-          filters = [
-            {
-              type = "RequestHeaderModifier"
-              requestHeaderModifier = {
-                set = [
-                  {
-                    name  = "eave-lb"
-                    value = "1"
-                  },
-                  {
-                    name  = "eave-lb-geo-region"
-                    value = "{client_region}"
-                  },
-                  {
-                    name  = "eave-lb-geo-subdivision"
-                    value = "{client_region_subdivision}"
-                  },
-                  {
-                    name  = "eave-lb-geo-city"
-                    value = "{client_city}"
-                  },
-                  {
-                    name  = "eave-lb-geo-coordinates"
-                    value = "{client_city_lat_long}"
-                  },
-                  {
-                    name  = "eave-lb-client-ip"
-                    value = "{client_ip_address}"
-                  },
-                ]
-              }
-            },
-            {
-              type = "ResponseHeaderModifier"
-              responseHeaderModifier = {
-                set = [
-                  {
-                    name  = "server"
-                    value = "n/a"
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        {
-          # Anything matching these rules go through the IAP-enabled service
           matches = [
             {
               path = {
@@ -132,56 +121,9 @@ resource "kubernetes_manifest" "app_httproute" {
             },
           ]
 
-          backendRefs = [
-            {
-              name = module.iap_app_kubernetes_service.name
-              port = module.iap_app_kubernetes_service.port.number
-            }
-          ]
-
           filters = [
-            {
-              type = "RequestHeaderModifier"
-              requestHeaderModifier = {
-                set = [
-                  {
-                    name  = "eave-lb"
-                    value = "1"
-                  },
-                  {
-                    name  = "eave-lb-geo-region"
-                    value = "{client_region}"
-                  },
-                  {
-                    name  = "eave-lb-geo-subdivision"
-                    value = "{client_region_subdivision}"
-                  },
-                  {
-                    name  = "eave-lb-geo-city"
-                    value = "{client_city}"
-                  },
-                  {
-                    name  = "eave-lb-geo-coordinates"
-                    value = "{client_city_lat_long}"
-                  },
-                  {
-                    name  = "eave-lb-client-ip"
-                    value = "{client_ip_address}"
-                  },
-                ]
-              }
-            },
-            {
-              type = "ResponseHeaderModifier"
-              responseHeaderModifier = {
-                set = [
-                  {
-                    name  = "server"
-                    value = "n/a"
-                  }
-                ]
-              }
-            }
+            module.http_route_filters.request_header_modifier_standard,
+            module.http_route_filters.response_header_modifier_standard
           ]
         }
       ]

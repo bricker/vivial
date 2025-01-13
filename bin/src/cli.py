@@ -54,11 +54,10 @@ def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) 
         assert slack_client
 
         if status == DeploymentStatus.IN_PROGRESS:
-            p = Popen(f"{EAVE_HOME}/apps/{app}/bin/diff-prod", env=os.environ, shell=False, stdout=PIPE)  # noqa: ASYNC220, S603
+            p = Popen(f"{EAVE_HOME}/apps/{app}/bin/func e.diff-deployed", env=os.environ, shell=False, stdout=PIPE)  # noqa: ASYNC220, S603
             stdout, stderr = p.communicate()
             changelog = stdout.decode()
             lines = changelog.splitlines()
-            lines.reverse()
 
             slack_response = await slack_client.chat_postMessage(
                 channel=_SLACK_DEPLOYMENT_NOTIFICATIONS_CHANNEL_ID,

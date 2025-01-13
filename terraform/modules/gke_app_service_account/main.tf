@@ -3,9 +3,9 @@ resource "google_service_account" "app_service_account" {
     prevent_destroy = true
   }
 
-  account_id   = substr("gsa-app-${var.kube_service_name}", 0, 26)
-  display_name = var.kube_service_name
-  description  = "${var.kube_service_name} app service account"
+  account_id   = substr("gsa-app-${var.app_name}", 0, 26)
+  display_name = var.app_name
+  description  = "${var.app_name} app service account"
 }
 
 resource "kubernetes_service_account" "app_ksa" {
@@ -14,7 +14,7 @@ resource "kubernetes_service_account" "app_ksa" {
   }
 
   metadata {
-    name      = substr("ksa-app-${var.kube_service_name}", 0, 26)
+    name      = substr("ksa-app-${var.app_name}", 0, 26)
     namespace = var.kube_namespace_name
     annotations = {
       "iam.gke.io/gcp-service-account" = google_service_account.app_service_account.email

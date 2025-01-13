@@ -1,28 +1,14 @@
-# FIXME: This was a temporary hack to get the certificate provisioned ASAP
-resource "google_certificate_manager_dns_authorization" "dashboard" {
-  name   = "dashboard-dns-auth"
-  domain = "www.vivialapp.com"
+moved {
+  from = google_certificate_manager_dns_authorization.dashboard
+  to   = module.dashboard_app.module.certificate.google_certificate_manager_dns_authorization.default[0]
 }
 
-resource "google_certificate_manager_certificate" "dashboard" {
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
-
-  name = "dashboard"
-  managed {
-    domains            = ["www.vivialapp.com"]
-    dns_authorizations = [google_certificate_manager_dns_authorization.dashboard.id]
-  }
+moved {
+  from = google_certificate_manager_certificate.dashboard
+  to   = module.dashboard_app.module.certificate.google_certificate_manager_certificate.default
 }
 
-resource "google_certificate_manager_certificate_map_entry" "dashboard" {
-  # lifecycle {
-  #   prevent_destroy = true
-  # }
-
-  map          = module.project_base.google_certificate_manager_certificate_map.name
-  name         = "dashboard"
-  certificates = [google_certificate_manager_certificate.dashboard.id]
-  hostname     = "www.vivialapp.com"
+moved {
+  from = google_certificate_manager_certificate_map_entry.dashboard
+  to   = module.dashboard_app.module.certificate.google_certificate_manager_certificate_map_entry.default
 }

@@ -4,16 +4,16 @@ locals {
   default_region = "us-central1"
   default_zone   = "us-central1-a"
 
-  environment     = "STG"
   dns_domain      = "eave.dev"
   resource_domain = "eave.dev"
 
-  www_public_domain_prefix = "www"
-  api_public_domain_prefix = "api"
+  www_public_domain_prefix   = "www"
+  api_public_domain_prefix   = "api"
+  admin_public_domain_prefix = "admin"
 
   authorized_networks = {
     "bryan-wifi" : {
-      cidr_block   = "75.83.177.78/32"
+      cidr_block   = "75.83.177.2/32"
       display_name = "Bryan's Home Wifi"
     },
     "liam-home" : {
@@ -23,4 +23,5 @@ locals {
   }
 
   STRIPE_ENVIRONMENT = "test"
+  EAVE_ENV           = "staging"
 }

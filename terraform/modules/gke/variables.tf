@@ -35,3 +35,9 @@ variable "docker_repository_ref" {
     repository_id = string
   })
 }
+
+variable "use_default_service_account" {
+  # This was necessary because the prod cluster is using the default compute engine service account
+  # but the lower environments don't, and the service account can't be replaced once the cluster is created.
+  type = bool
+}

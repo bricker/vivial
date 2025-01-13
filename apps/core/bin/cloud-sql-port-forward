@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "$EAVE_HOME"/develop/functions.bash
+
+function main() (
+	local proj
+	proj="$(e.gcloudproject)"
+
+	statusmsg -i "kube context: $proj"
+	kubectl --context="$proj" -n eave port-forward deployment/core-api 5430:5432
+)
+
+main "$@"

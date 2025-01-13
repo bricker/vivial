@@ -23,7 +23,7 @@ class EventbriteUtility:
     client: EventbriteClient
 
     def __init__(self) -> None:
-        self.client = EventbriteClient(api_keys=CORE_API_APP_CONFIG.eventbrite_api_keys)
+        self.client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self._places = GooglePlacesUtility()
 
     async def get_eventbrite_activity(self, *, event_id: str, survey: SurveyOrm | None) -> Activity | None:
