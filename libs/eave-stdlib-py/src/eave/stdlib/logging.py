@@ -149,7 +149,7 @@ class EaveLogger:
                     eave_extras[k] = _build_extra(v)
 
         # This is a special field in Cloud Logging, which sits outside of `json_fields`.
-        http_request = eave_extras.pop("http_request")
+        http_request = eave_extras.pop("http_request", None)
 
         return {
             "msg": msg,
