@@ -26,7 +26,6 @@ from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.geo import Distance, GeoArea
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
-from eave.stdlib.typing import JsonObject
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
     "coffee_shop",

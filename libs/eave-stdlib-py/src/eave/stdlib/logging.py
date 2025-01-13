@@ -1,7 +1,7 @@
-from collections.abc import Mapping
 import dataclasses
 import logging
 import sys
+from collections.abc import Mapping
 from logging import Logger, LogRecord
 from typing import Any, override
 
@@ -165,7 +165,6 @@ class EaveLogger:
             **kwargs,
         }
 
-
     def _build_extra(self, v: object) -> JsonValue:
         try:
             if isinstance(v, (int, float, bool)) or v is None:
@@ -181,5 +180,6 @@ class EaveLogger:
         except Exception as e:
             self._raw_logger.exception(e)
             return "[PARSING ERROR]"
+
 
 LOGGER = EaveLogger()

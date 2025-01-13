@@ -1,12 +1,9 @@
-from collections.abc import MutableMapping
-from typing import Mapping, NotRequired, TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 from uuid import UUID
 
-from google.cloud.logging_v2.types import LogEntry
-from google.logging.type import http_request_pb2
+from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
-from asgiref.typing import HTTPScope
 
 from eave.stdlib.analytics import AnalyticsContext
 from eave.stdlib.logging import LOGGER
@@ -19,11 +16,13 @@ class ClientGeo(TypedDict):
     city: str | None
     coordinates: str | None
 
+
 class LogContextHttpRequest(TypedDict, total=False):
     """
     This mimics http_request_pb2.HttpRequest, but in a way that the static analyzer can use.
     https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#httprequest
     """
+
     requestMethod: str
     requestUrl: str
     requestSize: str
@@ -40,6 +39,7 @@ class LogContextHttpRequest(TypedDict, total=False):
     cacheFillBytes: str
     protocol: str
 
+
 class LogContext(TypedDict, total=False):
     http_request: LogContextHttpRequest
     authenticated_account_id: str | None
@@ -51,6 +51,7 @@ class LogContext(TypedDict, total=False):
     client_geo: ClientGeo | None
     client_ip: str | None
     extra: dict[str, object]
+
 
 class GraphQLContext(TypedDict):
     request: Request
@@ -65,6 +66,7 @@ class GraphQLContext(TypedDict):
     client_ip: NotRequired[str | None]
     client_geo: NotRequired[ClientGeo]
     extra: NotRequired[dict[str, object]]
+
 
 def log_ctx(context: GraphQLContext) -> LogContext:
     result: LogContext = {}
