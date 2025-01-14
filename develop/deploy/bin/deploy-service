@@ -11,6 +11,8 @@ function _print_help() (
 )
 
 function _deploy() (
+	set -e
+
 	local service=""
 
 	# Unset necessary to reset global getopts memory
