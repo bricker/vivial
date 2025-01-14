@@ -262,7 +262,7 @@ async def _get_eventbrite_events() -> None:
 
         _organizer_stats[organizer_id] = org_stats
 
-        paginator = eventbrite._client.list_events_for_organizer(
+        paginator = eventbrite.client.list_events_for_organizer(
             organizer_id=organizer_id,
             query=ListEventsQuery(
                 order_by=OrderBy.START_ASC,

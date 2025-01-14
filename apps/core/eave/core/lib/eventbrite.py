@@ -20,14 +20,14 @@ from eave.stdlib.logging import LOGGER
 
 
 class EventbriteUtility:
-    _client: EventbriteClient
+    client: EventbriteClient
 
     def __init__(self) -> None:
-        self._client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+        self.client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self._places = GooglePlacesUtility()
 
     async def get_eventbrite_activity(self, *, event_id: str, survey: SurveyOrm | None) -> Activity | None:
-        event = await self._client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
+        event = await self.client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
 
         if not (ticket_availability := event.get("ticket_availability")):
             LOGGER.warning(
@@ -79,7 +79,7 @@ class EventbriteUtility:
             )
             return
 
-        ticket_classes_paginator = self._client.list_ticket_classes_for_sale_for_event(
+        ticket_classes_paginator = self.client.list_ticket_classes_for_sale_for_event(
             event_id=event_id,
             query=ListTicketClassesForSaleQuery(
                 pos=PointOfSale.ONLINE,
