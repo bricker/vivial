@@ -88,24 +88,24 @@ class GooglePlaceAddressComponentType(enum.StrEnum):
 
 
 class GoogleMapsUtility:
-    client: googlemaps.Client
+    _client: googlemaps.Client
 
     def __init__(self) -> None:
-        self.client = googlemaps.Client(key=CORE_API_APP_CONFIG.google_maps_api_key)
+        self._client = googlemaps.Client(key=CORE_API_APP_CONFIG.google_maps_api_key)
 
     def geocode(self, address: str) -> list[GeocodeResult]:
         if CORE_API_APP_CONFIG.google_maps_apis_disabled:
             return []
 
-        results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self.client, address=address)
+        results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self._client, address=address)
         return results
 
 
 class GoogleRoutesUtility:
-    client: RoutesAsyncClient
+    _client: RoutesAsyncClient
 
     def __init__(self) -> None:
-        self.client = RoutesAsyncClient()
+        self._client = RoutesAsyncClient()
 
     async def compute_routes(
         self, *, request: ComputeRoutesRequest, metadata: list[tuple[str, str | bytes]]
@@ -113,15 +113,15 @@ class GoogleRoutesUtility:
         if CORE_API_APP_CONFIG.google_maps_apis_disabled:
             return None
 
-        return await self.client.compute_routes(request=request, metadata=metadata)
+        return await self._client.compute_routes(request=request, metadata=metadata)
 
 
 class GooglePlacesUtility:
-    client: PlacesAsyncClient
+    _client: PlacesAsyncClient
     _maps: GoogleMapsUtility
 
     def __init__(self) -> None:
-        self.client = PlacesAsyncClient()
+        self._client = PlacesAsyncClient()
         self._maps = GoogleMapsUtility()
 
     async def restaurant_from_google_place(self, place: Place) -> Restaurant:
@@ -288,7 +288,7 @@ class GooglePlacesUtility:
         if CORE_API_APP_CONFIG.google_maps_apis_disabled:
             return None
 
-        photo_res = await self.client.get_photo_media(
+        photo_res = await self._client.get_photo_media(
             request=GetPhotoMediaRequest(
                 name=f"{photo.name}/media",
                 max_width_px=1000,  # This value was chosen arbitrarily
@@ -312,7 +312,7 @@ class GooglePlacesUtility:
             return None
 
         try:
-            place = await self.client.get_place(
+            place = await self._client.get_place(
                 request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
             )
             return place
@@ -367,7 +367,7 @@ class GooglePlacesUtility:
             included_primary_types=included_primary_types[0:50],
         )
 
-        response = await self.client.search_nearby(
+        response = await self._client.search_nearby(
             request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
         )
         return list(response.places)
