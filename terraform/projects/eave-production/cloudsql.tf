@@ -13,6 +13,8 @@ module "cloudsql_eave_core" {
   instance_name          = "eave-pg-core"
   google_compute_network = module.project_base.google_compute_network
   global_address_name    = module.project_base.private_ip_range_name
+  enable_backups         = true
+  preset                 = "PROD"
 
   cloudsql_user_role_members = [
     module.core_api_app.service_account.member,

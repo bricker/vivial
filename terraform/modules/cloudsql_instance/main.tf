@@ -22,8 +22,8 @@ resource "google_sql_database_instance" "default" {
     tier                        = local.preset_production ? "db-perf-optimized-N-2" : "db-f1-micro"
     backup_configuration {
       binary_log_enabled             = false # Only supported for MySQL
-      enabled                        = local.preset_production
-      point_in_time_recovery_enabled = local.preset_production
+      enabled                        = var.enable_backups
+      point_in_time_recovery_enabled = var.enable_backups
       start_time                     = "19:00"
       transaction_log_retention_days = 6
       backup_retention_settings {

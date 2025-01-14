@@ -15,3 +15,16 @@ variable "global_address_name" {
 variable "cloudsql_user_role_members" {
   type = list(string)
 }
+
+variable "preset" {
+  type = string
+
+  validation {
+    condition     = contains(["PROD", "NONPROD"], var.preset)
+    error_message = "preset must be one of PROD, NONPROD"
+  }
+}
+
+variable "enable_backups" {
+  type = bool
+}
