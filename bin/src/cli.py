@@ -47,14 +47,15 @@ class DeploymentStatus(enum.StrEnum):
 @click.option("-a", "--app", required=True)
 @click.option("-s", "--status", required=True, type=click.Choice(list(DeploymentStatus), case_sensitive=False))
 @click.option("-m", "--msg-timestamp", required=False)
-def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None) -> None:
+@click.option("-c", "--cwd", required=False)
+def notify_slack(app: str, status: DeploymentStatus, msg_timestamp: str | None, cwd: str | None) -> None:
     slack_client = get_authenticated_eave_system_slack_client()
 
     async def _post_message() -> None:
         assert slack_client
 
         if status == DeploymentStatus.IN_PROGRESS:
-            p = Popen(f"{EAVE_HOME}/apps/{app}/bin/func e.diff-deployed", env=os.environ, shell=False, stdout=PIPE)  # noqa: ASYNC220, S603
+            p = Popen(["./bin/func", "e.diff-deployed"], cwd=cwd if cwd else None, env=os.environ, shell=False, stdout=PIPE)  # noqa: ASYNC220, S603
             stdout, stderr = p.communicate()
             changelog = stdout.decode()
             lines = changelog.splitlines()

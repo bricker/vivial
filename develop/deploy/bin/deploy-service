@@ -104,7 +104,7 @@ function main() (
 	local slackts=""
 
 	if test "$gcloudproject" == "eave-production"; then
-		slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service")
+		slackts=$("${EAVE_HOME}"/bin/cli deploy notify-slack --status=in_progress --app="$service" --cwd="$(pwd)")
 	fi
 
 	set +e
@@ -113,9 +113,9 @@ function main() (
 
 	if test "$gcloudproject" == "eave-production"; then
 		if test $result -eq 0; then
-			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=complete --app="$service" --msg-timestamp="$slackts"
+			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=complete --app="$service" --msg-timestamp="$slackts" --cwd="$(pwd)"
 		else
-			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts"
+			"${EAVE_HOME}"/bin/cli deploy notify-slack --status=failed --app="$service" --msg-timestamp="$slackts" --cwd="$(pwd)"
 		fi
 	fi
 )
