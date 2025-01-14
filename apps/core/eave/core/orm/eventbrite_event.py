@@ -123,7 +123,7 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
         if eventbrite_event_id is not NOT_SET:
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
-        if excluded_eventbrite_event_ids is not NOT_SET and len(excluded_eventbrite_event_ids):
+        if excluded_eventbrite_event_ids is not NOT_SET and len(excluded_eventbrite_event_ids) > 0:
             lookup = lookup.where(cls.eventbrite_event_id.not_in(excluded_eventbrite_event_ids))
 
         if vivial_activity_category_ids is not NOT_SET:

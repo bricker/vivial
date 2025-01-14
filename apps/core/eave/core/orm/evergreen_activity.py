@@ -123,7 +123,7 @@ class EvergreenActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
                 )
             )
 
-        if excluded_evergreen_activity_ids is not NOT_SET and len(excluded_evergreen_activity_ids):
+        if excluded_evergreen_activity_ids is not NOT_SET and len(excluded_evergreen_activity_ids) > 0:
             query = query.where(cls.id.not_in(excluded_evergreen_activity_ids))
 
         return query

@@ -200,7 +200,13 @@ class OutingPlanner:
 
         self.excluded_google_place_ids = excluded_google_place_ids or []
         self.excluded_eventbrite_event_ids = excluded_eventbrite_event_ids or []
-        self.excluded_evergreen_activity_ids = excluded_evergreen_activity_ids or []
+
+        # Google Places is what gives us virtually unlimited recommendations.
+        # Without Google places, we quickly run out of recommendations, so we allow repeated evergreen activities.
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            self.excluded_evergreen_activity_ids = []
+        else:
+            self.excluded_evergreen_activity_ids = excluded_evergreen_activity_ids or []
 
         self.ctx = ctx
 
