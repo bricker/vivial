@@ -149,7 +149,6 @@ resource "kubernetes_deployment" "app" {
             failure_threshold     = 2
             timeout_seconds       = 30
             period_seconds        = 30
-            initial_delay_seconds = 15
             http_get {
               path = "/healthz"
               port = local.app_port.name
@@ -160,7 +159,6 @@ resource "kubernetes_deployment" "app" {
             failure_threshold     = 5
             timeout_seconds       = 30
             period_seconds        = 30
-            initial_delay_seconds = 15
             http_get {
               path = "/healthz"
               port = local.app_port.name
@@ -233,7 +231,6 @@ resource "kubernetes_deployment" "app" {
           ]
 
           startup_probe {
-            initial_delay_seconds = 5
             period_seconds        = 1
             timeout_seconds       = 5
             failure_threshold     = 20
@@ -247,7 +244,6 @@ resource "kubernetes_deployment" "app" {
           # The cloud-sql-proxy readiness probe checks for issues that can usually resolve themselves, so this check could restart the container unnecessarily.
 
           liveness_probe {
-            initial_delay_seconds = 0
             period_seconds        = 60
             timeout_seconds       = 30
             failure_threshold     = 5
