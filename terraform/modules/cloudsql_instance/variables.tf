@@ -28,3 +28,7 @@ variable "preset" {
 variable "enable_backups" {
   type = bool
 }
+
+variable "disk_size_gb" {
+  type = number
+}

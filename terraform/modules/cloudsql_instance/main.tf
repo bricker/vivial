@@ -14,12 +14,15 @@ resource "google_sql_database_instance" "default" {
     availability_type           = local.preset_production ? "REGIONAL" : "ZONAL"
     connector_enforcement       = "REQUIRED"
     deletion_protection_enabled = true
-    disk_autoresize             = local.preset_production
-    disk_autoresize_limit       = 0
-    disk_size                   = local.preset_production ? 100 : 10
-    disk_type                   = "PD_SSD"
-    edition                     = local.preset_production ? "ENTERPRISE_PLUS" : "ENTERPRISE"
-    tier                        = local.preset_production ? "db-perf-optimized-N-2" : "db-f1-micro"
+    data_cache_config {
+      data_cache_enabled = false # local.preset_production
+    }
+    disk_autoresize       = local.preset_production
+    disk_autoresize_limit = 0
+    disk_size             = var.disk_size_gb
+    disk_type             = "PD_SSD"
+    edition               = local.preset_production ? "ENTERPRISE_PLUS" : "ENTERPRISE"
+    tier                  = local.preset_production ? "db-perf-optimized-N-2" : "db-custom-2-13312"
     backup_configuration {
       binary_log_enabled             = false # Only supported for MySQL
       enabled                        = var.enable_backups
