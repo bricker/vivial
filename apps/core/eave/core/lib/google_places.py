@@ -17,7 +17,7 @@ from google.maps.places import (
 from google.maps.places import (
     Photo as PlacePhoto,
 )
-from google.maps.routing import RoutesAsyncClient
+from google.maps.routing import ComputeRoutesRequest, ComputeRoutesResponse, RoutesAsyncClient
 
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
@@ -94,6 +94,9 @@ class GoogleMapsUtility:
         self.client = googlemaps.Client(key=CORE_API_APP_CONFIG.google_maps_api_key)
 
     def geocode(self, address: str) -> list[GeocodeResult]:
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return []
+
         results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self.client, address=address)
         return results
 
@@ -103,6 +106,14 @@ class GoogleRoutesUtility:
 
     def __init__(self) -> None:
         self.client = RoutesAsyncClient()
+
+    async def compute_routes(
+        self, *, request: ComputeRoutesRequest, metadata: list[tuple[str, str | bytes]]
+    ) -> ComputeRoutesResponse | None:
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return None
+
+        return await self.client.compute_routes(request=request, metadata=metadata)
 
 
 class GooglePlacesUtility:
@@ -178,7 +189,8 @@ class GooglePlacesUtility:
                 supplemental_photo = await self.photo_from_google_place_photo(
                     place_photo,
                 )
-                photos.supplemental_photos.append(supplemental_photo)
+                if supplemental_photo:
+                    photos.supplemental_photos.append(supplemental_photo)
             except Exception as e:
                 if SHARED_CONFIG.is_local:
                     raise
@@ -272,7 +284,10 @@ class GooglePlacesUtility:
     async def photo_from_google_place_photo(
         self,
         photo: PlacePhoto,
-    ) -> Photo:
+    ) -> Photo | None:
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return None
+
         photo_res = await self.client.get_photo_media(
             request=GetPhotoMediaRequest(
                 name=f"{photo.name}/media",
@@ -293,6 +308,9 @@ class GooglePlacesUtility:
         self,
         place_id: str,
     ) -> Place | None:
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return None
+
         try:
             place = await self.client.get_place(
                 request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
@@ -336,6 +354,9 @@ class GooglePlacesUtility:
 
         https://developers.google.com/maps/documentation/places/web-service/nearby-search
         """
+
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return []
 
         location_restriction = SearchNearbyRequest.LocationRestriction()
         location_restriction.circle.radius = area.rad.meters
@@ -397,21 +418,20 @@ class GooglePlacesUtility:
         return can_enter and can_park and can_pee and can_sit
 
     async def google_maps_directions_url(self, address: str) -> str:
-        try:
-            geocode_results: list[GeocodeResult] = googlemaps.geocoding.geocode(
-                client=self._maps.client, address=address
-            )
+        if not CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            try:
+                geocode_results = self._maps.geocode(address=address)
 
-            for result in geocode_results:
-                if place_id := result.get("place_id"):
-                    place = await self.get_google_place(place_id)
-                    if place and place.google_maps_uri:
-                        return place.google_maps_uri
-        except Exception as e:
-            if SHARED_CONFIG.is_local:
-                raise
-            else:
-                LOGGER.exception(e)
+                for result in geocode_results:
+                    if place_id := result.get("place_id"):
+                        place = await self.get_google_place(place_id)
+                        if place and place.google_maps_uri:
+                            return place.google_maps_uri
+            except Exception as e:
+                if SHARED_CONFIG.is_local:
+                    raise
+                else:
+                    LOGGER.exception(e)
 
         urlsafe_addr = urllib.parse.quote_plus(address)
         return f"https://www.google.com/maps/place/{urlsafe_addr}"

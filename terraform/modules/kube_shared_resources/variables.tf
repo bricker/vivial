@@ -35,3 +35,7 @@ variable "EAVE_ENV" {
     error_message = "EAVE_ENV must be one of production, staging"
   }
 }
+
+variable "GOOGLE_MAPS_APIS_DISABLED" {
+  type = bool
+}

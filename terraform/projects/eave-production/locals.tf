@@ -30,6 +30,7 @@ locals {
     "eave-develop",
   ])
 
-  STRIPE_ENVIRONMENT = "live"
-  EAVE_ENV           = "production"
+  STRIPE_ENVIRONMENT        = "live"
+  EAVE_ENV                  = "production"
+  GOOGLE_MAPS_APIS_DISABLED = true
 }

@@ -96,7 +96,7 @@ class Itinerary:
         routes = GoogleRoutesUtility()
 
         try:
-            response = await routes.client.compute_routes(
+            response = await routes.compute_routes(
                 request=routes_request, metadata=[("x-goog-fieldmask", "routes.duration")]
             )
         except Exception as e:
@@ -106,7 +106,7 @@ class Itinerary:
                 LOGGER.exception(e)
                 return None
 
-        if len(response.routes) == 0:
+        if not response or len(response.routes) == 0:
             return None
 
         best_route = response.routes[0]

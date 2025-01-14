@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy import func
 
 import eave.core.database
+from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext, LogContext, log_ctx
 from eave.core.graphql.types.activity import Activity, ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
@@ -213,8 +214,13 @@ class OutingPlanner:
         the activity.
         """
 
-        # The time+120 minutes is because the restaurant happens before the activity.
-        start_time_local = self.survey.start_time_local + timedelta(minutes=120)
+        start_time_local = self.survey.start_time_local
+
+        if not CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            # The time+120 minutes is because the restaurant happens before the activity.
+            # HACK: If the Google Maps APIs are disabled, then a restuarant won't be found, so we only add the delta if we're also hitting the Google Maps APIs
+            start_time_local += timedelta(minutes=120)
+
         self.activity_start_time_local = start_time_local
         end_time_local = start_time_local + timedelta(minutes=90)
 

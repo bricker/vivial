@@ -84,5 +84,9 @@ class _AppConfig(ConfigBase):
     def google_maps_api_key(self) -> str:
         return get_secret("GOOGLE_MAPS_API_KEY")
 
+    @cached_property
+    def google_maps_apis_disabled(self) -> bool:
+        return os.getenv("GOOGLE_MAPS_APIS_DISABLED") == "1"
+
 
 CORE_API_APP_CONFIG = _AppConfig()

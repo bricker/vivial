@@ -9,6 +9,7 @@ module "shared_kubernetes_resources" {
   admin_public_domain_prefix = local.admin_public_domain_prefix
   STRIPE_ENVIRONMENT         = local.STRIPE_ENVIRONMENT
   EAVE_ENV                   = local.EAVE_ENV
+  GOOGLE_MAPS_APIS_DISABLED  = local.GOOGLE_MAPS_APIS_DISABLED
   google_project             = data.google_project.default
 }
 

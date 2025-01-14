@@ -29,7 +29,8 @@ resource "kubernetes_config_map" "shared" {
     EAVE_DASHBOARD_BASE_URL_PUBLIC = "https://${var.www_public_domain_prefix}.${var.dns_domain}"
     EAVE_ADMIN_BASE_URL_PUBLIC     = "https://${var.admin_public_domain_prefix}.${var.dns_domain}"
 
-    STRIPE_ENVIRONMENT = var.STRIPE_ENVIRONMENT
+    STRIPE_ENVIRONMENT        = var.STRIPE_ENVIRONMENT
+    GOOGLE_MAPS_APIS_DISABLED = var.GOOGLE_MAPS_APIS_DISABLED ? "1" : null
   }
 }
 

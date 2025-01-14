@@ -22,6 +22,7 @@ locals {
     },
   }
 
-  STRIPE_ENVIRONMENT = "test"
-  EAVE_ENV           = "staging"
+  STRIPE_ENVIRONMENT        = "test"
+  EAVE_ENV                  = "staging"
+  GOOGLE_MAPS_APIS_DISABLED = true
 }
