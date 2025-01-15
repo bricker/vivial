@@ -18,6 +18,7 @@ export enum SignUpPageVariant {
 }
 
 export enum ItineraryPageVariant {
+  PreferencesBanner = "pb",
   AutoRoll = "ar",
 }
 
@@ -43,15 +44,13 @@ export enum AppRoute {
   itinerary = `${ITINERARY_PREFIX}/:outingId`,
 }
 
-export function routePath({
-  route,
-  pathParams,
-  searchParams,
-}: {
+export type RouteParameters = {
   route: AppRoute;
   pathParams?: { [key: string]: string };
   searchParams?: { [key: string]: string };
-}): string {
+};
+
+export function routePath({ route, pathParams, searchParams }: RouteParameters): string {
   let filledRoute = route.toString();
 
   if (pathParams) {

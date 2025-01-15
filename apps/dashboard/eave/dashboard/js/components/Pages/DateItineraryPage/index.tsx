@@ -15,6 +15,7 @@ import DistanceSection from "./Sections/DistanceSection";
 import LogisticsSection from "./Sections/LogisticsSection";
 import RestaurantSection from "./Sections/RestaurantSection";
 import LoadingView from "./Views/LoadingView";
+import PreferencesBanner from "./Views/PreferencesBanner";
 
 export const PageContainer = styled("div")(({ theme }) => ({
   paddingBottom: 56,
@@ -65,6 +66,7 @@ const DateItineraryPage = () => {
 
   return (
     <PageContainer>
+      <PreferencesBanner />
       <LogisticsSection />
       <RestaurantSection />
       <DistanceSection />
