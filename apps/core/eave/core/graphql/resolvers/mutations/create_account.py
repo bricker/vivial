@@ -60,6 +60,7 @@ async def create_account_mutation(
                 db_session,
                 email=input.email,
                 plaintext_password=input.plaintext_password,
+                visitor_id=visitor_id,
             )
 
     except InvalidRecordError as e:

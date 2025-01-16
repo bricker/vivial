@@ -41,6 +41,7 @@ class OrmHelpersMixin(GooglePlacesMocksMixin, StripeMocksMixin, EventbriteMocksM
             session,
             email=self.anyemail(),
             plaintext_password=self.anystr(),
+            visitor_id=self.anystr(),
         )
 
         return account

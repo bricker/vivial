@@ -50,6 +50,7 @@ class TestValidation(BaseTestCase):
                 session,
                 email=self.anyemail("old email"),
                 plaintext_password=self.anystr(),
+                visitor_id=self.anystr(),
             )
 
         async with self.db_session.begin() as session:
