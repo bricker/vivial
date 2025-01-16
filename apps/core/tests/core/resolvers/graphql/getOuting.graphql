@@ -3,6 +3,7 @@ query Outing($input: OutingInput!) {
     __typename
     id
     costBreakdown {
+      minBaseCostCents
       baseCostCents
       feeCents
       taxCents
@@ -67,6 +68,7 @@ query Outing($input: OutingInput!) {
           name
           notes
           costBreakdown {
+            minBaseCostCents
             baseCostCents
             feeCents
             taxCents

@@ -45,7 +45,8 @@ async def get_internal_activity(*, event_id: str, survey: SurveyOrm | None) -> A
 
     for ticket_type in activity_orm.ticket_types:
         cost_breakdown = CostBreakdown(
-            base_cost_cents=ticket_type.base_cost_cents,
+            base_cost_cents=ticket_type.max_base_cost_cents,
+            min_base_cost_cents=ticket_type.min_base_cost_cents,
             fee_cents=ticket_type.service_fee_cents,
             tax_cents=0,  # We'll calculate this below
         )

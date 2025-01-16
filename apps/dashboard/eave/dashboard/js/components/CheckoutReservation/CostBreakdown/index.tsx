@@ -1,5 +1,12 @@
 import { ActivitySource, type ItineraryFieldsFragment } from "$eave-dashboard/js/graphql/generated/graphql";
-import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
+import {
+  ZERO_DOLLARS_FORMATTED,
+  formatCostRange,
+  formatFeesAndTaxes,
+  formatBaseCost,
+  formatTotalCost,
+  hasUnbookableCost,
+} from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React, { Fragment } from "react";
 
@@ -7,7 +14,6 @@ const FREE = "FREE";
 
 const ComponentContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
-  padding: "24px 32px",
   display: "flex",
   flexDirection: "column",
   gap: 16,
@@ -17,10 +23,6 @@ const TotalCostContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
   justifyContent: "space-between",
-}));
-
-const TopDivider = styled(Divider)(({ theme }) => ({
-  borderColor: theme.palette.primary.main,
 }));
 
 const CostDivider = styled(Divider)(({ theme }) => ({
@@ -46,10 +48,6 @@ const LineItemContainer = styled("div")(() => ({
   columnGap: 8,
 }));
 
-const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
-  fontWeight: bold ? "bold" : "inherit",
-}));
-
 type Breakdown = { key: string; costName: string; costValue: string };
 
 /**
@@ -60,7 +58,7 @@ type Breakdown = { key: string; costName: string; costValue: string };
 function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
-  if (itinerary.reservation) {
+  if (itinerary.reservation?.restaurant.reservable) {
     breakdown.push({
       key: "reservation",
       costName: itinerary.reservation.restaurant.name,
@@ -69,10 +67,17 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
   }
 
   if (itinerary.activityPlan && itinerary.activityPlan.activity.source !== ActivitySource.GooglePlaces) {
+    let costValue = formatBaseCost(itinerary.activityPlan.costBreakdown);
+    if (
+      !itinerary.activityPlan.activity.isBookable &&
+      itinerary.activityPlan.costBreakdown.minBaseCostCents !== itinerary.activityPlan.costBreakdown.baseCostCents
+    ) {
+      costValue = formatCostRange(itinerary.activityPlan.costBreakdown);
+    }
     breakdown.push({
       key: "activity",
       costName: itinerary.activityPlan.activity.name,
-      costValue: formatBaseCost(itinerary.activityPlan.costBreakdown),
+      costValue,
     });
   }
 
@@ -98,31 +103,32 @@ function buildBreakdowns(itinerary: ItineraryFieldsFragment): Breakdown[] {
 }
 
 const CostBreakdown = ({ itinerary }: { itinerary: ItineraryFieldsFragment }) => {
-  const totalCostFormatted = formatTotalCost(itinerary.costBreakdown);
   const breakdown = buildBreakdowns(itinerary);
+  const isUnbookable = hasUnbookableCost(itinerary);
+  const costHeader = isUnbookable ? "Due Today" : "Total Costs";
+  const totalCostFormatted = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(itinerary.costBreakdown);
 
   return (
-    <>
-      <TopDivider />
-      <ComponentContainer>
-        <TotalCostContainer>
-          <TotalText variant="subtitle2">Total Costs</TotalText>
-          <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
-        </TotalCostContainer>
-        <CostDivider />
-        <BreakdownContainer>
-          <LineItemContainer>
-            {breakdown.map((charge) => (
-              <Fragment key={charge.key}>
-                <LineItemText>{charge.costName}</LineItemText>
-                <LineItemText>...</LineItemText>
-                <LineItemText bold={charge.costValue === FREE}>{charge.costValue}</LineItemText>
-              </Fragment>
-            ))}
-          </LineItemContainer>
-        </BreakdownContainer>
-      </ComponentContainer>
-    </>
+    <ComponentContainer>
+      <TotalCostContainer>
+        <TotalText variant="subtitle2">{costHeader}</TotalText>
+        <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
+      </TotalCostContainer>
+      <CostDivider />
+      <BreakdownContainer>
+        <LineItemContainer>
+          {breakdown.map((charge) => (
+            <Fragment key={charge.key}>
+              <Typography>{charge.costName}</Typography>
+              <Typography>...</Typography>
+              <Typography sx={{ fontWeight: charge.costValue === FREE ? "bold" : "inherit" }}>
+                {charge.costValue}
+              </Typography>
+            </Fragment>
+          ))}
+        </LineItemContainer>
+      </BreakdownContainer>
+    </ComponentContainer>
   );
 };
 

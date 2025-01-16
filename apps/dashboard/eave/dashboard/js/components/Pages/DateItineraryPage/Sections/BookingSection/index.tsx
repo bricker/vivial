@@ -9,7 +9,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
-  ActivitySource,
   OutingBudget,
   type Itinerary,
   type PaymentMethodFieldsFragment,
@@ -22,23 +21,15 @@ import {
   type NavigationState,
 } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
-
-import {
-  formatBaseCost,
-  formatFeesAndTaxes,
-  formatTotalCost,
-  hasUnbookableCost,
-  ZERO_DOLLARS_FORMATTED,
-} from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
+import { styled } from "@mui/material";
 
 import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
 import LoadingButton from "$eave-dashboard/js/components/Buttons/LoadingButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
 import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
+import CostBreakdown from "$eave-dashboard/js/components/CheckoutReservation/CostBreakdown";
 import Modal from "$eave-dashboard/js/components/Modal";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
@@ -53,40 +44,6 @@ const Section = styled("section")(({ theme }) => ({
   borderTop: `1.5px solid ${theme.palette.primary.main}`,
   backgroundColor: theme.palette.background.paper,
   padding: "32px 32px 56px",
-}));
-
-const Header = styled("div")(({ theme }) => ({
-  color: theme.palette.common.white,
-  borderBottom: `1px solid ${colors.secondaryButtonCTA}`,
-  display: "flex",
-  justifyContent: "space-between",
-  paddingBottom: 16,
-  marginBottom: 16,
-  fontSize: rem(16),
-  lineHeight: rem(19),
-  fontWeight: 600,
-}));
-
-const CostBreakdown = styled("div")(() => ({
-  borderBottom: `1px solid ${colors.secondaryButtonCTA}`,
-  paddingBottom: 16,
-  display: "grid",
-  gridTemplateColumns: "1fr auto",
-  gridColumnGap: "8px",
-}));
-
-const CostItem = styled(Typography, {
-  shouldForwardProp: (prop) => prop !== "bold",
-})<{ bold?: boolean }>(({ bold }) => ({
-  display: "flex",
-  justifyContent: "flex-end",
-  alignItems: "flex-end",
-  fontWeight: bold ? 700 : 400,
-}));
-
-const CostDescription = styled("span")(() => ({
-  marginRight: 5,
-  textAlign: "right",
 }));
 
 const OneClickBooking = styled("div")(() => ({
@@ -360,12 +317,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     return null;
   }
 
-  const isUnbookable = hasUnbookableCost(outing);
-  const costHeader = isUnbookable ? "Due Today" : "Total Costs";
-  const cost = isUnbookable ? ZERO_DOLLARS_FORMATTED : formatTotalCost(outing.costBreakdown);
-  const activityPlan = outing.activityPlan;
-  const reservation = outing.reservation;
-
   let oneClickUI: React.JSX.Element | undefined;
 
   if (oneClickEligible && reserverDetails && account) {
@@ -407,48 +358,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   return (
     <Section>
       <VivialBadge />
-      <Header>
-        <Typography variant="inherit">{costHeader}</Typography>
-        <Typography variant="inherit">{cost}</Typography>
-      </Header>
-      <CostBreakdown>
-        {reservation && reservation.restaurant.reservable && (
-          <>
-            <CostItem>
-              <CostDescription>{reservation.restaurant.name} Reservations</CostDescription> ...
-            </CostItem>
-            <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
-          </>
-        )}
-        {activityPlan && activityPlan.activity.source !== ActivitySource.GooglePlaces && (
-          <>
-            <CostItem>
-              <CostDescription>
-                {activityPlan.activity.name} Tickets ({outing.headcount})
-              </CostDescription>{" "}
-              ...
-            </CostItem>
-            <CostItem>{formatBaseCost(activityPlan.costBreakdown)}</CostItem>
-            {activityPlan.costBreakdown.taxCents + activityPlan.costBreakdown.feeCents > 0 && (
-              <>
-                <CostItem>
-                  <CostDescription>
-                    {activityPlan.activity.source === ActivitySource.Eventbrite
-                      ? "Service Fees & Taxes via Eventbrite"
-                      : "Service Feeds & Taxes"}{" "}
-                  </CostDescription>{" "}
-                  ...
-                </CostItem>
-                <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
-              </>
-            )}
-          </>
-        )}
-        <CostItem>
-          <CostDescription>Service Fees via Vivial</CostDescription> ...
-        </CostItem>
-        <CostItem bold>FREE</CostItem>
-      </CostBreakdown>
+      <CostBreakdown itinerary={outing} />
       {!viewOnly && (
         <>
           {oneClickUI}

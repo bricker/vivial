@@ -12,6 +12,7 @@ mutation PlanOuting($input: PlanOutingInput!) {
         }
         activityPlan {
           costBreakdown {
+            minBaseCostCents
             baseCostCents
             feeCents
             taxCents
@@ -32,6 +33,7 @@ mutation PlanOuting($input: PlanOutingInput!) {
           costBreakdown {
             totalCostCents
             feeCents
+            minBaseCostCents
             baseCostCents
             taxCents
           }

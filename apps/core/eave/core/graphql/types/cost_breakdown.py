@@ -5,6 +5,7 @@ from eave.stdlib.typing import JsonObject
 
 @strawberry.type
 class CostBreakdown:
+    min_base_cost_cents: int = 0
     base_cost_cents: int = 0
     fee_cents: int = 0
     tax_cents: int = 0
@@ -30,6 +31,7 @@ class CostBreakdown:
 
     def __mul__(self, n: int) -> "CostBreakdown":
         return CostBreakdown(
+            min_base_cost_cents=self.min_base_cost_cents * n,
             base_cost_cents=self.base_cost_cents * n,
             fee_cents=self.fee_cents * n,
             tax_cents=self.tax_cents * n,
@@ -37,6 +39,7 @@ class CostBreakdown:
 
     def __add__(self, other: "CostBreakdown") -> "CostBreakdown":
         return CostBreakdown(
+            min_base_cost_cents=self.min_base_cost_cents + other.min_base_cost_cents,
             base_cost_cents=self.base_cost_cents + other.base_cost_cents,
             fee_cents=self.fee_cents + other.fee_cents,
             tax_cents=self.tax_cents + other.tax_cents,
