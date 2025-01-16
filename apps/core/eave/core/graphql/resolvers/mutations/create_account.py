@@ -6,7 +6,7 @@ import strawberry
 
 import eave.core.database
 from eave.core.auth_cookies import set_new_auth_cookies
-from eave.core.graphql.context import GraphQLContext, analytics_ctx
+from eave.core.graphql.context import GraphQLContext, LogContext, analytics_ctx, log_ctx
 from eave.core.graphql.types.account import Account
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.mail import send_welcome_email
@@ -14,6 +14,7 @@ from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.slack import get_authenticated_eave_system_slack_client
 
@@ -69,53 +70,62 @@ async def create_account_mutation(
     except WeakPasswordError:
         return CreateAccountFailure(failure_reason=CreateAccountFailureReason.WEAK_PASSWORD)
 
-    ANALYTICS.identify(
-        account_id=new_account_orm.id,
-        visitor_id=visitor_id,
-        extra_properties={
-            "email": new_account_orm.email,
-        },
-    )
-
-    ANALYTICS.track(
-        event_name="signup",
-        account_id=new_account_orm.id,
-        visitor_id=visitor_id,
-        ctx=analytics_ctx(info.context),
-    )
-
     set_new_auth_cookies(response=info.context["response"], account_id=new_account_orm.id)
 
-    # TODO: Send in offline queue
-    send_welcome_email(to_emails=[new_account_orm.email])
-    await _notify_slack(account=new_account_orm)
+    await _perform_post_signup_actions(account_orm=new_account_orm, visitor_id=visitor_id, gql_ctx=info.context)
 
     account = Account.from_orm(new_account_orm)
     return CreateAccountSuccess(account=account)
 
+async def _perform_post_signup_actions(*, account_orm: AccountOrm, visitor_id: str | None, gql_ctx: GraphQLContext) -> None:
+    _log_ctx = log_ctx(gql_ctx)
+
+    with suppress_in_production(Exception, ctx=_log_ctx):
+        ANALYTICS.identify(
+            account_id=account_orm.id,
+            visitor_id=visitor_id,
+            extra_properties={
+                "email": account_orm.email,
+            },
+            ctx=_log_ctx,
+        )
+
+    with suppress_in_production(Exception, ctx=_log_ctx):
+        ANALYTICS.track(
+            event_name="signup",
+            account_id=account_orm.id,
+            visitor_id=visitor_id,
+            analytics_ctx=analytics_ctx(gql_ctx),
+            ctx=_log_ctx,
+        )
+
+    with suppress_in_production(Exception, ctx=_log_ctx):
+        # TODO: Send in offline queue
+        send_welcome_email(to_emails=[account_orm.email], ctx=_log_ctx)
+
+    with suppress_in_production(Exception, ctx=_log_ctx):
+        # TODO: Send in offline queue
+        await _notify_slack(account=account_orm)
 
 async def _notify_slack(
     *,
     account: AccountOrm,
 ) -> None:
-    try:
-        channel_id = SHARED_CONFIG.eave_slack_alerts_signups_channel_id
-        slack_client = get_authenticated_eave_system_slack_client()
+    channel_id = SHARED_CONFIG.eave_slack_alerts_signups_channel_id
+    slack_client = get_authenticated_eave_system_slack_client()
 
-        if slack_client and channel_id:
-            slack_response = await slack_client.chat_postMessage(
-                channel=channel_id,
-                text=f"New account! {account.email}",
-            )
+    if slack_client and channel_id:
+        slack_response = await slack_client.chat_postMessage(
+            channel=channel_id,
+            text=f"New account! {account.email}",
+        )
 
-            await slack_client.chat_postMessage(
-                channel=channel_id,
-                thread_ts=slack_response.get("ts"),
-                link_names=True,
-                text=dedent(f"""
-                    - *Account ID*: `{account.id}`
-                    - *Email*: `{account.email}`
-                    """),
-            )
-    except Exception as e:
-        LOGGER.exception(e)
+        await slack_client.chat_postMessage(
+            channel=channel_id,
+            thread_ts=slack_response.get("ts"),
+            link_names=True,
+            text=dedent(f"""
+                - *Account ID*: `{account.id}`
+                - *Email*: `{account.email}`
+                """),
+        )

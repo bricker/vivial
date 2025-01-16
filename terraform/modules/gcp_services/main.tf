@@ -26,6 +26,7 @@ resource "google_project_service" "services" {
     "iap.googleapis.com",                  # Identity-Aware Proxy API
     "iamcredentials.googleapis.com",       # IAM Service Account Credentials API
     "logging.googleapis.com",              # Cloud Logging API
+    "memorystore.googleapis.com",          # Memorystore API
     "monitoring.googleapis.com",           # Cloud Monitoring API
     "networkconnectivity.googleapis.com",  # Network Connectivity API
     "networkmanagement.googleapis.com",    # Network Management API

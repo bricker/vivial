@@ -6,9 +6,10 @@ from uuid import UUID
 import strawberry
 import stripe
 
+from eave.stdlib.exceptions import suppress_in_production
 import eave.stdlib.slack
 from eave.core import database
-from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
+from eave.core.graphql.context import GraphQLContext, LogContext, analytics_ctx, log_ctx
 from eave.core.graphql.types.booking import (
     Booking,
 )
@@ -141,7 +142,7 @@ async def confirm_booking_mutation(
         account_orm=account_orm,
         visitor_id=visitor_id,
         itinerary=itinerary,
-        ctx=info.context,
+        gql_ctx=info.context,
     )
 
     return ConfirmBookingSuccess(
@@ -155,23 +156,29 @@ async def perform_post_confirm_actions(
     account_orm: AccountOrm,
     visitor_id: str | None,
     itinerary: Itinerary,
-    ctx: GraphQLContext,
+    gql_ctx: GraphQLContext,
 ) -> None:
-    try:
-        # TODO: Move all of this into an offline queue
-        _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm)
+    # TODO: Move all of this into an offline queue
+
+    ctx = log_ctx(gql_ctx)
+
+    with suppress_in_production(Exception, ctx=ctx):
+        _fire_booking_confirmation_email(account_orm=account_orm, booking_orm=booking_orm, ctx=ctx)
+
+    with suppress_in_production(Exception, ctx=ctx):
         _fire_analytics_booking_confirmed(
             booking_orm=booking_orm,
             account_orm=account_orm,
             visitor_id=visitor_id,
             itinerary=itinerary,
+            gql_ctx=gql_ctx,
             ctx=ctx,
         )
+
+    with suppress_in_production(Exception, ctx=ctx):
         await _notify_slack_booking_confirmed(
-            booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary, ctx=ctx
+            booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary, ctx=ctx,
         )
-    except Exception as e:
-        LOGGER.exception(e, log_ctx(ctx))
 
 
 def _fire_analytics_booking_confirmed(
@@ -180,7 +187,8 @@ def _fire_analytics_booking_confirmed(
     account_orm: AccountOrm,
     visitor_id: str | None,
     itinerary: Itinerary,
-    ctx: GraphQLContext,
+    gql_ctx: GraphQLContext,
+    ctx: LogContext,
 ) -> None:
     ANALYTICS.track(
         event_name="booking_complete",
@@ -196,7 +204,8 @@ def _fire_analytics_booking_confirmed(
             if booking_orm.outing and booking_orm.outing.survey
             else None,
         },
-        ctx=analytics_ctx(ctx),
+        analytics_ctx=analytics_ctx(gql_ctx),
+        ctx=ctx,
     )
 
 
@@ -205,7 +214,7 @@ async def _notify_slack_booking_confirmed(
     booking_orm: BookingOrm,
     account_orm: AccountOrm,
     itinerary: Itinerary,
-    ctx: GraphQLContext,
+    ctx: LogContext,
 ) -> None:
     total_cost_formatted = (
         f"${"{:.2f}".format(itinerary.calculate_payment_due_breakdown().calculate_total_cost_cents() / 100)}"
@@ -227,81 +236,76 @@ async def _notify_slack_booking_confirmed(
     else:
         msg += "no action required (probably)"
 
-    try:
-        channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
-        slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
+    channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
+    slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
 
-        if slack_client and channel_id:
-            slack_response = await slack_client.chat_postMessage(
-                channel=channel_id,
-                link_names=True,
-                text=msg,
-                unfurl_links=False,
-                unfurl_media=False,
-            )
+    if slack_client and channel_id:
+        slack_response = await slack_client.chat_postMessage(
+            channel=channel_id,
+            link_names=True,
+            text=msg,
+            unfurl_links=False,
+            unfurl_media=False,
+        )
 
-            # TODO: distinguish whether any action on our part is needed for one or both options?
-            await slack_client.chat_postMessage(
-                channel=channel_id,
-                thread_ts=slack_response.get("ts"),
-                link_names=True,
-                text=dedent(f"""
-                    Dashboard link: {dashboard_url}
+        # TODO: distinguish whether any action on our part is needed for one or both options?
+        await slack_client.chat_postMessage(
+            channel=channel_id,
+            thread_ts=slack_response.get("ts"),
+            link_names=True,
+            text=dedent(f"""
+                Dashboard link: {dashboard_url}
 
-                    *Account Info*
+                *Account Info*
 
-                    - *Account ID*: `{account_orm.id}`
-                    - *Account Email*: `{account_orm.email}`
+                - *Account ID*: `{account_orm.id}`
+                - *Account Email*: `{account_orm.email}`
 
-                    *Payment*
+                *Payment*
 
-                    - *Total Cost*: {total_cost_formatted}
-                    - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking_orm.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking_orm.stripe_payment_intent_reference else None}
+                - *Total Cost*: {total_cost_formatted}
+                - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking_orm.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking_orm.stripe_payment_intent_reference else None}
 
-                    *Reserver Details*
+                *Reserver Details*
 
-                    - *First Name*: `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
-                    - *Last Name*: `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
-                    - *Phone Number*: `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
+                - *First Name*: `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
+                - *Last Name*: `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
+                - *Phone Number*: `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
 
-                    {"\n".join([
-                    f"""*Reservation*
+                {"\n".join([
+                f"""*Reservation*
 
-                    - *Source*: {reservation.source}
-                    - *Name*: {reservation.name}
-                    - *Start Time*: {pretty_datetime(reservation.start_time_local)}
-                    - *Attendees*: {reservation.headcount}
-                    - *Booking URL*: {reservation.external_booking_link}
-                    """
-                        for reservation in booking_orm.reservations
-                    ])}
+                - *Source*: {reservation.source}
+                - *Name*: {reservation.name}
+                - *Start Time*: {pretty_datetime(reservation.start_time_local)}
+                - *Attendees*: {reservation.headcount}
+                - *Booking URL*: {reservation.external_booking_link}
+                """
+                    for reservation in booking_orm.reservations
+                ])}
 
-                    {"\n".join([
-                    f"""*Activity*
+                {"\n".join([
+                f"""*Activity*
 
-                    - *Source*: {activity.source}
-                    - *Name*: {activity.name}
-                    - *Start Time*: {pretty_datetime(activity.start_time_local)}
-                    - *Attendees*: {activity.headcount}
-                    - *Booking URL*: {activity.external_booking_link}
-                    """
-                        for activity in booking_orm.activities
-                    ])}
+                - *Source*: {activity.source}
+                - *Name*: {activity.name}
+                - *Start Time*: {pretty_datetime(activity.start_time_local)}
+                - *Attendees*: {activity.headcount}
+                - *Booking URL*: {activity.external_booking_link}
+                """
+                    for activity in booking_orm.activities
+                ])}
 
-                    *Internal Booking ID*: {booking_orm.id}
-                    """),
-            )
-    except Exception as e:
-        if SHARED_CONFIG.is_local:
-            raise
-        else:
-            LOGGER.exception(e, log_ctx(ctx))
+                *Internal Booking ID*: {booking_orm.id}
+                """),
+        )
 
 
-def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm) -> None:
+def _fire_booking_confirmation_email(*, booking_orm: BookingOrm, account_orm: AccountOrm, ctx: LogContext) -> None:
     send_booking_status_email(
         booking_orm=booking_orm,
         emails=[
             account_orm.email
         ],  # FIXME: `booking_orm.accounts` requires an open session, so for now we're just using the given account.
+        ctx=ctx,
     )

@@ -31,12 +31,12 @@ class _AppConfig(ConfigBase):
         else:
             return None
 
-    @cached_property
+    @property
     def db_host(self) -> str | None:
         key = "EAVE_DB_HOST"
         return os.getenv(key)
 
-    @cached_property
+    @property
     def db_port(self) -> int | None:
         key = "EAVE_DB_PORT"
         strv = os.getenv(key)
@@ -45,7 +45,7 @@ class _AppConfig(ConfigBase):
         else:
             return int(strv)
 
-    @cached_property
+    @property
     def db_user(self) -> str | None:
         key = "EAVE_DB_USER"
         return os.getenv(key)
@@ -57,7 +57,7 @@ class _AppConfig(ConfigBase):
         # Treat empty strings as None
         return None if not value else value
 
-    @cached_property
+    @property
     def db_name(self) -> str:
         key = "EAVE_DB_NAME"
         return os.getenv(key, "eave")
@@ -84,9 +84,58 @@ class _AppConfig(ConfigBase):
     def google_maps_api_key(self) -> str:
         return get_secret("GOOGLE_MAPS_API_KEY")
 
-    @cached_property
+    @property
     def google_maps_apis_disabled(self) -> bool:
         return os.getenv("GOOGLE_MAPS_APIS_DISABLED") == "1"
 
+    @cached_property
+    def redis_connection(self) -> tuple[str, int, str] | None:
+        key = "REDIS_CONNECTION"
+        value = os.getenv(key)
+
+        if not value:
+            return None
+
+        host: str | None = None
+        port_str: str | None = None
+        db: str | None = None
+
+        parts = value.split(":")
+        if len(parts) == 3:
+            host, port_str, db = parts
+        elif len(parts) == 2:
+            host, port_str = parts
+        elif len(parts) == 1:
+            host, = parts
+
+        host = host or "localhost"
+        port = int(port_str) if port_str else 6379 # This is okay because `port_str` should never be 0; redis can't run on port 0
+        db = db or "0"
+
+        return (host, port, db)
+
+    @cached_property
+    def redis_auth_string(self) -> str | None:
+        key = "REDIS_AUTH_STRING"
+
+        if SHARED_CONFIG.is_local:
+            return os.getenv(key)
+        else:
+            try:
+                return get_secret(key)
+            except Exception:
+                return None
+
+    @cached_property
+    def redis_tls_ca(self) -> str | None:
+        key = "REDIS_TLS_CA"
+
+        if SHARED_CONFIG.is_local:
+            return os.getenv(key)
+        else:
+            try:
+                return get_secret(key)
+            except Exception:
+                return None
 
 CORE_API_APP_CONFIG = _AppConfig()

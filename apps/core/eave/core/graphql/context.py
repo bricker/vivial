@@ -6,6 +6,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib.analytics import AnalyticsContext
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonObject
 
@@ -71,7 +72,7 @@ class GraphQLContext(TypedDict):
 def log_ctx(context: GraphQLContext) -> LogContext:
     result: LogContext = {}
 
-    try:
+    with suppress_in_production(Exception, ctx=result):
         # the `context` passed into this function is typed as `Any`, so this try/catch is for runtime safety
         # Also, we're inserting attributes one-by-one so that in case of an error, the exception log has at least partial information.
         request = context.get("request")
@@ -136,27 +137,19 @@ def log_ctx(context: GraphQLContext) -> LogContext:
         if extra := context.get("extra"):
             result["extra"] = extra
 
-    except Exception as e:
-        LOGGER.exception(e, result)
-
     return result
 
 
 def analytics_ctx(context: GraphQLContext) -> AnalyticsContext | None:
-    try:
-        # the `context` passed into this function is typed as `Any`, so this try/catch is for runtime safety
-        authenticated_account_id = context.get("authenticated_account_id")
+    # the `context` passed into this function is typed as `Any`, so this try/catch is for runtime safety
+    authenticated_account_id = context.get("authenticated_account_id")
 
-        return AnalyticsContext(
-            {
-                "authenticated_account_id": str(authenticated_account_id) if authenticated_account_id else None,
-                "visitor_id": context.get("visitor_id"),
-                "correlation_id": context.get("correlation_id"),
-                "client_geo": cast(JsonObject, context.get("client_geo")),
-                "client_ip": context.get("client_ip"),
-            }
-        )
-    except Exception as e:
-        LOGGER.exception(e, log_ctx(context))
-
-    return None
+    return AnalyticsContext(
+        {
+            "authenticated_account_id": str(authenticated_account_id) if authenticated_account_id else None,
+            "visitor_id": context.get("visitor_id"),
+            "correlation_id": context.get("correlation_id"),
+            "client_geo": cast(JsonObject, context.get("client_geo")),
+            "client_ip": context.get("client_ip"),
+        }
+    )

@@ -3,7 +3,7 @@ from uuid import UUID
 
 import google.type.latlng_pb2
 import strawberry
-from google.maps.routing import ComputeRoutesRequest, Location, RouteTravelMode, RoutingPreference, Waypoint
+from google.maps.routing import ComputeRoutesRequest, ComputeRoutesResponse, Location, RouteTravelMode, RoutingPreference, Waypoint
 
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
@@ -13,6 +13,7 @@ from eave.core.graphql.types.survey import Survey
 from eave.core.lib.google_places import GoogleRoutesUtility
 from eave.core.shared.enums import RestaurantSource
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 
 
@@ -94,17 +95,12 @@ class Itinerary:
         )
 
         routes = GoogleRoutesUtility()
+        response: ComputeRoutesResponse | None = None
 
-        try:
+        with suppress_in_production(Exception):
             response = await routes.compute_routes(
                 request=routes_request, metadata=[("x-goog-fieldmask", "routes.duration")]
             )
-        except Exception as e:
-            if SHARED_CONFIG.is_local:
-                raise
-            else:
-                LOGGER.exception(e)
-                return None
 
         if not response or len(response.routes) == 0:
             return None

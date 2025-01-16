@@ -99,7 +99,7 @@ class GooglePlacesMocksMixin(MockingMixin, RandomDataMixin):
             ),
         ]
 
-        def _mock_google_maps_geocode(*args, **kwargs) -> list[GeocodeResult]:
+        async def _mock_google_maps_geocode(*args, **kwargs) -> list[GeocodeResult]:
             return self.mock_maps_geocoding_response
 
         self.patch(

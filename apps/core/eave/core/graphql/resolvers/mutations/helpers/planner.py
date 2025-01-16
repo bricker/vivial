@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
+from google.maps.places import Place
 from sqlalchemy import func
 
 import eave.core.database
@@ -26,6 +27,7 @@ from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.geo import Distance, GeoArea
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
@@ -262,19 +264,13 @@ class OutingPlanner:
             eventbrite_events_results = await db_session.scalars(eventbrite_events_query)
 
             for event_orm in eventbrite_events_results:
-                try:
+                with suppress_in_production(Exception):
                     if activity := await self.eventbrite.get_eventbrite_activity(
                         event_id=event_orm.eventbrite_event_id,
                         survey=self.survey,
                     ):
                         self.activity = activity
                         return activity
-                except Exception as e:
-                    if SHARED_CONFIG.is_local:
-                        raise
-                    else:
-                        LOGGER.exception(e)
-                        continue
 
         LOGGER.debug("searching for evergreen activities", log_ctx)
 
@@ -311,17 +307,16 @@ class OutingPlanner:
             place_type = "bar"
 
         for search_area in within_areas:
-            try:
+            places_nearby: list[Place] | None = None
+
+            with suppress_in_production(Exception):
                 places_nearby = await self.places.get_places_nearby(
                     area=search_area,
                     included_primary_types=[place_type],
                 )
-            except Exception as e:
-                if SHARED_CONFIG.is_local:
-                    raise
-                else:
-                    LOGGER.exception(e)
-                    continue
+
+            if not places_nearby:
+                continue
 
             if len(self.excluded_google_place_ids):
                 places_nearby = [p for p in places_nearby if p.id not in self.excluded_google_place_ids]
@@ -338,15 +333,9 @@ class OutingPlanner:
 
                 # Select activities that are within (<=) their requested budget.
                 if will_be_open and place.price_level <= self.survey.budget.google_places_price_level:
-                    try:
+                    with suppress_in_production(Exception):
                         self.activity = await self.places.activity_from_google_place(place=place)
                         return self.activity
-                    except Exception as e:
-                        if SHARED_CONFIG.is_local:
-                            raise
-                        else:
-                            LOGGER.exception(e)
-                            continue
 
         LOGGER.warning("no activity found", log_ctx)
 
@@ -417,17 +406,16 @@ class OutingPlanner:
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:
             for google_category_id_group in google_category_id_groups:
-                try:
+                restaurants_nearby: list[Place] | None = None
+
+                with suppress_in_production(Exception):
                     restaurants_nearby = await self.places.get_places_nearby(
                         area=area,
                         included_primary_types=google_category_id_group,
                     )
-                except Exception as e:
-                    if SHARED_CONFIG.is_local:
-                        raise
-                    else:
-                        LOGGER.exception(e)
-                        continue
+
+                if not restaurants_nearby:
+                    continue
 
                 if len(self.excluded_google_place_ids):
                     restaurants_nearby = [r for r in restaurants_nearby if r.id not in self.excluded_google_place_ids]
@@ -472,15 +460,9 @@ class OutingPlanner:
                     # Select restaurants that _match_ their requested budget.
                     # So if they request an expensive date, we don't recommend McDonald's.
                     if will_be_open and price_level_matches:
-                        try:
+                        with suppress_in_production(Exception):
                             self.restaurant = await self.places.restaurant_from_google_place(place=restaurant)
                             return self.restaurant
-                        except Exception as e:
-                            if SHARED_CONFIG.is_local:
-                                raise
-                            else:
-                                LOGGER.exception(e)
-                                continue
 
         LOGGER.warning("no restaurant found", log_ctx)
 

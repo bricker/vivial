@@ -11,6 +11,7 @@ from sqlalchemy.types import UserDefinedType
 
 from eave.core.lib.address import Address
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 
 
@@ -23,30 +24,24 @@ class AddressColumnType(UserDefinedType[Address]):
     @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[Address] | None:
         def process(value: Address | None) -> str | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     return json.dumps(dataclasses.asdict(value))
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 
     @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[Address] | None:
         def process(value: dict[str, Any]) -> Address | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     # For asyncpg, `value` is a asyncpg.Record. Basically it's a tuple.
                     # It's typed as "Any" because Record is defined in C and not available to the typing system.
                     return Address(**value)
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 
@@ -60,28 +55,22 @@ class ZoneInfoColumnType(UserDefinedType[ZoneInfo]):
     @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[ZoneInfo] | None:
         def process(value: ZoneInfo | None) -> str | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     return value.key
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 
     @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[ZoneInfo] | None:
         def process(value: str) -> ZoneInfo | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     return ZoneInfo(value)
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 
@@ -98,30 +87,24 @@ class StrEnumColumnType[T: StrEnum](UserDefinedType[T], ABC):
     @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[T] | None:
         def process(value: T | None) -> str | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     return value.value
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 
     @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[T] | None:
         def process(value: str) -> T | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     # For asyncpg, `value` is a asyncpg.Record. Basically it's a tuple.
                     # It's typed as "Any" because Record is defined in C and not available to the typing system.
                     return self.enum_member(value)
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 
@@ -138,30 +121,24 @@ class IntEnumColumnType[T: IntEnum](UserDefinedType[T], ABC):
     @override
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[T] | None:
         def process(value: T | None) -> int | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     return value.value
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 
     @override
     def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[T] | None:
         def process(value: int) -> T | None:
-            try:
+            with suppress_in_production(Exception):
                 if value:
                     # For asyncpg, `value` is a asyncpg.Record. Basically it's a tuple.
                     # It's typed as "Any" because Record is defined in C and not available to the typing system.
                     return self.enum_member(value)
-                else:
-                    return None
-            except Exception as e:
-                LOGGER.exception(e)
-                return None
+
+            return None
 
         return process
 

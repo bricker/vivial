@@ -86,7 +86,7 @@ async def create_outing(
             "activity_info": plan.activity_plan.build_analytics_properties() if plan.activity_plan else None,
             "survey_info": gql_survey.build_analytics_properties(),
         },
-        ctx=analytics_ctx(ctx),
+        analytics_ctx=analytics_ctx(ctx),
     )
 
     return outing

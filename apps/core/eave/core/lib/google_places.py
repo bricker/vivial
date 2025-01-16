@@ -1,8 +1,10 @@
+from contextlib import AbstractContextManager, asynccontextmanager, contextmanager
 import enum
+import json
 import urllib.parse
-from collections.abc import Sequence
+from collections.abc import AsyncGenerator, Generator, Sequence
 from datetime import datetime, timedelta
-from typing import TypedDict
+from typing import TypedDict, cast, override
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -10,6 +12,7 @@ import googlemaps.geocoding
 from google.maps.places import (
     GetPhotoMediaRequest,
     GetPlaceRequest,
+    PhotoMedia,
     Place,
     PlacesAsyncClient,
     SearchNearbyRequest,
@@ -26,10 +29,14 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.redis import CACHE
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.exceptions import conditional_suppress, suppress_in_production
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.time import ONE_HOUR_IN_SECONDS
+from eave.stdlib.util import b64encode
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -60,7 +67,6 @@ _PLACE_FIELDS = [
 ]
 _SEARCH_NEARBY_FIELD_MASK = ",".join([f"places.{s}" for s in _PLACE_FIELDS])
 _PLACE_FIELD_MASK = ",".join(_PLACE_FIELDS)
-
 
 class GeocodeLocation(TypedDict, total=False):
     lat: float
@@ -93,11 +99,23 @@ class GoogleMapsUtility:
     def __init__(self) -> None:
         self._client = googlemaps.Client(key=CORE_API_APP_CONFIG.google_maps_api_key)
 
-    def geocode(self, address: str) -> list[GeocodeResult]:
+    async def geocode(self, address: str) -> list[GeocodeResult]:
+        # We can't use hashing here because of hash collisions
+        cache_key = f"google_maps_geocode.{b64encode(address)}"
+
+        with suppress_in_production(Exception):
+            # TODO: Implement distributed locking (eg via Redlock)
+            if cv := await CACHE.get(cache_key):
+                return json.loads(cv)
+
         if CORE_API_APP_CONFIG.google_maps_apis_disabled:
             return []
 
         results: list[GeocodeResult] = googlemaps.geocoding.geocode(client=self._client, address=address)
+
+        with suppress_in_production(Exception):
+            await CACHE.set(cache_key, json.dumps(results))
+
         return results
 
 
@@ -180,7 +198,7 @@ class GooglePlacesUtility:
             door_tips=None,
             insider_tips=None,
             parking_tips=None,
-            primary_type_name=place.primary_type_display_name.text,
+            primary_type_name=place.primary_type_display_name,
             category_group=ActivityCategoryGroup.from_orm(
                 # NOTE: assumes all google places activities will be a food/drink thing
                 ActivityCategoryGroupOrm.one_or_exception(
@@ -196,50 +214,62 @@ class GooglePlacesUtility:
 
         # We catch these requests because if the photos can't be fetched, we should still show the Place result.
         if len(place.photos) > 0:
-            try:
+            with suppress_in_production(Exception):
                 photos.cover_photo = await self.photo_from_google_place_photo(
                     place.photos[0],
                 )
-            except Exception as e:
-                if SHARED_CONFIG.is_local:
-                    raise
-                else:
-                    LOGGER.exception(e)
 
         # Get up to 2 more photos. This is purely a cost-saving measure. Every call to the Photos API costs money and a Place can return up to 10 photos.
         for place_photo in place.photos[1:3]:
-            try:
+            with suppress_in_production(Exception):
                 supplemental_photo = await self.photo_from_google_place_photo(
                     place_photo,
                 )
                 if supplemental_photo:
                     photos.supplemental_photos.append(supplemental_photo)
-            except Exception as e:
-                if SHARED_CONFIG.is_local:
-                    raise
-                else:
-                    LOGGER.exception(e)
 
         return photos
 
-    # Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
     async def photo_from_google_place_photo(
         self,
         photo: PlacePhoto,
     ) -> Photo | None:
+        cache_key = f"google_place_photo.{photo.name}"
+
+        with suppress_in_production(Exception):
+            # TODO: Implement distributed locking (eg via Redlock)
+            if cv := await CACHE.get(cache_key):
+                cached_photo_media = PhotoMedia.deserialize(cv)
+                if not isinstance(cached_photo_media, PhotoMedia):
+                    raise TypeError(f"expected deserialized object to be a PhotoMedia, but got a {type(cached_photo_media)}")
+                return self.photo_media_to_photo(photo=photo, photo_media=cached_photo_media)
+
         if CORE_API_APP_CONFIG.google_maps_apis_disabled:
             return None
 
-        photo_res = await self._client.get_photo_media(
-            request=GetPhotoMediaRequest(
-                name=f"{photo.name}/media",
-                max_width_px=1000,  # This value was chosen arbitrarily
-            )
-        )
+        photo_media: PhotoMedia | None = None
 
+        with suppress_in_production(Exception):
+            photo_media = await self._client.get_photo_media(
+                request=GetPhotoMediaRequest(
+                    name=f"{photo.name}/media",
+                    max_width_px=1000,  # This value was chosen arbitrarily
+                )
+            )
+
+        if not photo_media:
+            return None
+
+        with suppress_in_production(Exception):
+            # FIXME: Place data shouldn't be cached, because 1) the photo names are temporary, and 2) it violates Google's TOS
+            await CACHE.set(cache_key, PhotoMedia.serialize(photo_media), ex=ONE_HOUR_IN_SECONDS * 6)
+
+        return self.photo_media_to_photo(photo=photo, photo_media=photo_media)
+
+    def photo_media_to_photo(self, *, photo: PlacePhoto, photo_media: PhotoMedia) -> Photo:
         return Photo(
-            id=photo_res.name,
-            src=photo_res.photo_uri,
+            id=photo_media.name,
+            src=photo_media.photo_uri,
             alt=None,
             attributions=[attribution.display_name for attribution in photo.author_attributions]
             if photo.author_attributions
@@ -250,17 +280,33 @@ class GooglePlacesUtility:
         self,
         place_id: str,
     ) -> Place | None:
+        cache_key = f"google_place.{place_id}"
+
+        with suppress_in_production(Exception):
+            # TODO: Implement distributed locking (eg via Redlock)
+            if cv := await CACHE.get(cache_key):
+                cached_place = Place.deserialize(cv)
+                if not isinstance(cached_place, Place):
+                    raise TypeError(f"expected deserialized object to be a Place, but got a {type(cached_place)}")
+                return cached_place
+
         if CORE_API_APP_CONFIG.google_maps_apis_disabled:
             return None
 
-        try:
+        place: Place | None = None
+        with suppress_in_production(Exception):
             place = await self._client.get_place(
                 request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
             )
-            return place
-        except Exception as e:
-            LOGGER.error(e)
+
+        if not place:
             return None
+
+        with suppress_in_production(Exception):
+            # FIXME: Place data shouldn't be cached, because 1) the photo names are temporary, and 2) it violates Google's TOS
+            await CACHE.set(cache_key, Place.serialize(place), ex=ONE_HOUR_IN_SECONDS * 6)
+
+        return place
 
     async def get_places_nearby(
         self,
@@ -293,23 +339,38 @@ class GooglePlacesUtility:
         return list(response.places)
 
     async def google_maps_directions_url(self, address: str) -> str:
+        # Note: Although the lower-level API calls are also cached, We cache the directions URL up-front because that
+        # info basically never changes, so we can continue to show the cached values even if we have to disable calls
+        # to the Google Maps APIs.
+
+        # We can't use hashing here because of hash collisions
+        cache_key = f"google_maps_directions_url.{b64encode(address)}"
+
+        with suppress_in_production(Exception):
+            # TODO: Implement distributed locking (eg via Redlock)
+            if cv := await CACHE.get(cache_key):
+                return str(cv)
+
+        url: str | None = None
+
         if not CORE_API_APP_CONFIG.google_maps_apis_disabled:
-            try:
-                geocode_results = self._maps.geocode(address=address)
+            with suppress_in_production(Exception):
+                geocode_results = await self._maps.geocode(address=address)
 
                 for result in geocode_results:
                     if place_id := result.get("place_id"):
                         place = await self.get_google_place(place_id)
                         if place and place.google_maps_uri:
-                            return place.google_maps_uri
-            except Exception as e:
-                if SHARED_CONFIG.is_local:
-                    raise
-                else:
-                    LOGGER.exception(e)
+                            url = place.google_maps_uri
 
-        urlsafe_addr = urllib.parse.quote_plus(address)
-        return f"https://www.google.com/maps/place/{urlsafe_addr}"
+        if not url:
+            urlsafe_addr = urllib.parse.quote_plus(address)
+            url = f"https://www.google.com/maps/place/{urlsafe_addr}"
+
+        with suppress_in_production(Exception):
+            await CACHE.set(cache_key, url)
+
+        return url
 
     def location_from_google_place(self, place: Place) -> Location:
         address = GraphQLAddress(

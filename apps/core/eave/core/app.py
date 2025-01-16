@@ -10,6 +10,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Mount, Route
 from strawberry.asgi import GraphQL
 
+from eave.core.redis import CACHE
 import eave.stdlib.time
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.endpoints.health import HealthEndpoint
@@ -69,8 +70,7 @@ async def _app_lifespan(app: starlette.applications.Starlette) -> AsyncGenerator
     await async_engine.dispose()
 
     try:
-        if client := cache.initialized_client():
-            await client.close()
+        await CACHE.close()
     except Exception as e:
         LOGGER.exception(e)
 

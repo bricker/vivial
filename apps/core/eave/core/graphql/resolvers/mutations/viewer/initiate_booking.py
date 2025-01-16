@@ -28,6 +28,7 @@ from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -305,11 +306,11 @@ async def initiate_booking_mutation(
             account_orm=account_orm,
             visitor_id=visitor_id,
             itinerary=itinerary,
-            ctx=info.context,
+            gql_ctx=info.context,
         )
 
     else:
-        try:
+        with suppress_in_production(Exception, ctx=log_ctx(info.context)):
             _fire_analytics_booking_initiated(
                 booking=booking_orm,
                 itinerary=itinerary,
@@ -317,8 +318,6 @@ async def initiate_booking_mutation(
                 visitor_id=visitor_id,
                 ctx=info.context,
             )
-        except Exception as e:
-            LOGGER.exception(e, log_ctx(info.context))
 
     return InitiateBookingSuccess(
         booking=itinerary,
@@ -349,5 +348,5 @@ def _fire_analytics_booking_initiated(
             if booking.outing and booking.outing.survey
             else None,
         },
-        ctx=analytics_ctx(ctx),
+        analytics_ctx=analytics_ctx(ctx),
     )

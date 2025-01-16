@@ -7,21 +7,22 @@ from strawberry.extensions import SchemaExtension
 
 from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.stdlib.api_util import get_header_value
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 
 
 class ClientGeolocationExtension(SchemaExtension):
     @override
     def on_operation(self) -> Iterator[None]:
-        ctx = cast(GraphQLContext, self.execution_context.context)
+        gql_ctx = cast(GraphQLContext, self.execution_context.context)
 
-        try:
-            req: Request = ctx["request"]
+        with suppress_in_production(Exception, ctx=log_ctx(gql_ctx)):
+            req: Request = gql_ctx["request"]
             cscope = cast(HTTPScope, req.scope)
 
             # These headers are set by the GCP Load Balancer.
             # They will not be present during local development.
-            ctx["client_geo"] = {
+            gql_ctx["client_geo"] = {
                 "region": get_header_value(scope=cscope, name="eave-lb-geo-region"),
                 "subdivision": get_header_value(scope=cscope, name="eave-lb-geo-subdivision"),
                 "city": get_header_value(scope=cscope, name="eave-lb-geo-city"),
@@ -35,9 +36,6 @@ class ClientGeolocationExtension(SchemaExtension):
                 if client_attrs is not None:
                     client_ip, _ = client_attrs
 
-            ctx["client_ip"] = client_ip
-
-        except Exception as e:
-            LOGGER.exception(e, log_ctx(ctx))
+            gql_ctx["client_ip"] = client_ip
 
         yield
