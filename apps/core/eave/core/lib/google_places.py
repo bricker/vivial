@@ -124,6 +124,29 @@ class GooglePlacesUtility:
         self._client = PlacesAsyncClient()
         self._maps = GoogleMapsUtility()
 
+
+    async def get_google_places_activity(self, *, event_id: str) -> Activity | None:
+        place = await self.get_google_place(
+            place_id=event_id,
+        )
+
+        if not place:
+            return None
+
+        activity = await self.activity_from_google_place(place)
+        return activity
+
+    async def get_google_places_restaurant(self, *, restaurant_id: str) -> Restaurant | None:
+        place = await self.get_google_place(
+            place_id=restaurant_id,
+        )
+
+        if not place:
+            return None
+
+        restaurant = await self.restaurant_from_google_place(place)
+        return restaurant
+
     async def restaurant_from_google_place(self, place: Place) -> Restaurant:
         photos = await self.photos_from_google_place(place)
 
@@ -198,6 +221,95 @@ class GooglePlacesUtility:
                     LOGGER.exception(e)
 
         return photos
+
+    # Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
+    async def photo_from_google_place_photo(
+        self,
+        photo: PlacePhoto,
+    ) -> Photo | None:
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return None
+
+        photo_res = await self._client.get_photo_media(
+            request=GetPhotoMediaRequest(
+                name=f"{photo.name}/media",
+                max_width_px=1000,  # This value was chosen arbitrarily
+            )
+        )
+
+        return Photo(
+            id=photo_res.name,
+            src=photo_res.photo_uri,
+            alt=None,
+            attributions=[attribution.display_name for attribution in photo.author_attributions]
+            if photo.author_attributions
+            else [],
+        )
+
+    async def get_google_place(
+        self,
+        place_id: str,
+    ) -> Place | None:
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return None
+
+        try:
+            place = await self._client.get_place(
+                request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
+            )
+            return place
+        except Exception as e:
+            LOGGER.error(e)
+            return None
+
+    async def get_places_nearby(
+        self,
+        *,
+        area: GeoArea,
+        included_primary_types: Sequence[str],
+    ) -> list[Place]:
+        """
+        Given a Google Places API client, use it to search for places nearby the
+        given latitude and longitude that meet the given constraints.
+
+        https://developers.google.com/maps/documentation/places/web-service/nearby-search
+        """
+
+        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            return []
+
+        location_restriction = SearchNearbyRequest.LocationRestriction()
+        location_restriction.circle.radius = area.rad.meters
+        location_restriction.circle.center.latitude = area.center.lat
+        location_restriction.circle.center.longitude = area.center.lon
+        request = SearchNearbyRequest(
+            location_restriction=location_restriction,
+            included_primary_types=included_primary_types[0:50],
+        )
+
+        response = await self._client.search_nearby(
+            request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
+        )
+        return list(response.places)
+
+    async def google_maps_directions_url(self, address: str) -> str:
+        if not CORE_API_APP_CONFIG.google_maps_apis_disabled:
+            try:
+                geocode_results = self._maps.geocode(address=address)
+
+                for result in geocode_results:
+                    if place_id := result.get("place_id"):
+                        place = await self.get_google_place(place_id)
+                        if place and place.google_maps_uri:
+                            return place.google_maps_uri
+            except Exception as e:
+                if SHARED_CONFIG.is_local:
+                    raise
+                else:
+                    LOGGER.exception(e)
+
+        urlsafe_addr = urllib.parse.quote_plus(address)
+        return f"https://www.google.com/maps/place/{urlsafe_addr}"
 
     def location_from_google_place(self, place: Place) -> Location:
         address = GraphQLAddress(
@@ -280,98 +392,6 @@ class GooglePlacesUtility:
             address=address,
         )
 
-    # Warning: This function cannot be cached, because the photo media response contains temporary, expiring image URLs
-    async def photo_from_google_place_photo(
-        self,
-        photo: PlacePhoto,
-    ) -> Photo | None:
-        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
-            return None
-
-        photo_res = await self._client.get_photo_media(
-            request=GetPhotoMediaRequest(
-                name=f"{photo.name}/media",
-                max_width_px=1000,  # This value was chosen arbitrarily
-            )
-        )
-
-        return Photo(
-            id=photo_res.name,
-            src=photo_res.photo_uri,
-            alt=None,
-            attributions=[attribution.display_name for attribution in photo.author_attributions]
-            if photo.author_attributions
-            else [],
-        )
-
-    async def get_google_place(
-        self,
-        place_id: str,
-    ) -> Place | None:
-        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
-            return None
-
-        try:
-            place = await self._client.get_place(
-                request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
-            )
-            return place
-        except Exception as e:
-            LOGGER.error(e)
-            return None
-
-    async def get_google_places_activity(self, *, event_id: str) -> Activity | None:
-        place = await self.get_google_place(
-            place_id=event_id,
-        )
-
-        if not place:
-            return None
-
-        activity = await self.activity_from_google_place(place)
-        return activity
-
-    async def get_google_places_restaurant(self, *, restaurant_id: str) -> Restaurant | None:
-        place = await self.get_google_place(
-            place_id=restaurant_id,
-        )
-
-        if not place:
-            return None
-
-        restaurant = await self.restaurant_from_google_place(place)
-        return restaurant
-
-    async def get_places_nearby(
-        self,
-        *,
-        area: GeoArea,
-        included_primary_types: Sequence[str],
-    ) -> list[Place]:
-        """
-        Given a Google Places API client, use it to search for places nearby the
-        given latitude and longitude that meet the given constraints.
-
-        https://developers.google.com/maps/documentation/places/web-service/nearby-search
-        """
-
-        if CORE_API_APP_CONFIG.google_maps_apis_disabled:
-            return []
-
-        location_restriction = SearchNearbyRequest.LocationRestriction()
-        location_restriction.circle.radius = area.rad.meters
-        location_restriction.circle.center.latitude = area.center.lat
-        location_restriction.circle.center.longitude = area.center.lon
-        request = SearchNearbyRequest(
-            location_restriction=location_restriction,
-            included_primary_types=included_primary_types[0:50],
-        )
-
-        response = await self._client.search_nearby(
-            request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
-        )
-        return list(response.places)
-
     def place_will_be_open(
         self, *, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo
     ) -> bool:
@@ -416,22 +436,3 @@ class GooglePlacesUtility:
         can_sit = accessibility_options.wheelchair_accessible_seating
 
         return can_enter and can_park and can_pee and can_sit
-
-    async def google_maps_directions_url(self, address: str) -> str:
-        if not CORE_API_APP_CONFIG.google_maps_apis_disabled:
-            try:
-                geocode_results = self._maps.geocode(address=address)
-
-                for result in geocode_results:
-                    if place_id := result.get("place_id"):
-                        place = await self.get_google_place(place_id)
-                        if place and place.google_maps_uri:
-                            return place.google_maps_uri
-            except Exception as e:
-                if SHARED_CONFIG.is_local:
-                    raise
-                else:
-                    LOGGER.exception(e)
-
-        urlsafe_addr = urllib.parse.quote_plus(address)
-        return f"https://www.google.com/maps/place/{urlsafe_addr}"
