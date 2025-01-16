@@ -124,7 +124,6 @@ class GooglePlacesUtility:
         self._client = PlacesAsyncClient()
         self._maps = GoogleMapsUtility()
 
-
     async def get_google_places_activity(self, *, event_id: str) -> Activity | None:
         place = await self.get_google_place(
             place_id=event_id,
@@ -207,7 +206,8 @@ class GooglePlacesUtility:
                 else:
                     LOGGER.exception(e)
 
-        for place_photo in place.photos[1:]:
+        # Get up to 2 more photos. This is purely a cost-saving measure. Every call to the Photos API costs money and a Place can return up to 10 photos.
+        for place_photo in place.photos[1:3]:
             try:
                 supplemental_photo = await self.photo_from_google_place_photo(
                     place_photo,
