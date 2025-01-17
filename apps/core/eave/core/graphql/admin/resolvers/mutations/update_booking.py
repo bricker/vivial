@@ -6,8 +6,7 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.admin.graphql.context import AdminGraphQLContext
-from eave.core.graphql.context import log_ctx
+from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.core.graphql.types.booking import (
     Booking,
 )
@@ -59,7 +58,7 @@ AdminUpdateBookingResult = Annotated[
 
 async def admin_update_booking_mutation(
     *,
-    info: strawberry.Info[AdminGraphQLContext],
+    info: strawberry.Info[GraphQLContext],
     input: AdminUpdateBookingInput,
 ) -> AdminUpdateBookingResult:
     """

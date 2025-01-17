@@ -7,7 +7,6 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
 from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
@@ -17,6 +16,8 @@ from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+
+from .helpers.create_outing import create_outing
 
 
 @strawberry.input

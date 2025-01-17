@@ -5,7 +5,6 @@ from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.core.admin.graphql.context import AdminGraphQLContext
 from eave.stdlib.analytics import AnalyticsContext
 from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
@@ -70,7 +69,7 @@ class GraphQLContext(TypedDict):
     extra: NotRequired[dict[str, object]]
 
 
-def log_ctx(context: GraphQLContext | AdminGraphQLContext) -> LogContext:
+def log_ctx(context: GraphQLContext) -> LogContext:
     result: LogContext = {}
 
     with suppress_in_production(Exception, ctx=result):

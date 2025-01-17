@@ -2,13 +2,14 @@ from uuid import UUID
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext, analytics_ctx
-from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
+
+from .planner import OutingPlanner
 
 
 async def create_outing(

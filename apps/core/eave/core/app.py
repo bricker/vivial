@@ -23,9 +23,9 @@ from eave.stdlib.logging import LOGGER
 from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 from eave.stdlib.starlette import exception_handlers
 
-from .admin.graphql.schema import schema as internal_schema
 from .database import async_engine
-from .graphql.schema import schema
+from .graphql.admin.schema import schema as internal_schema
+from .graphql.root.schema import schema
 
 eave.stdlib.time.set_utc()
 

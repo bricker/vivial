@@ -1,14 +1,14 @@
 import strawberry
 
-from eave.core.graphql.resolvers.fields.viewer.account import get_viewer_account_query
-from eave.core.graphql.resolvers.fields.viewer.billing_portal_url import get_billing_portal_url_query
-from eave.core.graphql.resolvers.fields.viewer.booked_outings import get_booking_details_query, list_bookings_query
-from eave.core.graphql.resolvers.fields.viewer.outing_preferences import (
+from eave.core.graphql.root.resolvers.fields.viewer.account import get_viewer_account_query
+from eave.core.graphql.root.resolvers.fields.viewer.billing_portal_url import get_billing_portal_url_query
+from eave.core.graphql.root.resolvers.fields.viewer.booked_outings import get_booking_details_query, list_bookings_query
+from eave.core.graphql.root.resolvers.fields.viewer.outing_preferences import (
     OutingPreferences,
     get_outing_preferences_query,
 )
-from eave.core.graphql.resolvers.fields.viewer.payment_methods import list_viewer_payment_methods_query
-from eave.core.graphql.resolvers.fields.viewer.reserver_details import list_reserver_details_query
+from eave.core.graphql.root.resolvers.fields.viewer.payment_methods import list_viewer_payment_methods_query
+from eave.core.graphql.root.resolvers.fields.viewer.reserver_details import list_reserver_details_query
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.booking import BookingDetails, BookingDetailsPeek
 from eave.core.graphql.types.reserver_details import ReserverDetails

@@ -7,9 +7,6 @@ import stripe
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
-from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
-    perform_post_confirm_actions,
-)
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
@@ -31,6 +28,10 @@ from eave.core.shared.errors import ValidationError
 from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
+
+from .confirm_booking import (
+    perform_post_confirm_actions,
+)
 
 
 @strawberry.input

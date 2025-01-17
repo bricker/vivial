@@ -4,7 +4,7 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.admin.graphql.context import AdminGraphQLContext
+from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.booking import BookingDetailsPeek
@@ -19,7 +19,7 @@ from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSourc
 
 async def admin_list_bookings_query(
     *,
-    info: strawberry.Info[AdminGraphQLContext],
+    info: strawberry.Info[GraphQLContext],
     account_id: UUID,
 ) -> list[BookingDetailsPeek]:
     async with database.async_session.begin() as db_session:
@@ -82,7 +82,7 @@ class AdminBookingInfo:
 
 async def admin_get_booking_info_query(
     *,
-    info: strawberry.Info[AdminGraphQLContext],
+    info: strawberry.Info[GraphQLContext],
     booking_id: UUID,
 ) -> AdminBookingInfo:
     async with database.async_session.begin() as session:
@@ -130,7 +130,7 @@ async def admin_get_booking_info_query(
 
 async def admin_get_booking_activity_query(
     *,
-    info: strawberry.Info[AdminGraphQLContext],
+    info: strawberry.Info[GraphQLContext],
     booking_id: UUID,
 ) -> Activity | None:
     async with database.async_session.begin() as session:
@@ -150,7 +150,7 @@ async def admin_get_booking_activity_query(
 
 async def admin_get_booking_restaurant_query(
     *,
-    info: strawberry.Info[AdminGraphQLContext],
+    info: strawberry.Info[GraphQLContext],
     booking_id: UUID,
 ) -> Restaurant | None:
     async with database.async_session.begin() as session:
