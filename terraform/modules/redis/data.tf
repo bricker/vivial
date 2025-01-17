@@ -1,1 +1,1 @@
-data "google_cloud_project" "default" {}
+data "google_project" "default" {}
