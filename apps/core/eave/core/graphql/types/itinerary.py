@@ -3,18 +3,24 @@ from uuid import UUID
 
 import google.type.latlng_pb2
 import strawberry
-from google.maps.routing import ComputeRoutesRequest, ComputeRoutesResponse, Location, RouteTravelMode, RoutingPreference, Waypoint
+from google.maps.routing import (
+    ComputeRoutesRequest,
+    ComputeRoutesResponse,
+    Location,
+    RouteTravelMode,
+    RoutingPreference,
+    Waypoint,
+)
 
+from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.google_places import GoogleRoutesUtility
+from eave.core.lib.google_places import FIELDMASK_HEADER, GoogleRoutesUtility
 from eave.core.shared.enums import RestaurantSource
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.exceptions import suppress_in_production
-from eave.stdlib.logging import LOGGER
 
 
 @strawberry.type
@@ -68,13 +74,15 @@ class Itinerary:
             raise ValueError("both reservation and activity_plan are None")
 
     @strawberry.field
-    async def travel(self) -> TravelInfo | None:
+    async def travel(self, *, info: strawberry.Info[GraphQLContext]) -> TravelInfo | None:
         if (
             not self.reservation
             or not self.activity_plan
             or self.reservation.restaurant.source != RestaurantSource.GOOGLE_PLACES
         ):
             return None
+
+        ctx = log_ctx(info.context)
 
         routes_request = ComputeRoutesRequest(
             origin=Waypoint(
@@ -97,9 +105,11 @@ class Itinerary:
         routes = GoogleRoutesUtility()
         response: ComputeRoutesResponse | None = None
 
-        with suppress_in_production(Exception):
+        with suppress_in_production(Exception, ctx=ctx):
             response = await routes.compute_routes(
-                request=routes_request, metadata=[("x-goog-fieldmask", "routes.duration")]
+                request=routes_request,
+                metadata=[(FIELDMASK_HEADER, "routes.duration")],
+                ctx=ctx,
             )
 
         if not response or len(response.routes) == 0:

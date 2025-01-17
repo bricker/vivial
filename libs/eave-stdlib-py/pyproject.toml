@@ -12,6 +12,7 @@ dependencies = [
   "google-api-python-client==2.154.0",
   "google-cloud-compute==1.22.0",
   "google-cloud-kms==3.1.1",
+  "proto_plus==1.25.0",
   "slack-sdk==3.33.5",
   "uvicorn==0.32.1",
   "starlette==0.41.3",

@@ -1,4 +1,6 @@
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
+
 import sendgrid
 from sendgrid.helpers.mail import Content, Email, Mail, To
 
@@ -15,7 +17,9 @@ class SendgridMailer:
         self.client = sendgrid.SendGridAPIClient(api_key=SHARED_CONFIG.send_grid_api_key)
         self.from_email = Email(email="friends@vivialapp.com", name="Friends @ Vivial")
 
-    def send_html_email(self, to_emails: list[str], subject: str, html_content: str, *, ctx: Mapping[str, Any] | None = None) -> None:
+    def send_html_email(
+        self, to_emails: list[str], subject: str, html_content: str, *, ctx: Mapping[str, Any] | None = None
+    ) -> None:
         """
         Send an email with Sendgrid
         https://github.com/sendgrid/sendgrid-python
@@ -32,7 +36,14 @@ class SendgridMailer:
         else:
             LOGGER.warning("Mailer disabled - not sending any emails", ctx)
 
-    def send_templated_email(self, template_id: str, to_emails: list[str], dynamic_data: dict[str, str], *, ctx: Mapping[str, Any] | None = None) -> None:
+    def send_templated_email(
+        self,
+        template_id: str,
+        to_emails: list[str],
+        dynamic_data: dict[str, str],
+        *,
+        ctx: Mapping[str, Any] | None = None,
+    ) -> None:
         """
         Send an email that is defined by a dynamic template in the sendgrid dashboard.
         Template IDs and the expected dynamic data for the target template

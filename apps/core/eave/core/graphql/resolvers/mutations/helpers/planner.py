@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from google.maps.places import Place
 from sqlalchemy import func
 
 import eave.core.database
@@ -17,7 +16,7 @@ from eave.core.graphql.types.restaurant import Reservation, Restaurant
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_internal_activity
 from eave.core.lib.eventbrite import EventbriteUtility
-from eave.core.lib.google_places import GooglePlacesUtility
+from eave.core.lib.google_places import GooglePlacesUtility, SearchNearbyPartialPlace
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
@@ -26,7 +25,6 @@ from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, 
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.geo import Distance, GeoArea
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 
@@ -307,7 +305,7 @@ class OutingPlanner:
             place_type = "bar"
 
         for search_area in within_areas:
-            places_nearby: list[Place] | None = None
+            places_nearby: list[SearchNearbyPartialPlace] | None = None
 
             with suppress_in_production(Exception):
                 places_nearby = await self.places.get_places_nearby(
@@ -323,19 +321,21 @@ class OutingPlanner:
 
             random.shuffle(places_nearby)
 
-            for place in places_nearby:
+            for partial_place in places_nearby:
                 will_be_open = self.places.place_will_be_open(
-                    place=place,
+                    place=partial_place,
                     arrival_time=start_time_local,
                     departure_time=end_time_local,
                     timezone=self.survey.timezone,
                 )
 
                 # Select activities that are within (<=) their requested budget.
-                if will_be_open and place.price_level <= self.survey.budget.google_places_price_level:
+                if will_be_open and partial_place.price_level <= self.survey.budget.google_places_price_level:
                     with suppress_in_production(Exception):
-                        self.activity = await self.places.activity_from_google_place(place=place)
-                        return self.activity
+                        place = await self.places.get_google_place(place_id=partial_place.id)
+                        if place:
+                            self.activity = await self.places.activity_from_google_place(place=place)
+                            return self.activity
 
         LOGGER.warning("no activity found", log_ctx)
 
@@ -406,7 +406,7 @@ class OutingPlanner:
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:
             for google_category_id_group in google_category_id_groups:
-                restaurants_nearby: list[Place] | None = None
+                restaurants_nearby: list[SearchNearbyPartialPlace] | None = None
 
                 with suppress_in_production(Exception):
                     restaurants_nearby = await self.places.get_places_nearby(
@@ -461,8 +461,11 @@ class OutingPlanner:
                     # So if they request an expensive date, we don't recommend McDonald's.
                     if will_be_open and price_level_matches:
                         with suppress_in_production(Exception):
-                            self.restaurant = await self.places.restaurant_from_google_place(place=restaurant)
-                            return self.restaurant
+                            # We do this so that we can include minimal fields in the search_nearby requests.
+                            place = await self.places.get_google_place(place_id=restaurant.id)
+                            if place:
+                                self.restaurant = await self.places.restaurant_from_google_place(place=place)
+                                return self.restaurant
 
         LOGGER.warning("no restaurant found", log_ctx)
 

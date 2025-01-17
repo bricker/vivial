@@ -38,6 +38,10 @@ class GeoPoint:
         r = 3958.75
         return c * r
 
+    @property
+    def fingerprint(self) -> str:
+        return f"{self.lat},{self.lon}"
+
 
 @strawberry.type
 class Distance:
@@ -48,8 +52,16 @@ class Distance:
         self.miles = miles
         self.meters = miles * 1609.34
 
+    @property
+    def fingerprint(self) -> str:
+        return f"{self.miles}"
+
 
 @strawberry.type
 class GeoArea:
     center: GeoPoint
     rad: Distance
+
+    @property
+    def fingerprint(self) -> str:
+        return f"{self.center.fingerprint},{self.rad.fingerprint}"

@@ -11,6 +11,8 @@ from strawberry.extensions import (
 )
 from strawberry.schema.config import StrawberryConfig
 
+from eave.core.graphql.extensions.client_geolocation_extension import ClientGeolocationExtension
+from eave.core.graphql.extensions.operation_info_extension import OperationInfoExtension
 from eave.stdlib.config import SHARED_CONFIG
 
 from .mutation import Mutation
@@ -36,6 +38,8 @@ schema = strawberry.Schema(
         QueryDepthLimiter(max_depth=10),
         MaxAliasesLimiter(max_alias_count=15),
         MaxTokensLimiter(max_token_count=1000),
+        OperationInfoExtension(),
+        ClientGeolocationExtension(),
         MaskErrors(
             error_message="Internal Server Error",
             should_mask_error=_should_mask_error,

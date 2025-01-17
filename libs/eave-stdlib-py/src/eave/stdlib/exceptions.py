@@ -1,11 +1,10 @@
-from collections.abc import Callable, Generator, Mapping
 import contextlib
+from collections.abc import Callable, Mapping
 from types import TracebackType
 from typing import Any, override
 
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
-
 
 
 class conditional_suppress(contextlib.suppress):  # noqa: N801 - following context manager naming convention
@@ -23,13 +22,21 @@ class conditional_suppress(contextlib.suppress):  # noqa: N801 - following conte
     _silent: bool
     _ctx: Mapping[str, Any] | None
 
-    def __init__(self, *exceptions: type[BaseException], condition: bool | Callable[[], bool] | None = None, silent: bool = False, ctx: Mapping[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        *exceptions: type[BaseException],
+        condition: bool | Callable[[], bool] | None = None,
+        silent: bool = False,
+        ctx: Mapping[str, Any] | None = None,
+    ) -> None:
         self._exceptions = exceptions
         self._condition = condition
         self._silent = silent
 
     @override
-    def __exit__(self, exctype: type[BaseException] | None , excinst: BaseException | None, exctb: TracebackType | None) -> bool:
+    def __exit__(
+        self, exctype: type[BaseException] | None, excinst: BaseException | None, exctb: TracebackType | None
+    ) -> bool:
         should_suppress = super().__exit__(exctype, excinst, exctb)
 
         # If there is no exception or the exception doesn't match a passed-in exception, then always raise.
@@ -49,6 +56,7 @@ class conditional_suppress(contextlib.suppress):  # noqa: N801 - following conte
 
         return should_suppress
 
+
 class suppress_in_production(conditional_suppress):  # noqa: N801 - following context manager naming convention
     """
     In production, exceptions will be logged but won't raise.
@@ -57,5 +65,6 @@ class suppress_in_production(conditional_suppress):  # noqa: N801 - following co
     This isn't appropriate for everything; it's most valuable when dealing with external dependencies (eg APIs) where
     failures are being handled gracefully (eg with fallbacks).
     """
+
     def __init__(self, *exceptions: type[BaseException], ctx: Mapping[str, Any] | None = None) -> None:
         super().__init__(*exceptions, condition=(not SHARED_CONFIG.is_local), silent=False, ctx=ctx)

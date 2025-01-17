@@ -12,7 +12,6 @@ from sqlalchemy.types import UserDefinedType
 from eave.core.lib.address import Address
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.stdlib.exceptions import suppress_in_production
-from eave.stdlib.logging import LOGGER
 
 
 class AddressColumnType(UserDefinedType[Address]):

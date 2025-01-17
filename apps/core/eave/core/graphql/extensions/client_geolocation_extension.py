@@ -8,7 +8,6 @@ from strawberry.extensions import SchemaExtension
 from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.stdlib.api_util import get_header_value
 from eave.stdlib.exceptions import suppress_in_production
-from eave.stdlib.logging import LOGGER
 
 
 class ClientGeolocationExtension(SchemaExtension):

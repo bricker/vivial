@@ -3,9 +3,10 @@ import logging
 import sys
 from collections.abc import Mapping
 from logging import Logger, LogRecord
-from typing import Any, override
+from typing import Any, cast, override
 
 import google.cloud.logging
+import proto
 
 from eave.stdlib.typing import JsonObject, JsonValue
 
@@ -135,7 +136,9 @@ class EaveLogger:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
 
-    def _preparekwargs(self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any) -> dict[str, Any]:
+    def _preparekwargs(
+        self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any
+    ) -> dict[str, Any]:
         if isinstance(msg, BaseException):
             kwargs["exc_info"] = True
 
@@ -181,6 +184,10 @@ class EaveLogger:
                 return {k: self._build_extra(e) for k, e in v.items()}
             elif dataclasses.is_dataclass(v) and not isinstance(v, type):
                 return self._build_extra(dataclasses.asdict(v))
+            elif isinstance(object, proto.Message):
+                # We have to cast here because `proto.Message.to_dict` return type is incorrect in the source code.
+                j = cast(dict[str, Any], proto.Message.to_dict(v))
+                return self._build_extra(j)
             else:
                 return str(v)
         except Exception as e:

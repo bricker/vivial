@@ -10,7 +10,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Mount, Route
 from strawberry.asgi import GraphQL
 
-from eave.core.redis import CACHE
 import eave.stdlib.time
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.endpoints.health import HealthEndpoint
@@ -18,7 +17,7 @@ from eave.core.endpoints.logout import LogoutEndpoint
 from eave.core.endpoints.noop import NoopEndpoint
 from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
-from eave.stdlib import cache
+from eave.core.redis import CACHE
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware

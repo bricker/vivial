@@ -1,5 +1,5 @@
 module "redis" {
-  source = "../../modules/redis"
+  source                 = "../../modules/redis"
   google_compute_network = module.project_base.google_compute_network
 
   redis_user_role_members = [

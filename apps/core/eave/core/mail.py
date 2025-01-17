@@ -1,10 +1,9 @@
 import dataclasses
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from eave.core.graphql.context import LogContext
 from eave.core.orm.booking import BookingOrm, BookingState
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.mail import SENDGRID_MAILER
 from eave.stdlib.time import pretty_date, pretty_time

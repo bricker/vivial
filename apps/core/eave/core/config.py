@@ -106,10 +106,12 @@ class _AppConfig(ConfigBase):
         elif len(parts) == 2:
             host, port_str = parts
         elif len(parts) == 1:
-            host, = parts
+            (host,) = parts
 
         host = host or "localhost"
-        port = int(port_str) if port_str else 6379 # This is okay because `port_str` should never be 0; redis can't run on port 0
+        port = (
+            int(port_str) if port_str else 6379
+        )  # This is okay because `port_str` should never be 0; redis can't run on port 0
         db = db or "0"
 
         return (host, port, db)
@@ -137,5 +139,6 @@ class _AppConfig(ConfigBase):
                 return get_secret(key)
             except Exception:
                 return None
+
 
 CORE_API_APP_CONFIG = _AppConfig()

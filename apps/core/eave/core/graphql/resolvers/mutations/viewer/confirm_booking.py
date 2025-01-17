@@ -6,7 +6,6 @@ from uuid import UUID
 import strawberry
 import stripe
 
-from eave.stdlib.exceptions import suppress_in_production
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext, LogContext, analytics_ctx, log_ctx
@@ -24,6 +23,7 @@ from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.time import pretty_datetime
 from eave.stdlib.util import unwrap
@@ -177,7 +177,10 @@ async def perform_post_confirm_actions(
 
     with suppress_in_production(Exception, ctx=ctx):
         await _notify_slack_booking_confirmed(
-            booking_orm=booking_orm, account_orm=account_orm, itinerary=itinerary, ctx=ctx,
+            booking_orm=booking_orm,
+            account_orm=account_orm,
+            itinerary=itinerary,
+            ctx=ctx,
         )
 
 

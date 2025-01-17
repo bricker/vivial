@@ -6,7 +6,7 @@ import strawberry
 
 import eave.core.database
 from eave.core.auth_cookies import set_new_auth_cookies
-from eave.core.graphql.context import GraphQLContext, LogContext, analytics_ctx, log_ctx
+from eave.core.graphql.context import GraphQLContext, analytics_ctx, log_ctx
 from eave.core.graphql.types.account import Account
 from eave.core.lib.analytics_client import ANALYTICS
 from eave.core.mail import send_welcome_email
@@ -15,7 +15,6 @@ from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.exceptions import suppress_in_production
-from eave.stdlib.logging import LOGGER
 from eave.stdlib.slack import get_authenticated_eave_system_slack_client
 
 
@@ -77,7 +76,10 @@ async def create_account_mutation(
     account = Account.from_orm(new_account_orm)
     return CreateAccountSuccess(account=account)
 
-async def _perform_post_signup_actions(*, account_orm: AccountOrm, visitor_id: str | None, gql_ctx: GraphQLContext) -> None:
+
+async def _perform_post_signup_actions(
+    *, account_orm: AccountOrm, visitor_id: str | None, gql_ctx: GraphQLContext
+) -> None:
     _log_ctx = log_ctx(gql_ctx)
 
     with suppress_in_production(Exception, ctx=_log_ctx):
@@ -106,6 +108,7 @@ async def _perform_post_signup_actions(*, account_orm: AccountOrm, visitor_id: s
     with suppress_in_production(Exception, ctx=_log_ctx):
         # TODO: Send in offline queue
         await _notify_slack(account=account_orm)
+
 
 async def _notify_slack(
     *,

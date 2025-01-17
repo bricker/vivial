@@ -7,6 +7,7 @@ import strawberry
 
 from eave.core import database
 from eave.core.admin.graphql.context import AdminGraphQLContext
+from eave.core.graphql.context import log_ctx
 from eave.core.graphql.types.booking import (
     Booking,
 )
@@ -165,7 +166,9 @@ async def admin_update_booking_mutation(
         )
 
     if original_booking.state != BookingState.BOOKED and updated_booking.state == BookingState.BOOKED:
-        send_booking_status_email(booking_orm=updated_booking, emails=[a.email for a in accounts])
+        send_booking_status_email(
+            booking_orm=updated_booking, emails=[a.email for a in accounts], ctx=log_ctx(info.context)
+        )
 
     return AdminUpdateBookingSuccess(
         booking=Booking.from_orm(updated_booking),

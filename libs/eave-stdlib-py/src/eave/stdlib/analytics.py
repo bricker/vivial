@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Mapping, TypedDict
+from collections.abc import Mapping
+from typing import Any, TypedDict
 from uuid import UUID
 
 import segment.analytics

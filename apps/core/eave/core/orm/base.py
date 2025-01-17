@@ -7,7 +7,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, UOWTransaction, map
 
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.exceptions import suppress_in_production
-from eave.stdlib.logging import LOGGER
 
 
 class InvalidRecordError(Exception):

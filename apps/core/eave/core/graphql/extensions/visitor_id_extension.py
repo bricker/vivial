@@ -6,7 +6,6 @@ from strawberry.extensions import SchemaExtension
 from eave.core.graphql.context import GraphQLContext, log_ctx
 from eave.stdlib.analytics import SEGMENT_ANONYMOUS_ID_COOKIE_NAME
 from eave.stdlib.exceptions import suppress_in_production
-from eave.stdlib.logging import LOGGER
 
 
 class VisitorIdExtension(SchemaExtension):
