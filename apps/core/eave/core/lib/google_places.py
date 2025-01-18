@@ -434,6 +434,7 @@ class GooglePlacesUtility:
         *,
         area: GeoArea,
         included_primary_types: Sequence[str],
+        rank_preference: SearchNearbyRequest.RankPreference = SearchNearbyRequest.RankPreference.RANK_PREFERENCE_UNSPECIFIED,
     ) -> list[SearchNearbyPartialPlace]:
         """
         Given a Google Places API client, use it to search for places nearby the
@@ -474,6 +475,7 @@ class GooglePlacesUtility:
             location_restriction=location_restriction,
             included_primary_types=included_primary_types[0:50], # Maximum 50 types are allowed
             max_result_count=20, # max allowed
+            rank_preference=rank_preference,
         )
 
         response = await self._client.search_nearby(
