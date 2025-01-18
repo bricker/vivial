@@ -357,26 +357,26 @@ class OutingPlanner:
 
         log_ctx = self._log_ctx()
 
-        google_category_id_groups: list[list[str]] = []
+        google_category_ids: list[str] = []
 
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(arrival_time_local, self.survey.timezone):
-            google_category_id_groups = [list(_BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS)]
+            google_category_ids = list(_BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS)
         elif is_late_morning(arrival_time_local, self.survey.timezone):
-            google_category_id_groups = [list(_BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS)]
+            google_category_ids = list(_BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS)
         else:
             # Already randomized in combiner funcs
-            google_category_id_groups = [cat.google_category_ids for cat in self.group_restaurant_category_preferences]
+            google_category_ids = [category_id for cat in self.group_restaurant_category_preferences for category_id in cat.google_category_ids ]
 
-        if len(google_category_id_groups) == 0:
+        if len(google_category_ids) == 0:
             # Failsafe - This should never happen
             LOGGER.warning("No google category IDs could be resolved; falling back to defaults", log_ctx)
 
             # If included_primary_types is empty, this query returns everything, like car rental places and junk.
             # Although self.group_restaurant_category_preferences should never be empty, it's possible for there to be no google_category_ids here.
             # That should never happen, but if it does, we don't want to show bad results, so this is a failsafe.
-            google_category_id_groups = [cat.google_category_ids for cat in RestaurantCategoryOrm.defaults()]
-            random.shuffle(google_category_id_groups)
+            google_category_ids = [category_id for cat in RestaurantCategoryOrm.defaults() for category_id in cat.google_category_ids]
+            random.shuffle(google_category_ids)
 
         # If an activity has been selected, try that search area first.
         if self.activity:
@@ -405,67 +405,66 @@ class OutingPlanner:
 
         # Find a restaurant that meets the outing constraints.
         for area in within_areas:
-            for google_category_id_group in google_category_id_groups:
-                restaurants_nearby: list[SearchNearbyPartialPlace] | None = None
+            restaurants_nearby: list[SearchNearbyPartialPlace] | None = None
 
-                with suppress_in_production(Exception):
-                    restaurants_nearby = await self.places.get_places_nearby(
-                        area=area,
-                        included_primary_types=google_category_id_group,
-                    )
+            with suppress_in_production(Exception):
+                restaurants_nearby = await self.places.get_places_nearby(
+                    area=area,
+                    included_primary_types=google_category_ids,
+                )
 
-                if not restaurants_nearby:
-                    continue
+            if not restaurants_nearby:
+                continue
 
-                if len(self.excluded_google_place_ids):
-                    restaurants_nearby = [r for r in restaurants_nearby if r.id not in self.excluded_google_place_ids]
+            if len(self.excluded_google_place_ids):
+                restaurants_nearby = [r for r in restaurants_nearby if r.id not in self.excluded_google_place_ids]
 
-                if len(restaurants_nearby) == 0:
-                    # Call `continue` because there is no need to continue if everything was filtered out.
-                    # That's a confusing sentence.
-                    LOGGER.warning(
-                        "no restaurants found for google category ids",
-                        log_ctx,
-                        {"google_category_ids": google_category_id_group},
-                    )
-                    continue
+            if len(restaurants_nearby) == 0:
+                # Call `continue` because there is no need to continue if everything was filtered out.
+                # That's a confusing sentence.
+                LOGGER.warning(
+                    "no restaurants found for google category ids",
+                    log_ctx,
+                    {"google_category_ids": google_category_ids},
+                )
+                continue
 
-                random.shuffle(restaurants_nearby)
+            random.shuffle(restaurants_nearby)
 
-                perform_lte_price_level_comparison = arrival_time_local.hour < 11
+            perform_lte_price_level_comparison = arrival_time_local.hour < 11
+            if perform_lte_price_level_comparison:
+                # Before 11am, most restaurants are cheaper ($$ or less).
+                # So if someone chooses $$$-$$$$, we would rarely should them a restaurant recommendation.
+                # So in this case, we sort the (already shuffled) retrieved restaurants by price level descending.
+                # We don't do this for >= 11am because we don't want to recommend McDonald's for an expensive night out.
+                restaurants_nearby.sort(key=lambda place: place.price_level.value, reverse=True)  # in-place sort
+
+            for restaurant in restaurants_nearby:
                 if perform_lte_price_level_comparison:
-                    # Before 11am, most restaurants are cheaper ($$ or less).
-                    # So if someone chooses $$$-$$$$, we would rarely should them a restaurant recommendation.
-                    # So in this case, we sort the (already shuffled) retrieved restaurants by price level descending.
-                    # We don't do this for >= 11am because we don't want to recommend McDonald's for an expensive night out.
-                    restaurants_nearby.sort(key=lambda place: place.price_level.value, reverse=True)  # in-place sort
+                    # <=
+                    # If we're < 11am, then find restaurants that have price less <= the selected price level
+                    price_level_matches = restaurant.price_level <= self.survey.budget.google_places_price_level
+                else:
+                    # ==
+                    # Otherwise, find only restaurants that match the selected price livel
+                    price_level_matches = restaurant.price_level == self.survey.budget.google_places_price_level
 
-                for restaurant in restaurants_nearby:
-                    if perform_lte_price_level_comparison:
-                        # <=
-                        # If we're < 11am, then find restaurants that have price less <= the selected price level
-                        price_level_matches = restaurant.price_level <= self.survey.budget.google_places_price_level
-                    else:
-                        # ==
-                        # Otherwise, find only restaurants that match the selected price livel
-                        price_level_matches = restaurant.price_level == self.survey.budget.google_places_price_level
+                will_be_open = self.places.place_will_be_open(
+                    place=restaurant,
+                    arrival_time=arrival_time_local,
+                    departure_time=departure_time_local,
+                    timezone=self.survey.timezone,
+                )
 
-                    will_be_open = self.places.place_will_be_open(
-                        place=restaurant,
-                        arrival_time=arrival_time_local,
-                        departure_time=departure_time_local,
-                        timezone=self.survey.timezone,
-                    )
-
-                    # Select restaurants that _match_ their requested budget.
-                    # So if they request an expensive date, we don't recommend McDonald's.
-                    if will_be_open and price_level_matches:
-                        with suppress_in_production(Exception):
-                            # We do this so that we can include minimal fields in the search_nearby requests.
-                            place = await self.places.get_google_place(place_id=restaurant.id)
-                            if place:
-                                self.restaurant = await self.places.restaurant_from_google_place(place=place)
-                                return self.restaurant
+                # Select restaurants that _match_ their requested budget.
+                # So if they request an expensive date, we don't recommend McDonald's.
+                if will_be_open and price_level_matches:
+                    with suppress_in_production(Exception):
+                        # We do this so that we can include minimal fields in the search_nearby requests.
+                        place = await self.places.get_google_place(place_id=restaurant.id)
+                        if place:
+                            self.restaurant = await self.places.restaurant_from_google_place(place=place)
+                            return self.restaurant
 
         LOGGER.warning("no restaurant found", log_ctx)
 

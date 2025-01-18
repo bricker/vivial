@@ -472,7 +472,8 @@ class GooglePlacesUtility:
         location_restriction.circle.center.longitude = area.center.lon
         request = SearchNearbyRequest(
             location_restriction=location_restriction,
-            included_primary_types=included_primary_types[0:50],
+            included_primary_types=included_primary_types[0:50], # Maximum 50 types are allowed
+            max_result_count=20, # max allowed
         )
 
         response = await self._client.search_nearby(
