@@ -1,3 +1,5 @@
+import json
+
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
@@ -10,13 +12,16 @@ from eave.core.lib.google_places import GooglePlacesUtility
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.survey import SurveyOrm
+from eave.core.redis import CACHE
 from eave.core.shared.enums import ActivitySource, OutingBudget
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
-from eave.stdlib.eventbrite.models.event import EventStatus
+from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.time import ONE_HOUR_IN_SECONDS
 
 
 class EventbriteUtility:
@@ -26,8 +31,25 @@ class EventbriteUtility:
         self.client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self._places = GooglePlacesUtility()
 
-    async def get_eventbrite_activity(self, *, event_id: str, survey: SurveyOrm | None) -> Activity | None:
+    async def get_eventbrite_event(self, *, event_id: str) -> Event:
+        cache_key = f"eventbrite:event:{event_id}"
+
+        with suppress_in_production(Exception):
+            if cv := await CACHE.get(cache_key):
+                LOGGER.debug("CACHE HIT: Eventbrite Event", {"event_id": event_id})
+                return json.loads(cv)
+            else:
+                LOGGER.debug("CACHE MISS: Eventbrite Event", {"event_id": event_id})
+
         event = await self.client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
+
+        with suppress_in_production(Exception):
+            await CACHE.set(cache_key, json.dumps(event), ex=ONE_HOUR_IN_SECONDS * 6)
+
+        return event
+
+    async def get_eventbrite_activity(self, *, event_id: str, survey: SurveyOrm | None) -> Activity | None:
+        event = await self.get_eventbrite_event(event_id=event_id)
 
         if not (ticket_availability := event.get("ticket_availability")):
             LOGGER.warning(

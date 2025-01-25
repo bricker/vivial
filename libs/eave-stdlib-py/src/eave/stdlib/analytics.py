@@ -1,10 +1,12 @@
 import logging
-from typing import TypedDict
+from collections.abc import Mapping
+from typing import Any, TypedDict
 from uuid import UUID
 
 import segment.analytics
 
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.exceptions import suppress_in_production
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonObject
 
@@ -37,22 +39,18 @@ class AnalyticsTracker:
         account_id: UUID,
         visitor_id: str | None,
         extra_properties: JsonObject | None = None,
+        ctx: Mapping[str, Any] | None = None,
     ) -> None:
         """Identify a user.
         Should only be called on account creation, or update.
         https://segment.com/docs/connections/sources/catalog/libraries/server/python/#identify
         """
-        try:
+        with suppress_in_production(Exception, ctx=ctx):
             segment.analytics.identify(
                 user_id=str(account_id),
                 traits=extra_properties,
                 anonymous_id=visitor_id,
             )
-        except Exception as e:
-            if SHARED_CONFIG.is_local:
-                raise
-            else:
-                LOGGER.exception(e)
 
     def track(
         self,
@@ -60,8 +58,9 @@ class AnalyticsTracker:
         event_name: str,
         account_id: UUID | None,
         visitor_id: str | None,
-        ctx: AnalyticsContext | None,
+        analytics_ctx: AnalyticsContext | None,
         extra_properties: JsonObject | None = None,
+        ctx: Mapping[str, Any] | None = None,
     ) -> None:
         """Track a user triggered action.
         At least one of `user_id` or `visitor_id` must be provided.
@@ -75,18 +74,13 @@ class AnalyticsTracker:
         properties = {}
         if extra_properties:
             properties.update(extra_properties)
-        if ctx:
-            properties.update(ctx)
+        if analytics_ctx:
+            properties.update(analytics_ctx)
 
-        try:
+        with suppress_in_production(Exception, ctx=ctx):
             segment.analytics.track(
                 user_id=user_id,
                 event=event_name,
                 properties=properties,
                 anonymous_id=anon_id,
             )
-        except Exception as e:
-            if SHARED_CONFIG.is_local:
-                raise
-            else:
-                LOGGER.exception(e)

@@ -3,9 +3,10 @@ import logging
 import sys
 from collections.abc import Mapping
 from logging import Logger, LogRecord
-from typing import Any, override
+from typing import Any, cast, override
 
 import google.cloud.logging
+import proto
 
 from eave.stdlib.typing import JsonObject, JsonValue
 
@@ -114,29 +115,31 @@ class EaveLogger:
     def fprint(self, level: int, message: str) -> None:
         print(self.f(level, message))
 
-    def debug(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
+    def debug(self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         self._raw_logger.debug(**self._preparekwargs(msg, *args, **kwargs))
 
-    def info(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
+    def info(self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         self._raw_logger.info(**self._preparekwargs(msg, *args, **kwargs))
 
-    def warning(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
+    def warning(self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         self._raw_logger.warning(**self._preparekwargs(msg, *args, **kwargs))
 
-    def error(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
+    def error(self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.error(**self._preparekwargs(msg, *args, **kwargs))
 
-    def exception(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
+    def exception(self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.exception(**self._preparekwargs(msg, *args, **kwargs))
 
-    def critical(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
+    def critical(self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any) -> None:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
 
-    def _preparekwargs(self, msg: str | Exception, *args: Mapping[str, object] | None, **kwargs: Any) -> dict[str, Any]:
-        if isinstance(msg, Exception):
+    def _preparekwargs(
+        self, msg: str | BaseException, *args: Mapping[str, object] | None, **kwargs: Any
+    ) -> dict[str, Any]:
+        if isinstance(msg, BaseException):
             kwargs["exc_info"] = True
 
         kwargs.setdefault("stacklevel", 2)
@@ -150,7 +153,11 @@ class EaveLogger:
                     for k, v in a.items():
                         eave_extras[k] = self._build_extra(v)
                 except Exception as e:
-                    self._raw_logger.exception(e)
+                    # We can't use suppress_in_production here because it calls LOGGER and could cause infinite recursion
+                    if SHARED_CONFIG.is_local:
+                        raise
+                    else:
+                        self._raw_logger.exception(e)
 
         # This is a special field in Cloud Logging, which sits outside of `json_fields`.
         http_request = eave_extras.pop("http_request", None)
@@ -177,11 +184,19 @@ class EaveLogger:
                 return {k: self._build_extra(e) for k, e in v.items()}
             elif dataclasses.is_dataclass(v) and not isinstance(v, type):
                 return self._build_extra(dataclasses.asdict(v))
+            elif isinstance(object, proto.Message):
+                # We have to cast here because `proto.Message.to_dict` return type is incorrect in the source code.
+                j = cast(dict[str, Any], proto.Message.to_dict(v))
+                return self._build_extra(j)
             else:
                 return str(v)
         except Exception as e:
-            self._raw_logger.exception(e)
-            return "[PARSING ERROR]"
+            # We can't use suppress_in_production here because it calls LOGGER and could cause infinite recursion
+            if SHARED_CONFIG.is_local:
+                raise
+            else:
+                self._raw_logger.exception(e)
+                return "[PARSING ERROR]"
 
 
 LOGGER = EaveLogger()

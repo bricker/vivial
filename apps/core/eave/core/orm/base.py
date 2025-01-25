@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, UOWTransaction, mapped_column
 
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.logging import LOGGER
+from eave.stdlib.exceptions import suppress_in_production
 
 
 class InvalidRecordError(Exception):
@@ -47,7 +47,8 @@ def validate_session(session: Session, flush_context: UOWTransaction, instances:
     This does have the benefit of validating everything at once, so the client will receive all validation errors.
     """
     validation_errors: list[ValidationError] = []
-    try:
+    with suppress_in_production(Exception):
+        # If there was some unexpected error during validation, then don't prevent the SQL operation
         for obj in session.dirty:
             if isinstance(obj, Base):
                 validation_errors.extend(obj.validate())
@@ -55,10 +56,6 @@ def validate_session(session: Session, flush_context: UOWTransaction, instances:
         for obj in session.new:
             if isinstance(obj, Base):
                 validation_errors.extend(obj.validate())
-
-    except Exception as e:
-        # If there was some unexpected error during validation, then don't prevent the SQL operation
-        LOGGER.exception(e)
 
     if len(validation_errors) > 0:
         raise InvalidRecordError(validation_errors=validation_errors)

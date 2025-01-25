@@ -190,66 +190,6 @@ class _EaveConfig(ConfigBase):
         )
 
     @cached_property
-    def redis_connection(self) -> tuple[str, int, str] | None:
-        key = "REDIS_HOST_PORT"
-        value: str | None
-
-        if self.is_local:
-            # This secret should never be pulled from Google Cloud during development.
-            value = os.getenv(key)
-        else:
-            try:
-                value = get_secret(key)
-            except Exception:
-                value = None
-
-        if not value:
-            return None
-
-        parts = value.split(":")
-        if len(parts) == 3:
-            host, port_, db = parts
-            port = int(port_)
-        elif len(parts) == 2:
-            host, port_ = parts
-            port = int(port_)
-            db = "0"
-        elif len(parts) == 1:
-            host = parts[0]
-            port = 6379
-            db = "0"
-        else:
-            host = "localhost"
-            port = 6379
-            db = "0"
-
-        return (host, port, db)
-
-    @cached_property
-    def redis_auth(self) -> str | None:
-        key = "REDIS_AUTH"
-
-        if self.is_local:
-            return os.getenv(key)
-        else:
-            try:
-                return get_secret(key)
-            except Exception:
-                return None
-
-    @cached_property
-    def redis_tls_ca(self) -> str | None:
-        key = "REDIS_TLS_CA"
-
-        if self.is_local:
-            return os.getenv(key)
-        else:
-            try:
-                return get_secret(key)
-            except Exception:
-                return None
-
-    @cached_property
     def eave_slack_system_bot_token(self) -> str:
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value

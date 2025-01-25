@@ -9,9 +9,11 @@ aiohttp==3.11.0
 google-cloud-logging==3.11.0
 google-maps-places==0.1.19
 google-maps-routing==0.6.13
+google-cloud-redis==2.16.1
 starlette==0.41.3
 asgiref @ git+https://github.com/django/asgiref@7c8d31c05957bd644f9cead04206f11a0011c3d4
 cryptography==41.0.7
 strawberry-graphql[asgi,cli]==0.256.1
 stripe==11.3.0
 googlemaps==4.10.0
+redis[hiredis]==5.2.1

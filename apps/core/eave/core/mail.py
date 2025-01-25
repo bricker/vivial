@@ -1,4 +1,6 @@
 import dataclasses
+from collections.abc import Mapping
+from typing import Any
 
 from eave.core.orm.booking import BookingOrm, BookingState
 from eave.stdlib.config import SHARED_CONFIG
@@ -27,21 +29,16 @@ class BookingConfirmationData:
     restaurants: list[EventItem]
 
 
-def send_welcome_email(*, to_emails: list[str]) -> None:
-    try:
-        SENDGRID_MAILER.send_templated_email(
-            to_emails=to_emails,
-            template_id=_WELCOME_EMAIL_TEMPLATE_ID,
-            dynamic_data={},
-        )
-    except Exception as e:
-        if SHARED_CONFIG.is_local:
-            raise
-        else:
-            LOGGER.exception(e)
+def send_welcome_email(*, to_emails: list[str], ctx: Mapping[str, Any]) -> None:
+    SENDGRID_MAILER.send_templated_email(
+        to_emails=to_emails,
+        template_id=_WELCOME_EMAIL_TEMPLATE_ID,
+        dynamic_data={},
+        ctx=ctx,
+    )
 
 
-def send_booking_status_email(*, booking_orm: BookingOrm, emails: list[str]) -> None:
+def send_booking_status_email(*, booking_orm: BookingOrm, emails: list[str], ctx: Mapping[str, Any]) -> None:
     data = BookingConfirmationData(
         booking_date=pretty_date(booking_orm.start_time_local),
         booking_details_url=f"{SHARED_CONFIG.eave_dashboard_base_url_public}/plans/{booking_orm.id}?utm_source=booking-confirmation-email",
@@ -67,16 +64,12 @@ def send_booking_status_email(*, booking_orm: BookingOrm, emails: list[str]) -> 
         case BookingState.BOOKED:
             template_id = _BOOKING_BOOKED_EMAIL_TEMPLATE_ID
         case _:
-            raise ValueError(f"Invalid booking status: {booking_orm.state}")
+            LOGGER.warning(f"Invalid booking status: {booking_orm.state}", ctx)
+            return None
 
-    try:
-        SENDGRID_MAILER.send_templated_email(
-            to_emails=emails,
-            template_id=template_id,
-            dynamic_data=dataclasses.asdict(data),
-        )
-    except Exception as e:
-        if SHARED_CONFIG.is_local:
-            raise
-        else:
-            LOGGER.exception(e)
+    SENDGRID_MAILER.send_templated_email(
+        to_emails=emails,
+        template_id=template_id,
+        dynamic_data=dataclasses.asdict(data),
+        ctx=ctx,
+    )

@@ -449,7 +449,7 @@ async def _get_eventbrite_events() -> None:
                     if (address := venue.get("address")) and (
                         localized_address := address.get("localized_address_display")
                     ):
-                        geocode_results = maps.geocode(address=localized_address)
+                        geocode_results = await maps.geocode(address=localized_address)
                         if len(geocode_results) > 0:
                             google_place_id = geocode_results[0].get("place_id")
 
@@ -522,7 +522,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        LOGGER.error(e)
+        LOGGER.exception(e)
     finally:
         _run_stats["end_time"] = datetime.now().isoformat()
         _run_stats["runtime_minutes"] = int((time.perf_counter() - _perf_start) / 60)

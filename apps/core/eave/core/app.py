@@ -17,15 +17,15 @@ from eave.core.endpoints.logout import LogoutEndpoint
 from eave.core.endpoints.noop import NoopEndpoint
 from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
-from eave.stdlib import cache
+from eave.core.redis import CACHE
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.middleware.iap_jwt_validation import IAPJWTValidationMiddleware
 from eave.stdlib.starlette import exception_handlers
 
-from .admin.graphql.schema import schema as internal_schema
 from .database import async_engine
-from .graphql.schema import schema
+from .graphql.admin.schema import schema as internal_schema
+from .graphql.root.schema import schema
 
 eave.stdlib.time.set_utc()
 
@@ -69,8 +69,7 @@ async def _app_lifespan(app: starlette.applications.Starlette) -> AsyncGenerator
     await async_engine.dispose()
 
     try:
-        if client := cache.initialized_client():
-            await client.close()
+        await CACHE.close()
     except Exception as e:
         LOGGER.exception(e)
 

@@ -1,5 +1,4 @@
 import base64
-import contextlib
 import hashlib
 import json
 import re
@@ -240,14 +239,6 @@ def erasetype(data: JsonObject, key: str, default: JsonValue | None = None) -> A
         return v
     else:
         return None
-
-
-def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
-    """
-    Proxy to contextlib.suppress(), but with the ability to do it on a single line
-    """
-    with contextlib.suppress(e):
-        return func()
 
 
 def tableize(string: str) -> str:
