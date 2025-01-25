@@ -20,10 +20,10 @@ locals {
       cidr_block   = "73.35.152.53/32"
       display_name = "Liam's Home Network"
     },
-    "bryan-culver" : {
-      cidr_block   = "76.32.108.72/32"
-      display_name = "Bryan's Culver City Wifi"
-    },
+    # "bryan-culver" : {
+    #   cidr_block   = "76.32.108.72/32"
+    #   display_name = "Bryan's Culver City Wifi"
+    # },
   }
 
   STRIPE_ENVIRONMENT        = "test"
