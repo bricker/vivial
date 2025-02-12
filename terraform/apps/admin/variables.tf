@@ -51,14 +51,6 @@ variable "LOG_LEVEL" {
   default = "info"
 }
 
-variable "iap_oauth_client_id" {
-  type = string
-}
-
-variable "iap_oauth_client_kube_secret_name" {
-  type = string
-}
-
 variable "iap_jwt_aud" {
   type = string
 }

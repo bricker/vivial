@@ -16,8 +16,6 @@ module "kubernetes_services" {
   service_port                      = local.service_port
   app_name                          = local.app_name
   app_port                          = local.app_port
-  iap_oauth_client_kube_secret_name = var.iap_oauth_client_kube_secret_name
-  iap_oauth_client_id               = var.iap_oauth_client_id
   iap_enabled                       = each.value.iap_enabled
 }
 

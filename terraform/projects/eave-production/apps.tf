@@ -2,7 +2,6 @@ module "shared_kubernetes_resources" {
   depends_on = [module.gke_primary]
 
   source                     = "../../modules/kube_shared_resources"
-  iap_oauth_client_secret    = module.iap.google_iap_client.secret
   dns_domain                 = local.dns_domain
   www_public_domain_prefix   = local.www_public_domain_prefix
   api_public_domain_prefix   = local.api_public_domain_prefix
@@ -47,8 +46,6 @@ module "core_api_app" {
   internal_iap_jwt_aud              = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["core_api_iap"].generated_id}"
   root_iap_enabled                  = false
   root_iap_jwt_aud                  = null
-  iap_oauth_client_id               = module.iap.google_iap_client.client_id
-  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 
   eventbrite_filler_cron_schedule = "0 12 * * *" # Daily at 4/5am PT
 }
@@ -71,8 +68,6 @@ module "dashboard_app" {
 
   iap_enabled                       = false
   iap_jwt_aud                       = null
-  iap_oauth_client_id               = module.iap.google_iap_client.client_id
-  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }
 
 module "admin_app" {
@@ -92,6 +87,4 @@ module "admin_app" {
   release_version = "latest"
 
   iap_jwt_aud                       = "/projects/${data.google_project.default.number}/global/backendServices/${data.google_compute_backend_service.k8s_backend_services["admin"].generated_id}"
-  iap_oauth_client_id               = module.iap.google_iap_client.client_id
-  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }

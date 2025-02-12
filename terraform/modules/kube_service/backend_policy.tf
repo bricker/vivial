@@ -18,10 +18,6 @@ resource "kubernetes_manifest" "backend_policy" {
         # https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_iap
         iap = {
           enabled = var.iap_enabled
-          oauth2ClientSecret = {
-            name = var.iap_oauth_client_kube_secret_name
-          }
-          clientID = var.iap_oauth_client_id
         }
 
         logging = {

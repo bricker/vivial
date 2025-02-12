@@ -33,22 +33,3 @@ resource "kubernetes_config_map" "shared" {
     GOOGLE_MAPS_APIS_DISABLED = var.GOOGLE_MAPS_APIS_DISABLED ? "1" : null
   }
 }
-
-
-# This is for Gateway IAP
-# Secrets have to be created per-namespace
-resource "kubernetes_secret" "iap_oauth_client_secret" {
-  for_each = toset([
-    kubernetes_namespace.eave.metadata[0].name,
-  ])
-
-  metadata {
-    name      = "iap-oauth-client-secret"
-    namespace = each.value
-  }
-
-  type = "Opaque"
-  data = {
-    key = var.iap_oauth_client_secret
-  }
-}

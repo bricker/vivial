@@ -98,14 +98,6 @@ variable "JWS_SIGNING_KEY_VERSION_PATH" {
   type = string
 }
 
-variable "iap_oauth_client_id" {
-  type = string
-}
-
-variable "iap_oauth_client_kube_secret_name" {
-  type = string
-}
-
 variable "internal_iap_jwt_aud" {
   type = string
 }

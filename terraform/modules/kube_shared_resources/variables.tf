@@ -3,10 +3,6 @@ variable "google_project" {
     project_id = string
   })
 }
-variable "iap_oauth_client_secret" {
-  type      = string
-  sensitive = true
-}
 
 variable "dns_domain" {
   type = string
