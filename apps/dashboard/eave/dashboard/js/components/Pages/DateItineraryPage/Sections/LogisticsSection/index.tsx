@@ -6,7 +6,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, routePath, type NavigationState } from "$eave-dashboard/js/routes";
+import {
+  AppRoute,
+  ItineraryPageVariant,
+  SearchParam,
+  routePath,
+  type NavigationState,
+} from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { useGetSearchRegionsQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
@@ -220,9 +226,16 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         dispatch(chosePreferences({ user: userPreferences }));
 
         const navigationState: NavigationState = { scrollBehavior: "smooth" };
-        navigate(routePath({ route: AppRoute.itinerary, pathParams: { outingId: updatedOuting.id } }), {
-          state: navigationState,
-        });
+        navigate(
+          routePath({
+            route: AppRoute.itinerary,
+            pathParams: { outingId: updatedOuting.id },
+            searchParams: { [SearchParam.variant]: ItineraryPageVariant.PreferencesBanner },
+          }),
+          {
+            state: navigationState,
+          },
+        );
       } else {
         setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
       }

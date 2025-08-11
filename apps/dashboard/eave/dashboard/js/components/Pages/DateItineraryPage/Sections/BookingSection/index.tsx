@@ -174,7 +174,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookButtonLoading, setBookButtonLoading] = useState(false);
-
   const [oneClickEligible, setOneClickEligible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -332,9 +331,16 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           dispatch(plannedOuting({ outing: newOuting }));
 
           const navigationState: NavigationState = { scrollBehavior: "smooth" };
-          navigate(routePath({ route: AppRoute.itinerary, pathParams: { outingId: newOuting.id } }), {
-            state: navigationState,
-          });
+          navigate(
+            routePath({
+              route: AppRoute.itinerary,
+              pathParams: { outingId: newOuting.id },
+              searchParams: { [SearchParam.variant]: ItineraryPageVariant.PreferencesBanner },
+            }),
+            {
+              state: navigationState,
+            },
+          );
           break;
         }
         default: {
